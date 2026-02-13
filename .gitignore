@@ -1,0 +1,14 @@
+/node_modules
+.env
+dist/
+build/
+*.log
+*.bak
+.vscode/
+bin/
+obj/
+*.user
+*.suo
+*.pdb
+*.dll
+*.exe

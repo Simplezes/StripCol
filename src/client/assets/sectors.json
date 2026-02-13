@@ -1,0 +1,669 @@
+{
+  "BAS": {
+    "airports": [
+      "SKBQ"
+    ]
+  },
+  "NNA": {
+    "airports": [
+      "SKCG"
+    ]
+  },
+  "BGND": {
+    "airports": [
+      "SKBO"
+    ]
+  },
+  "BNGN:BGND": {
+    "airports": [
+      "SKBO"
+    ]
+  },
+  "BNTW:BTWR": {
+    "airports": [
+      "SKBO"
+    ]
+  },
+  "BSGN:BGND": {
+    "airports": [
+      "SKBO",
+      "SKCG",
+      "SKBQ",
+      "SKSM",
+      "SKRH",
+      "SKLM",
+      "SKVP",
+      "SKCZ",
+      "SKMG",
+      "SKMP",
+      "SKMR",
+      "SKCV",
+      "SKTL"
+    ]
+  },
+  "SETU:IPA:SKED:SEFG2:SEFG": {
+    "airports": []
+  },
+  "BAT": {
+    "airports": [
+      "SKBQ"
+    ]
+  },
+  "NNT": {
+    "airports": [
+      "SKCG"
+    ]
+  },
+  "BRT": {
+    "airports": [
+      "SKCZ"
+    ]
+  },
+  "GZT": {
+    "airports": [
+      "SKMR"
+    ]
+  },
+  "EMT": {
+    "airports": [
+      "SKPV"
+    ]
+  },
+  "APT": {
+    "airports": [
+      "SKRH"
+    ]
+  },
+  "SBT": {
+    "airports": [
+      "SKSM"
+    ]
+  },
+  "ADZ": {
+    "airports": [
+      "SKSP"
+    ]
+  },
+  "ALT": {
+    "airports": [
+      "SKVP"
+    ]
+  },
+  "AXMTW": {
+    "airports": [
+      "SKAR"
+    ]
+  },
+  "PUUTW": {
+    "airports": [
+      "SKAS"
+    ]
+  },
+  "BGATW": {
+    "airports": [
+      "SKBG"
+    ]
+  },
+  "BNTW:BSTW:BNAP:BSAP:BCAP:NE:NW:SW:SE:SKED": {
+    "airports": [
+      "SKBO"
+    ]
+  },
+  "BSTW:BTWR": {
+    "airports": [
+      "SKBO"
+    ]
+  },
+  "BHSTW": {
+    "airports": [
+      "SKBS"
+    ]
+  },
+  "BUNTW": {
+    "airports": [
+      "SKBU"
+    ]
+  },
+  "CUCTW": {
+    "airports": [
+      "SKCC"
+    ]
+  },
+  "CLTW": {
+    "airports": [
+      "SKCL"
+    ]
+  },
+  "TCOTW": {
+    "airports": [
+      "SKCO"
+    ]
+  },
+  "EJATW": {
+    "airports": [
+      "SKEJ"
+    ]
+  },
+  "FLATW": {
+    "airports": [
+      "SKFL"
+    ]
+  },
+  "GITW": {
+    "airports": [
+      "SKGI"
+    ]
+  },
+  "CRCTW:PEITW:PEIAP:CLAP:SKED": {
+    "airports": [
+      "SKGO"
+    ]
+  },
+  "GPITW": {
+    "airports": [
+      "SKGP"
+    ]
+  },
+  "GYTW": {
+    "airports": [
+      "SKGY"
+    ]
+  },
+  "IBTW": {
+    "airports": [
+      "SKIB"
+    ]
+  },
+  "IPT": {
+    "airports": [
+      "SKIP"
+    ]
+  },
+  "LCTW": {
+    "airports": [
+      "SKLC"
+    ]
+  },
+  "LETTW": {
+    "airports": [
+      "SKLT"
+    ]
+  },
+  "MTWR": {
+    "airports": [
+      "SKMD"
+    ]
+  },
+  "MTUTW": {
+    "airports": [
+      "SKMU"
+    ]
+  },
+  "MZLTW": {
+    "airports": [
+      "SKMZ"
+    ]
+  },
+  "NVATW": {
+    "airports": [
+      "SKNV"
+    ]
+  },
+  "PCRTW": {
+    "airports": [
+      "SKPC"
+    ]
+  },
+  "PDATW": {
+    "airports": [
+      "SKPD"
+    ]
+  },
+  "PEITW:CRCTW": {
+    "airports": [
+      "SKPE ",
+      "SKGO"
+    ]
+  },
+  "PPNTW": {
+    "airports": [
+      "SKPP"
+    ]
+  },
+  "PSOTW": {
+    "airports": [
+      "SKPS"
+    ]
+  },
+  "MQTW": {
+    "airports": [
+      "SKQU"
+    ]
+  },
+  "RTWR": {
+    "airports": [
+      "SKRG"
+    ]
+  },
+  "RVETW": {
+    "airports": [
+      "SKSA"
+    ]
+  },
+  "SJETW": {
+    "airports": [
+      "SKSJ"
+    ]
+  },
+  "SVITW": {
+    "airports": [
+      "SKSV"
+    ]
+  },
+  "TMETW": {
+    "airports": [
+      "SKTM"
+    ]
+  },
+  "SKUATW": {
+    "airports": [
+      "SKUA"
+    ]
+  },
+  "AUCTW": {
+    "airports": [
+      "SKUC"
+    ]
+  },
+  "UITW": {
+    "airports": [
+      "SKUI"
+    ]
+  },
+  "VVCTW": {
+    "airports": [
+      "SKVV"
+    ]
+  },
+  "EYPTW": {
+    "airports": [
+      "SKYP"
+    ]
+  },
+  "SBAZW:SBAZCW:SBAZ": {
+    "airports": []
+  },
+  "SENL:SEFG2:SEFG": {
+    "airports": []
+  },
+  "SETNA:SEFG2:SEFG": {
+    "airports": []
+  },
+  "SETNTW:SETNA:SEFG2:SEFG": {
+    "airports": []
+  },
+  "BIS": {
+    "airports": [
+      "SKVP",
+      "SKBC",
+      "SKMP"
+    ]
+  },
+  "BIN": {
+    "airports": [
+      "SKRH",
+      "SKLM",
+      "SKPB"
+    ]
+  },
+  "BQA": {
+    "airports": [
+      "SKCG",
+      "SKBQ",
+      "SKSM",
+      "SKMR",
+      "SKCZ",
+      "SKMG",
+      "SKML",
+      "SKCU",
+      "SKTL",
+      "SKCV"
+    ]
+  },
+  "BQN": {
+    "airports": [
+      "SKBQ",
+      "SKCG",
+      "SKSM",
+      "SKCZ",
+      "SKMR"
+    ]
+  },
+  "BQS": {
+    "airports": [
+      "SKMR",
+      "SKCZ",
+      "SKBQ",
+      "SKCG",
+      "SKSM",
+      "SKTL"
+    ]
+  },
+  "SPPAP": {
+    "airports": [
+      "SKSP",
+      "SKPV"
+    ]
+  },
+  "IPA": {
+    "airports": [
+      "SKIP"
+    ]
+  },
+  "BGAAP": {
+    "airports": [
+      "SKBG",
+      "SKEJ",
+      "SKCM",
+      "SKSG",
+      "SKLA",
+      "SKOC"
+    ]
+  },
+  "BAPP": {
+    "airports": [
+      "SKBO",
+      "SKGI",
+      "SKIB",
+      "SKQU",
+      "SKGY",
+      "SKMZ"
+    ]
+  },
+  "BCAP": {
+    "airports": [
+      "SKBO"
+    ]
+  },
+  "BNAP": {
+    "airports": [
+      "SKBO",
+      "SKGY"
+    ]
+  },
+  "BSAP": {
+    "airports": [
+      "SKBO",
+      "SKGI",
+      "SKIB"
+    ]
+  },
+  "BWAP": {
+    "airports": [
+      "SKBO",
+      "SKQU",
+      "SKMZ"
+    ]
+  },
+  "CUCAP": {
+    "airports": [
+      "SKCC",
+      "SKSA",
+      "SKTM",
+      "SKUC"
+    ]
+  },
+  "CUNAP": {
+    "airports": [
+      "SKCC"
+    ]
+  },
+  "CUSAP": {
+    "airports": [
+      "SKSA",
+      "SKTM",
+      "SKUC"
+    ]
+  },
+  "CLAP": {
+    "airports": [
+      "SKCL",
+      "SKPE",
+      "SKAR",
+      "SKGO",
+      "SKPP",
+      "SKBU",
+      "SKUL"
+    ]
+  },
+  "LETAP": {
+    "airports": [
+      "SKLT",
+      "SKUI",
+      "SKMD",
+      "SKLC",
+      "SKRG",
+      "SKGO",
+      "SKNQ",
+      "SKBS"
+    ]
+  },
+  "MNAP": {
+    "airports": [
+      "SKMD",
+      "SKRG",
+      "SKOT",
+      "SKPE"
+    ]
+  },
+  "MSAP": {
+    "airports": [
+      "SKMD",
+      "SKRG"
+    ]
+  },
+  "MAPP": {
+    "airports": [
+      "SKMD",
+      "SKRG",
+      "SKPE",
+      "SKOT"
+    ]
+  },
+  "NVAAP": {
+    "airports": [
+      "SKNV"
+    ]
+  },
+  "PEIAP": {
+    "airports": [
+      "SKPE",
+      "SKAR",
+      "SKGO",
+      "SKMZ"
+    ]
+  },
+  "PALAP": {
+    "airports": [
+      "SKPQ"
+    ]
+  },
+  "VVCAP": {
+    "airports": [
+      "SKVV",
+      "SKAP"
+    ]
+  },
+  "EYPAP": {
+    "airports": [
+      "SKYP"
+    ]
+  },
+  "TNCFA:TNCF": {
+    "airports": []
+  },
+  "MHCC:N": {
+    "airports": []
+  },
+  "MKJKE:MKJK": {
+    "airports": []
+  },
+  "MKJKE:MKJK:CARI": {
+    "airports": []
+  },
+  "MPZLE:MPZLN:MPZL:N": {
+    "airports": []
+  },
+  "MPZLN:MPZLW:MPZL:N": {
+    "airports": []
+  },
+  "MPZL:N": {
+    "airports": []
+  },
+  "MPZLW:MPZL:N": {
+    "airports": []
+  },
+  "SBAZC:SBAZCW:SBAZCE:SBAZ": {
+    "airports": []
+  },
+  "SEFG2:SEFG": {
+    "airports": []
+  },
+  "SEFG:N": {
+    "airports": []
+  },
+  "SKEC": {
+    "airports": [
+      "SKCG",
+      "SKBQ",
+      "SKSM",
+      "SKRH",
+      "SKLM",
+      "SKVP",
+      "SKCZ",
+      "SKMG",
+      "SKMP",
+      "SKMR",
+      "SKCV",
+      "SKTL"
+    ]
+  },
+  "SKECN": {
+    "airports": [
+      "SKCG",
+      "SKBQ",
+      "SKSM",
+      "SKRH",
+      "SKLM",
+      "SKVP",
+      "SKCZ",
+      "SKMG",
+      "SKMP",
+      "SKMR",
+      "SKCV",
+      "SKTL"
+    ]
+  },
+  "SKECS": {
+    "airports": [
+      "SKVP",
+      "SKCZ",
+      "SKMG",
+      "SKMP",
+      "SKMR",
+      "SKCV",
+      "SKTL",
+      "SKCG",
+      "SKBQ",
+      "SKSM",
+      "SKRH",
+      "SKLM"
+    ]
+  },
+  "CLCT": {
+    "airports": []
+  },
+  "SKED": {
+    "airports": [
+      "SKUC",
+      "SKAR",
+      "SKBS",
+      "SKEJ",
+      "SKBQ",
+      "SKBO",
+      "SKBG",
+      "SKBU",
+      "SKCL",
+      "SKLC",
+      "SKCG",
+      "SKGO",
+      "SKGY",
+      "SKCZ",
+      "SKCC",
+      "SKYP",
+      "SKFL",
+      "SKGI",
+      "SKGP",
+      "SKIB",
+      "SKPD",
+      "SKIP",
+      "SKLT",
+      "SKMZ",
+      "SKQU",
+      "SKMD",
+      "SKMU",
+      "SKMR",
+      "SKNV",
+      "SKPS",
+      "SKPE",
+      "SKPP",
+      "SKPV",
+      "SKAS",
+      "SKPC",
+      "SKUI",
+      "SKRH",
+      "SKRG",
+      "SKSP",
+      "SKSJ",
+      "SKSM",
+      "SKSA",
+      "SKTM",
+      "SKCO",
+      "SKVP",
+      "SKVV"
+    ]
+  },
+  "NE": {
+    "airports": []
+  },
+  "NW": {
+    "airports": []
+  },
+  "SE": {
+    "airports": []
+  },
+  "SW": {
+    "airports": []
+  },
+  "MDCTR": {
+    "airports": []
+  },
+  "LIME:LIM": {
+    "airports": []
+  },
+  "SVZM": {
+    "airports": []
+  },
+  "SVZM:SVZM1:SVZM2:SVZM3:SVZM4:SVZM5:SVZM6:N": {
+    "airports": []
+  },
+  "SVZM:SVZM1:SVZM2:SVZM3:SVZM4:SVZM5:SVZM6": {
+    "airports": []
+  },
+  "TNCF": {
+    "airports": []
+  },
+  "TNCF:CARE:CARI": {
+    "airports": []
+  }
+}
