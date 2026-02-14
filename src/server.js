@@ -20,7 +20,7 @@ app.get(['/', '/api'], (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.0.0',
+    version: '1.0.1',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -536,5 +536,5 @@ app.get('/api/point-time', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, SERVER_IP, () => {
-  console.log(`Gateway Hub (V1.0.0) listening on ${SERVER_IP}:${PORT}`);
+  console.log(`Gateway Hub (V1.0.1) listening on ${SERVER_IP}:${PORT}`);
 });

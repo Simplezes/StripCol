@@ -1,6 +1,6 @@
 # 🛫 StripCol — VATSIM Colombia Strip Hub
 
-![Version](https://img.shields.io/badge/version-1.0.0--BETA-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.0.1--BETA-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey?style=for-the-badge)
 ![Target](https://img.shields.io/badge/VATSIM-Colombia-yellow?style=for-the-badge)
