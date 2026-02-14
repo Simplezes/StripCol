@@ -226,10 +226,61 @@ function initSettingsEvents() {
     initUpdateCheck();
 }
 
+function renderUpdateResult(result) {
+    const updateStatus = document.getElementById('updateStatus');
+    const versionDisplay = document.getElementById('appVersionDisplay');
+
+    if (result.error) {
+        updateStatus.innerHTML = `<span class="text-danger">Failed: ${result.error}</span>`;
+    } else {
+        if (result.updateAvailable) {
+            updateStatus.innerHTML = `
+                <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
+                    <div class="fw-bold">Update Available: V${result.latestVersion}</div>
+                    <div class="mt-1" style="font-size: 11px; color: var(--text-dim);">Release notes: ${result.notes ? result.notes.substring(0, 50) + '...' : 'New changes!'}</div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button id="installUpdateBtn" class="btn btn-sm btn-success py-1 px-3" style="font-size: 11px;">
+                            Download & Install
+                        </button>
+                        <button id="viewOnGithubBtn" class="btn btn-sm btn-outline-success py-1 px-3" style="font-size: 11px;">
+                            View on GitHub
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('installUpdateBtn').addEventListener('click', async () => {
+                const installBtn = document.getElementById('installUpdateBtn');
+                installBtn.disabled = true;
+                installBtn.innerHTML = '<span class="material-icons rotating me-1" style="font-size: 14px;">sync</span>Downloading...';
+
+                try {
+                    const updateResult = await window.electronAPI.startUpdate(result.zipUrl);
+                    if (updateResult && updateResult.error) {
+                        updateStatus.innerHTML += `<div class="text-danger mt-2" style="font-size: 11px;">Error: ${updateResult.error}</div>`;
+                        installBtn.disabled = false;
+                        installBtn.textContent = 'Retry Install';
+                    }
+                } catch (e) {
+                    updateStatus.innerHTML += `<div class="text-danger mt-2" style="font-size: 11px;">Failed to start update.</div>`;
+                    installBtn.disabled = false;
+                    installBtn.textContent = 'Retry Install';
+                }
+            });
+
+            document.getElementById('viewOnGithubBtn').addEventListener('click', () => {
+                window.electronAPI.openExternal(result.url);
+            });
+        } else {
+            updateStatus.innerHTML = '<span class="text-success">You are up to date!</span>';
+        }
+        if (versionDisplay) versionDisplay.textContent = result.currentVersion;
+    }
+}
+
 function initUpdateCheck() {
     const checkBtn = document.getElementById('checkUpdatesBtn');
     const updateStatus = document.getElementById('updateStatus');
-    const versionDisplay = document.getElementById('appVersionDisplay');
 
     if (!checkBtn) return;
 
@@ -242,28 +293,7 @@ function initUpdateCheck() {
 
         try {
             const result = await window.electronAPI.checkForUpdates();
-
-            if (result.error) {
-                updateStatus.innerHTML = `<span class="text-danger">Failed: ${result.error}</span>`;
-            } else {
-                if (result.updateAvailable) {
-                    updateStatus.innerHTML = `
-                        <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
-                            <div class="fw-bold">Update Available: V${result.latestVersion}</div>
-                            <div class="mt-1" style="font-size: 11px; color: var(--text-dim);">Release notes: ${result.notes ? result.notes.substring(0, 50) + '...' : 'New changes!'}</div>
-                            <button id="viewOnGithubBtn" class="btn btn-sm btn-outline-success mt-2 py-1 px-3" style="font-size: 11px;">
-                                View on GitHub
-                            </button>
-                        </div>
-                    `;
-                    document.getElementById('viewOnGithubBtn').addEventListener('click', () => {
-                        window.electronAPI.openExternal(result.url);
-                    });
-                } else {
-                    updateStatus.innerHTML = '<span class="text-success">You are up to date!</span>';
-                }
-                if (versionDisplay) versionDisplay.textContent = result.currentVersion;
-            }
+            renderUpdateResult(result);
         } catch (e) {
             updateStatus.innerHTML = '<span class="text-danger">Check failed.</span>';
         } finally {
@@ -271,6 +301,26 @@ function initUpdateCheck() {
             checkBtn.innerHTML = '<span class="material-icons me-2" style="font-size: 16px;">update</span>Check for Updates';
         }
     });
+}
+
+async function autoCheckForUpdates() {
+    try {
+        const result = await window.electronAPI.checkForUpdates();
+        if (result && result.updateAvailable) {
+            // Open Settings Modal
+            const settingsBtn = document.getElementById('settingsBtn');
+            if (settingsBtn) settingsBtn.click();
+
+            // Switch to About Tab
+            const aboutTab = document.querySelector('.settings-tab[data-tab="about"]');
+            if (aboutTab) aboutTab.click();
+
+            // Populate the UI directly
+            renderUpdateResult(result);
+        }
+    } catch (e) {
+        console.error("Auto update check failed", e);
+    }
 }
 
 function initPairingLogic() {
@@ -406,5 +456,6 @@ function cleanupStrips() {
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initSettingsEvents();
+    autoCheckForUpdates();
     setInterval(cleanupStrips, 60000); // Check every minute
 });
