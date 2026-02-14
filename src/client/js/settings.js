@@ -278,6 +278,16 @@ function renderUpdateResult(result) {
     }
 }
 
+async function initAppVersion() {
+    try {
+        const version = await window.electronAPI.getVersion();
+        const display = document.getElementById('appVersionDisplay');
+        if (display) display.textContent = version;
+    } catch (e) {
+        console.error("Failed to get version", e);
+    }
+}
+
 function initUpdateCheck() {
     const checkBtn = document.getElementById('checkUpdatesBtn');
     const updateStatus = document.getElementById('updateStatus');
@@ -456,6 +466,7 @@ function cleanupStrips() {
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initSettingsEvents();
+    initAppVersion();
     autoCheckForUpdates();
     setInterval(cleanupStrips, 60000); // Check every minute
 });

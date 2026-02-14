@@ -58,6 +58,10 @@ app.whenReady().then(() => {
     });
 });
 
+ipcMain.handle('get-version', () => {
+    return require('../package.json').version;
+});
+
 ipcMain.on('restart-server', (event, ip) => {
     if (ip !== currentServerIp) {
         console.log(`Restarting server with new IP: ${ip}`);
