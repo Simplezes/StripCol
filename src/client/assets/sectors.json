@@ -27,18 +27,23 @@
   "BSGN:BGND": {
     "airports": [
       "SKBO",
-      "SKCG",
       "SKBQ",
-      "SKSM",
-      "SKRH",
-      "SKLM",
-      "SKVP",
+      "SKCG",
+      "SKCV",
       "SKCZ",
+      "SKLM",
       "SKMG",
       "SKMP",
       "SKMR",
-      "SKCV",
-      "SKTL"
+      "SKRH",
+      "SKSM",
+      "SKTL",
+      "SKVP"
+    ]
+  },
+  "RGND": {
+    "airports": [
+      "SKRG"
     ]
   },
   "SETU:IPA:SKED:SEFG2:SEFG": {
@@ -126,7 +131,8 @@
   },
   "CUCTW": {
     "airports": [
-      "SKCC"
+      "SKCC",
+      "SVSA"
     ]
   },
   "CLTW": {
@@ -221,8 +227,8 @@
   },
   "PEITW:CRCTW": {
     "airports": [
-      "SKPE ",
-      "SKGO"
+      "SKGO",
+      "SKPE"
     ]
   },
   "PPNTW": {
@@ -291,7 +297,9 @@
     ]
   },
   "SBAZW:SBAZCW:SBAZ": {
-    "airports": []
+    "airports": [
+      "SBTT"
+    ]
   },
   "SENL:SEFG2:SEFG": {
     "airports": []
@@ -304,80 +312,81 @@
   },
   "BIS": {
     "airports": [
-      "SKVP",
       "SKBC",
-      "SKMP"
+      "SKMP",
+      "SKVP"
     ]
   },
   "BIN": {
     "airports": [
-      "SKRH",
       "SKLM",
-      "SKPB"
+      "SKPB",
+      "SKRH"
     ]
   },
   "BQA": {
     "airports": [
-      "SKCG",
       "SKBQ",
-      "SKSM",
-      "SKMR",
+      "SKCG",
+      "SKCU",
+      "SKCV",
       "SKCZ",
       "SKMG",
       "SKML",
-      "SKCU",
-      "SKTL",
-      "SKCV"
+      "SKMR",
+      "SKSM",
+      "SKTL"
     ]
   },
   "BQN": {
     "airports": [
       "SKBQ",
       "SKCG",
-      "SKSM",
       "SKCZ",
-      "SKMR"
+      "SKMR",
+      "SKSM"
     ]
   },
   "BQS": {
     "airports": [
-      "SKMR",
-      "SKCZ",
       "SKBQ",
       "SKCG",
+      "SKCZ",
+      "SKMR",
       "SKSM",
       "SKTL"
     ]
   },
   "SPPAP": {
     "airports": [
-      "SKSP",
-      "SKPV"
+      "SKPV",
+      "SKSP"
     ]
   },
   "IPA": {
     "airports": [
+      "SETN",
       "SKIP"
     ]
   },
   "BGAAP": {
     "airports": [
       "SKBG",
-      "SKEJ",
       "SKCM",
-      "SKSG",
+      "SKEJ",
       "SKLA",
-      "SKOC"
+      "SKOC",
+      "SKSG"
     ]
   },
   "BAPP": {
     "airports": [
       "SKBO",
       "SKGI",
-      "SKIB",
-      "SKQU",
       "SKGY",
-      "SKMZ"
+      "SKIB",
+      "SKMZ",
+      "SKQU"
     ]
   },
   "BCAP": {
@@ -401,8 +410,8 @@
   "BWAP": {
     "airports": [
       "SKBO",
-      "SKQU",
-      "SKMZ"
+      "SKMZ",
+      "SKQU"
     ]
   },
   "CUCAP": {
@@ -427,33 +436,27 @@
   },
   "CLAP": {
     "airports": [
-      "SKCL",
-      "SKPE",
       "SKAR",
-      "SKGO",
-      "SKPP",
       "SKBU",
+      "SKCL",
+      "SKGO",
+      "SKPE",
+      "SKPP",
       "SKUL"
     ]
   },
   "LETAP": {
     "airports": [
-      "SKLT",
-      "SKUI",
-      "SKMD",
-      "SKLC",
-      "SKRG",
-      "SKGO",
-      "SKNQ",
-      "SKBS"
+      "SBTT",
+      "SKLT"
     ]
   },
   "MNAP": {
     "airports": [
       "SKMD",
-      "SKRG",
       "SKOT",
-      "SKPE"
+      "SKPE",
+      "SKRG"
     ]
   },
   "MSAP": {
@@ -465,9 +468,9 @@
   "MAPP": {
     "airports": [
       "SKMD",
-      "SKRG",
+      "SKOT",
       "SKPE",
-      "SKOT"
+      "SKRG"
     ]
   },
   "NVAAP": {
@@ -477,10 +480,10 @@
   },
   "PEIAP": {
     "airports": [
-      "SKPE",
       "SKAR",
       "SKGO",
-      "SKMZ"
+      "SKMZ",
+      "SKPE"
     ]
   },
   "PALAP": {
@@ -490,8 +493,8 @@
   },
   "VVCAP": {
     "airports": [
-      "SKVV",
-      "SKAP"
+      "SKAP",
+      "SKVV"
     ]
   },
   "EYPAP": {
@@ -500,16 +503,26 @@
     ]
   },
   "TNCFA:TNCF": {
-    "airports": []
+    "airports": [
+      "TNCA",
+      "TNCB",
+      "TNCC"
+    ]
   },
   "MHCC:N": {
     "airports": []
   },
   "MKJKE:MKJK": {
-    "airports": []
+    "airports": [
+      "MKJP",
+      "MKJS"
+    ]
   },
   "MKJKE:MKJK:CARI": {
-    "airports": []
+    "airports": [
+      "MKJP",
+      "MKJS"
+    ]
   },
   "MPZLE:MPZLN:MPZL:N": {
     "airports": []
@@ -534,50 +547,50 @@
   },
   "SKEC": {
     "airports": [
-      "SKCG",
       "SKBQ",
-      "SKSM",
-      "SKRH",
-      "SKLM",
-      "SKVP",
+      "SKCG",
+      "SKCV",
       "SKCZ",
+      "SKLM",
       "SKMG",
       "SKMP",
       "SKMR",
-      "SKCV",
-      "SKTL"
+      "SKRH",
+      "SKSM",
+      "SKTL",
+      "SKVP"
     ]
   },
   "SKECN": {
     "airports": [
-      "SKCG",
       "SKBQ",
-      "SKSM",
-      "SKRH",
-      "SKLM",
-      "SKVP",
+      "SKCG",
+      "SKCV",
       "SKCZ",
+      "SKLM",
       "SKMG",
       "SKMP",
       "SKMR",
-      "SKCV",
-      "SKTL"
+      "SKRH",
+      "SKSM",
+      "SKTL",
+      "SKVP"
     ]
   },
   "SKECS": {
     "airports": [
-      "SKVP",
+      "SKBQ",
+      "SKCG",
+      "SKCV",
       "SKCZ",
+      "SKLM",
       "SKMG",
       "SKMP",
       "SKMR",
-      "SKCV",
-      "SKTL",
-      "SKCG",
-      "SKBQ",
-      "SKSM",
       "SKRH",
-      "SKLM"
+      "SKSM",
+      "SKTL",
+      "SKVP"
     ]
   },
   "CLCT": {
@@ -585,52 +598,52 @@
   },
   "SKED": {
     "airports": [
-      "SKUC",
       "SKAR",
-      "SKBS",
-      "SKEJ",
-      "SKBQ",
-      "SKBO",
+      "SKAS",
       "SKBG",
+      "SKBO",
+      "SKBQ",
+      "SKBS",
       "SKBU",
-      "SKCL",
-      "SKLC",
-      "SKCG",
-      "SKGO",
-      "SKGY",
-      "SKCZ",
       "SKCC",
-      "SKYP",
+      "SKCG",
+      "SKCL",
+      "SKCO",
+      "SKCZ",
+      "SKEJ",
       "SKFL",
       "SKGI",
+      "SKGO",
       "SKGP",
+      "SKGY",
       "SKIB",
-      "SKPD",
       "SKIP",
+      "SKLC",
       "SKLT",
-      "SKMZ",
-      "SKQU",
       "SKMD",
-      "SKMU",
       "SKMR",
+      "SKMU",
+      "SKMZ",
       "SKNV",
-      "SKPS",
+      "SKPC",
+      "SKPD",
       "SKPE",
       "SKPP",
+      "SKPS",
       "SKPV",
-      "SKAS",
-      "SKPC",
-      "SKUI",
-      "SKRH",
+      "SKQU",
       "SKRG",
-      "SKSP",
+      "SKRH",
+      "SKSA",
       "SKSJ",
       "SKSM",
-      "SKSA",
+      "SKSP",
       "SKTM",
-      "SKCO",
+      "SKUC",
+      "SKUI",
       "SKVP",
-      "SKVV"
+      "SKVV",
+      "SKYP"
     ]
   },
   "NE": {
@@ -661,9 +674,17 @@
     "airports": []
   },
   "TNCF": {
-    "airports": []
+    "airports": [
+      "TNCA",
+      "TNCB",
+      "TNCC"
+    ]
   },
   "TNCF:CARE:CARI": {
-    "airports": []
+    "airports": [
+      "TNCA",
+      "TNCB",
+      "TNCC"
+    ]
   }
 }
