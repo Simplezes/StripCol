@@ -12,7 +12,7 @@ function startServer(ip) {
     }
 
     currentServerIp = ip || '127.0.0.1';
-    serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp]);
+    serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp], { silent: true });
 
     serverProcess.on('message', (msg) => {
         if (msg.type === 'rpc_update') {
@@ -180,11 +180,13 @@ ipcMain.handle('start-update', async (event, zipUrl) => {
 
         const batContent = `
 @echo off
+setlocal
 echo Finalizing update...
 timeout /t 2 /nobreak > nul
+
 :retry
-taskkill /f /im stripcol.exe > nul 2>&1
 taskkill /f /im "StripCol.exe" > nul 2>&1
+taskkill /f /im "stripcol.exe" > nul 2>&1
 timeout /t 1 /nobreak > nul
 
 xcopy "${innerPath}\\*" "${targetDir}" /s /e /y /h /i
@@ -196,13 +198,21 @@ if errorlevel 1 (
 
 echo Update successful!
 start "" "${process.execPath}"
-del "%~f0" & exit
+echo Closing...
+(goto) 2>nul & del "%~f0" & exit
 `;
         fs.writeFileSync(updaterBat, batContent);
 
         // 5. Execute and Quit
         console.log("Launching updater script:", updaterBat);
-        exec(`start "" "${updaterBat}"`);
+        const { spawn } = require('child_process');
+        const child = spawn('cmd.exe', ['/c', updaterBat], {
+            detached: true,
+            stdio: 'ignore',
+            windowsHide: true
+        });
+        child.unref();
+
         app.quit();
 
         return { success: true };
