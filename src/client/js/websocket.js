@@ -303,21 +303,36 @@ function setControllerInfo(data, returnPositionName = false) {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-    const fetchJson = async (url) => {
+    const fetchJson = async (url, fallbackUrl) => {
         try {
             const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         } catch (error) {
-            console.error(`Error loading ${url}:`, error);
+            console.warn(`Error loading ${url}, trying fallback ${fallbackUrl}:`, error);
+            if (fallbackUrl) {
+                try {
+                    const response = await fetch(fallbackUrl);
+                    if (!response.ok) throw new Error(`Fallback HTTP error! status: ${response.status}`);
+                    return await response.json();
+                } catch (fallbackError) {
+                    console.error(`Error loading fallback ${fallbackUrl}:`, fallbackError);
+                }
+            }
         }
+        return null;
     };
 
     (async () => {
+        const REMOTE_PROCEDURES = "https://raw.githubusercontent.com/Simplezes/StripCol/refs/heads/main/src/client/assets/procedures.json";
+        const REMOTE_SECTORS = "https://raw.githubusercontent.com/Simplezes/StripCol/refs/heads/main/src/client/assets/sectors.json";
+        const LOCAL_PROCEDURES = "./assets/procedures.json";
+        const LOCAL_SECTORS = "./assets/sectors.json";
+
         try {
             [jsonData, jsonDataSector] = await Promise.all([
-                fetchJson(`./assets/procedures.json`),
-                fetchJson(`./assets/sectors.json`),
+                fetchJson(REMOTE_PROCEDURES, LOCAL_PROCEDURES),
+                fetchJson(REMOTE_SECTORS, LOCAL_SECTORS),
             ]);
             // Start connection only after data is ready
             startConnectionMonitoring();
