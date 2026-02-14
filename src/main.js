@@ -65,6 +65,32 @@ ipcMain.on('restart-server', (event, ip) => {
     }
 });
 
+ipcMain.handle('check-for-updates', async () => {
+    try {
+        const response = await fetch('https://api.github.com/repos/Simplezes/StripCol/releases/latest');
+        if (!response.ok) throw new Error('GitHub API returned ' + response.status);
+
+        const data = await response.json();
+        const latestVersion = data.tag_name.replace('v', '');
+        const currentVersion = require('../package.json').version;
+
+        return {
+            currentVersion,
+            latestVersion,
+            updateAvailable: latestVersion !== currentVersion,
+            url: data.html_url,
+            notes: data.body
+        };
+    } catch (error) {
+        console.error('Update check failed:', error);
+        return { error: error.message };
+    }
+});
+
+ipcMain.on('open-external', (event, url) => {
+    require('electron').shell.openExternal(url);
+});
+
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();

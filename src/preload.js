@@ -5,5 +5,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 contextBridge.exposeInMainWorld('electronAPI', {
-    restartServer: (ip) => ipcRenderer.send('restart-server', ip)
+    restartServer: (ip) => ipcRenderer.send('restart-server', ip),
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    openExternal: (url) => ipcRenderer.send('open-external', url)
 });

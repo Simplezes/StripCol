@@ -222,6 +222,55 @@ function initSettingsEvents() {
         linkCodeStatus.style.cursor = 'pointer';
         linkCodeStatus.title = "Double-click to enter Link Code directly";
     }
+
+    initUpdateCheck();
+}
+
+function initUpdateCheck() {
+    const checkBtn = document.getElementById('checkUpdatesBtn');
+    const updateStatus = document.getElementById('updateStatus');
+    const versionDisplay = document.getElementById('appVersionDisplay');
+
+    if (!checkBtn) return;
+
+    checkBtn.addEventListener('click', async () => {
+        if (checkBtn.disabled) return;
+
+        checkBtn.disabled = true;
+        checkBtn.innerHTML = '<span class="material-icons rotating me-2" style="font-size: 16px;">sync</span>Checking...';
+        updateStatus.innerHTML = '';
+
+        try {
+            const result = await window.electronAPI.checkForUpdates();
+
+            if (result.error) {
+                updateStatus.innerHTML = `<span class="text-danger">Failed: ${result.error}</span>`;
+            } else {
+                if (result.updateAvailable) {
+                    updateStatus.innerHTML = `
+                        <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
+                            <div class="fw-bold">Update Available: V${result.latestVersion}</div>
+                            <div class="mt-1" style="font-size: 11px; color: var(--text-dim);">Release notes: ${result.notes ? result.notes.substring(0, 50) + '...' : 'New changes!'}</div>
+                            <button id="viewOnGithubBtn" class="btn btn-sm btn-outline-success mt-2 py-1 px-3" style="font-size: 11px;">
+                                View on GitHub
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('viewOnGithubBtn').addEventListener('click', () => {
+                        window.electronAPI.openExternal(result.url);
+                    });
+                } else {
+                    updateStatus.innerHTML = '<span class="text-success">You are up to date!</span>';
+                }
+                if (versionDisplay) versionDisplay.textContent = result.currentVersion;
+            }
+        } catch (e) {
+            updateStatus.innerHTML = '<span class="text-danger">Check failed.</span>';
+        } finally {
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = '<span class="material-icons me-2" style="font-size: 16px;">update</span>Check for Updates';
+        }
+    });
 }
 
 function initPairingLogic() {
