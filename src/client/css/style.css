@@ -773,6 +773,7 @@ input:focus::selection {
     max-height: 50vh;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .menu-scroll-container {
@@ -1743,8 +1744,13 @@ body.dark-mode .controller-info select:focus {
 }
 
 @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .update-available-box {
@@ -1752,6 +1758,13 @@ body.dark-mode .controller-info select:focus {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
