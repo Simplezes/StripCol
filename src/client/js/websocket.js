@@ -207,6 +207,7 @@ function fetchAndRenderAircraftList() {
             for (const callsign in aircraftMap) {
                 renderAircraft(aircraftMap[callsign]);
             }
+            if (typeof syncRPC === 'function') syncRPC();
         })
         .catch(error => {
             console.error('Error fetching aircraft list:', error);

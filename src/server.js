@@ -121,7 +121,8 @@ wss.on('connection', (ws, req) => {
             aircraft: new Map(),
             atcList: [],
             controller: controllerData,
-            lastSyncTime: 0
+            lastSyncTime: 0,
+            rpcManualState: null
           });
         } else {
           session.ws = ws;
@@ -200,34 +201,6 @@ function sendRPCUpdate(code) {
   const facility = parseInt(session.controller.facility);
   const positionId = session.controller.positionId || "";
 
-  // localIcao detection: handle 4-letter prefixes (SKBO_TWR) or 3-letter (BAQ_TWR)
-  let localIcao = "";
-  const icaoMatch = callsign.match(/^([A-Z]{3,4})/);
-  if (icaoMatch) localIcao = icaoMatch[1].toUpperCase();
-
-  const isAerodrome = [1, 2, 3, 4].includes(facility);
-  const sectorInfo = sectorsData[positionId];
-
-  let dep = 0, arr = 0, ovr = 0;
-
-  session.aircraft.forEach(ac => {
-    const acDep = (ac.departure || "").toUpperCase();
-    const acArr = (ac.arrival || "").toUpperCase();
-
-    let type = "overfly";
-    if (isAerodrome) {
-      if (acDep === localIcao) type = "departure";
-      else if (acArr === localIcao) type = "arrival";
-    } else if (sectorInfo && sectorInfo.airports) {
-      if (sectorInfo.airports.includes(acDep)) type = "departure";
-      else if (sectorInfo.airports.includes(acArr)) type = "arrival";
-    }
-
-    if (type === "departure") dep++;
-    else if (type === "arrival") arr++;
-    else ovr++;
-  });
-
   const facilityMap = {
     1: "FSS",
     2: "DEL",
@@ -238,12 +211,46 @@ function sendRPCUpdate(code) {
   };
   const facilityName = facilityMap[facility] || "ATC";
 
+  let dep = 0, arr = 0, ovr = 0;
+  let state = "";
+
+  if (session.rpcManualState) {
+    state = session.rpcManualState;
+  } else {
+    // localIcao detection: handle 4-letter prefixes (SKBO_TWR) or 3-letter (BAQ_TWR)
+    let localIcao = "";
+    const icaoMatch = callsign.match(/^([A-Z]{3,4})/);
+    if (icaoMatch) localIcao = icaoMatch[1].toUpperCase();
+
+    const isAerodrome = [1, 2, 3, 4].includes(facility);
+    const sectorInfo = sectorsData[positionId];
+
+    session.aircraft.forEach(ac => {
+      const acDep = (ac.departure || "").toUpperCase();
+      const acArr = (ac.arrival || "").toUpperCase();
+
+      let type = "overfly";
+      if (isAerodrome) {
+        if (acDep === localIcao) type = "departure";
+        else if (acArr === localIcao) type = "arrival";
+      } else if (sectorInfo && sectorInfo.airports) {
+        if (sectorInfo.airports.includes(acDep)) type = "departure";
+        else if (sectorInfo.airports.includes(acArr)) type = "arrival";
+      }
+
+      if (type === "departure") dep++;
+      else if (type === "arrival") arr++;
+      else ovr++;
+    });
+    state = `${dep} Dep / ${arr} Arr / ${ovr} Ovr`;
+  }
+
   if (process.send) {
     process.send({
       type: 'rpc_update',
       data: {
         details: `Controlling ${facilityName} (${callsign})`,
-        state: `${dep} Dep / ${arr} Arr / ${ovr} Ovr`,
+        state: state,
         callsign: callsign
       }
     });
@@ -566,6 +573,20 @@ app.get('/api/point-time', (req, res) => {
   }
 
   res.json([]);
+});
+
+app.post('/api/rpc-update', (req, res) => {
+  const { code, state } = req.body;
+  if (!code) return res.status(400).json({ success: false, message: "Missing Link Code" });
+
+  const session = sessions.get(code.toUpperCase());
+  if (session) {
+    session.rpcManualState = state;
+    sendRPCUpdate(code.toUpperCase());
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ success: false, message: "Session not found" });
+  }
 });
 
 const PORT = process.env.PORT || 3000;

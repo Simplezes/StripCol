@@ -148,6 +148,7 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
     }
 
     enableSortableForAllPanels()
+    syncRPC();
     return div;
 }
 
@@ -284,6 +285,7 @@ function enableSortableForAllPanels() {
                     if (panel) {
                         stateManager.updatePanel(panelName, { strips: newOrder });
                     }
+                    syncRPC();
                 }
             });
         }
@@ -351,6 +353,7 @@ function showGhostMoveMode(strip) {
             stateManager.addStrip(targetPanelName, movedStripData);
         }
         enableSortableForAllPanels();
+        syncRPC();
         cleanup();
     }
 
@@ -699,6 +702,7 @@ function showTypeMenu(menu, strip, flight) {
                 strip.dataset.type = type.value;
                 strip.querySelectorAll("input.box").forEach(box => box.value = "");
                 if (flight) UpdateStrip(flight, type.value);
+                syncRPC();
                 document.querySelector('.strip-context-menu')?.remove();
             });
         } else {
@@ -1042,6 +1046,8 @@ function deleteStripFromPanels(callsign) {
             });
         }
     });
+
+    if (changed) syncRPC();
 }
 
 // Flight Data
@@ -2323,4 +2329,32 @@ function extractStatus(remarks) {
     const match = remarks.match(/STATUS\/([A-Z]+)/i);
     const match2 = remarks.match(/STS\/([A-Z]+)/i);
     return match ? match[1] : match2 ? match2[1] : "";
+}
+
+async function syncRPC() {
+    const panels = document.querySelectorAll(".card[data-panel-name]");
+    let dep = 0, arr = 0, ovr = 0;
+
+    panels.forEach(panel => {
+        const name = panel.dataset.panelName.toLowerCase();
+        const count = panel.querySelectorAll(".strip").length;
+
+        if (name.includes("departure")) dep += count;
+        else if (name.includes("arrival")) arr += count;
+        else if (name.includes("overfly") || name.includes("unassigned")) ovr += count;
+    });
+
+    const state = `${dep} Dep / ${arr} Arr / ${ovr} Ovr`;
+    const code = getLinkCode();
+    if (!code) return;
+
+    try {
+        await fetch(`${GATEWAY_URL}/api/rpc-update`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code, state })
+        });
+    } catch (e) {
+        console.error("[RPC] Failed to sync with server:", e);
+    }
 }
