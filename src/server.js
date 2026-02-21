@@ -3,6 +3,20 @@ const cors = require('cors');
 const WebSocket = require('ws');
 const { WebSocketServer } = WebSocket;
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
+
+let sectorsData = {};
+try {
+  const sectorsPath = path.join(__dirname, 'client', 'assets', 'sectors.json');
+  if (fs.existsSync(sectorsPath)) {
+    sectorsData = JSON.parse(fs.readFileSync(sectorsPath, 'utf8'));
+    console.log('[Server] Loaded sectors.json for RPC categorization');
+  }
+} catch (err) {
+  console.error('[Server] Failed to load sectors.json:', err.message);
+}
+
 
 const app = express();
 const SERVER_IP = process.argv[2] || '127.0.0.1';
@@ -182,15 +196,35 @@ function sendRPCUpdate(code) {
     return;
   }
 
+  const callsign = session.controller.callsign || "";
+  const facility = parseInt(session.controller.facility);
+  const positionId = session.controller.positionId || "";
+
+  // localIcao detection: handle 4-letter prefixes (SKBO_TWR) or 3-letter (BAQ_TWR)
+  let localIcao = "";
+  const icaoMatch = callsign.match(/^([A-Z]{3,4})/);
+  if (icaoMatch) localIcao = icaoMatch[1].toUpperCase();
+
+  const isAerodrome = [1, 2, 3, 4].includes(facility);
+  const sectorInfo = sectorsData[positionId];
+
   let dep = 0, arr = 0, ovr = 0;
-  const localIcao = (session.controller.callsign || "").substring(0, 4).toUpperCase();
 
   session.aircraft.forEach(ac => {
     const acDep = (ac.departure || "").toUpperCase();
     const acArr = (ac.arrival || "").toUpperCase();
 
-    if (acDep === localIcao) dep++;
-    else if (acArr === localIcao) arr++;
+    let type = "overfly";
+    if (isAerodrome) {
+      if (acDep === localIcao) type = "departure";
+      else if (acArr === localIcao) type = "arrival";
+    } else if (sectorInfo && sectorInfo.airports) {
+      if (sectorInfo.airports.includes(acDep)) type = "departure";
+      else if (sectorInfo.airports.includes(acArr)) type = "arrival";
+    }
+
+    if (type === "departure") dep++;
+    else if (type === "arrival") arr++;
     else ovr++;
   });
 
@@ -202,15 +236,15 @@ function sendRPCUpdate(code) {
     5: "APP",
     6: "CTR"
   };
-  const facility = facilityMap[session.controller.facility] || "ATC";
+  const facilityName = facilityMap[facility] || "ATC";
 
   if (process.send) {
     process.send({
       type: 'rpc_update',
       data: {
-        details: `Controlling ${facility} (${session.controller.callsign})`,
+        details: `Controlling ${facilityName} (${callsign})`,
         state: `${dep} Dep / ${arr} Arr / ${ovr} Ovr`,
-        callsign: session.controller.callsign
+        callsign: callsign
       }
     });
   }
