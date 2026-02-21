@@ -3,26 +3,83 @@ const path = require('path');
 const { fork } = require('child_process');
 const rpc = require('./rpc');
 
+const net = require('net');
+
 let serverProcess;
 let currentServerIp = '127.0.0.1';
+let isServerHost = false;
+let failoverInterval = null;
 
-function startServer(ip) {
-    if (serverProcess) {
-        serverProcess.kill();
+function checkServerRunning(port, host) {
+    return new Promise((resolve) => {
+        const client = new net.Socket();
+        client.setTimeout(1000);
+        client.on('connect', () => {
+            client.destroy();
+            resolve(true);
+        });
+        client.on('timeout', () => {
+            client.destroy();
+            resolve(false);
+        });
+        client.on('error', () => {
+            client.destroy();
+            resolve(false);
+        });
+        client.connect(port, host);
+    });
+}
+
+async function startServer(ip) {
+    currentServerIp = ip || '127.0.0.1';
+    
+    // If we're already the host, don't restart unless IP changed
+    if (isServerHost && serverProcess && ip === currentServerIp) return;
+
+    const isRunning = await checkServerRunning(3000, currentServerIp);
+
+    if (isRunning) {
+        console.log(`Server detected on ${currentServerIp}:3000. Joining as backup.`);
+        if (serverProcess) {
+            serverProcess.kill();
+            serverProcess = null;
+        }
+        isServerHost = false;
+    } else {
+        console.log(`No server detected on ${currentServerIp}:3000. Starting local server...`);
+        if (serverProcess) {
+            serverProcess.kill();
+        }
+
+        serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp], { silent: true });
+
+        serverProcess.on('message', (msg) => {
+            if (msg.type === 'rpc_update') {
+                rpc.updatePresence(msg.data);
+            } else if (msg.type === 'rpc_clear') {
+                rpc.updatePresence();
+            }
+        });
+
+        isServerHost = true;
+        console.log(`Server started on IP: ${currentServerIp} (PID: ${serverProcess.pid})`);
     }
 
-    currentServerIp = ip || '127.0.0.1';
-    serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp], { silent: true });
+    startFailoverWatchdog();
+}
 
-    serverProcess.on('message', (msg) => {
-        if (msg.type === 'rpc_update') {
-            rpc.updatePresence(msg.data);
-        } else if (msg.type === 'rpc_clear') {
-            rpc.updatePresence();
+function startFailoverWatchdog() {
+    if (failoverInterval) clearInterval(failoverInterval);
+
+    failoverInterval = setInterval(async () => {
+        if (!isServerHost) {
+            const isRunning = await checkServerRunning(3000, currentServerIp);
+            if (!isRunning) {
+                console.log("Active server lost. Attempting failover...");
+                startServer(currentServerIp);
+            }
         }
-    });
-
-    console.log(`Server started on IP: ${currentServerIp}`);
+    }, 10000);
 }
 
 function createWindow() {
@@ -44,7 +101,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-    // Start the API server
+    // Start the API server manager
     startServer();
 
     rpc.initRPC();
@@ -63,8 +120,8 @@ ipcMain.handle('get-version', () => {
 });
 
 ipcMain.on('restart-server', (event, ip) => {
-    if (ip !== currentServerIp) {
-        console.log(`Restarting server with new IP: ${ip}`);
+    if (ip !== currentServerIp || !isServerHost) {
+        console.log(`Requested server restart/refresh with IP: ${ip}`);
         startServer(ip);
     }
 });
