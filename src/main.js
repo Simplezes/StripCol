@@ -31,11 +31,12 @@ function checkServerRunning(port, host) {
 }
 
 async function startServer(ip) {
-    currentServerIp = ip || '127.0.0.1';
-    
-    // If we're already the host, don't restart unless IP changed
-    if (isServerHost && serverProcess && ip === currentServerIp) return;
+    const newIp = ip || '127.0.0.1';
 
+    // If we're already the host, don't restart unless IP changed
+     if (isServerHost && serverProcess && newIp === currentServerIp) return;
+
+    currentServerIp = newIp;
     const isRunning = await checkServerRunning(3000, currentServerIp);
 
     if (isRunning) {
