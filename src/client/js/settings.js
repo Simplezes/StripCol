@@ -463,6 +463,17 @@ function cleanupStrips() {
     }
 }
 
+document.getElementById('restartServerBtn').addEventListener('click', () => {
+    const ip = document.getElementById('serverIpInput').value.trim() || '127.0.0.1';
+
+    if (window.electronAPI && window.electronAPI.restartServer) {
+        window.electronAPI.restartServer(ip);
+        originalServerIp = ip; // prevent modal auto-restart logic
+    } else {
+        console.error("restartServer bridge not available");
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initSettingsEvents();

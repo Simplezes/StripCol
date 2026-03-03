@@ -3,7 +3,6 @@ const { contextBridge, ipcRenderer } = require('electron');
 window.addEventListener('DOMContentLoaded', () => {
     console.log('Electron environment ready');
 });
-
 contextBridge.exposeInMainWorld('electronAPI', {
     getVersion: () => ipcRenderer.invoke('get-version'),
     restartServer: (ip) => ipcRenderer.send('restart-server', ip),
