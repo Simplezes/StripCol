@@ -1,6 +1,6 @@
 {
   "name": "stripcol",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Flight strip manager for Vatsim Colombia",
   "main": "src/main.js",
   "scripts": {
