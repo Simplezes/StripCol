@@ -11,7 +11,7 @@ try {
   const sectorsPath = path.join(__dirname, 'client', 'assets', 'sectors.json');
   if (fs.existsSync(sectorsPath)) {
     sectorsData = JSON.parse(fs.readFileSync(sectorsPath, 'utf8'));
-    console.log('[Server] Loaded sectors.json for RPC categorization');
+    // sectorsData loaded
   }
 } catch (err) {
   console.error('[Server] Failed to load sectors.json:', err.message);
@@ -34,7 +34,7 @@ app.get(['/', '/api'], (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.0.2',
+    version: '1.0.5',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -80,8 +80,7 @@ console.log('Gateway Hub starting...');
 wss.on('connection', (ws, req) => {
   const headers = req.headers;
   const ip = headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection?.remoteAddress;
-  console.log(`[WS] Incoming Connection | IP: ${ip} | Path: ${req.url}`);
-  console.log(`[WS] Headers: ${JSON.stringify(headers)}`);
+  // Connection established
 
   let currentCode = null;
 
@@ -93,8 +92,7 @@ wss.on('connection', (ws, req) => {
       if (msg.type === 'register' && msg.code) {
         const code = msg.code.toUpperCase();
         if (currentCode && currentCode !== code) {
-          console.log(`Socket switching from ${currentCode} to ${code}`);
-          // Clean up old session if this socket was attached to it
+          // Clean up old session
           const oldSession = sessions.get(currentCode);
           if (oldSession && oldSession.ws === ws) {
             oldSession.ws = null;
@@ -130,8 +128,6 @@ wss.on('connection', (ws, req) => {
         }
 
         if (!wasConnected) {
-          console.log(`Session initiated with code: ${code}`);
-          console.log(`Plugin ${currentCode} connected`);
           broadcastToSession(currentCode, {
             type: 'gateway_status',
             status: 'plugin_connected',
@@ -146,7 +142,6 @@ wss.on('connection', (ws, req) => {
         return;
       }
       else if (currentCode && msg.type) {
-        console.log(`[WS] Received message type: ${msg.type} for code: ${currentCode}`);
         const session = sessions.get(currentCode);
         if (!session) return;
 
@@ -173,15 +168,12 @@ wss.on('connection', (ws, req) => {
   ws.on('close', (code, reason) => {
     const reasonStr = reason ? reason.toString() : 'no reason';
     if (currentCode) {
-      console.log(`[WS] Plugin ${currentCode} disconnected (Code: ${code}, Reason: ${reasonStr})`);
       const session = sessions.get(currentCode);
       if (session && session.ws === ws) {
         session.ws = null;
         broadcastToSession(currentCode, { type: 'gateway_status', status: 'plugin_disconnected' });
         sendRPCUpdate(currentCode);
       }
-    } else {
-      console.log(`[WS] Anonymous plugin disconnected (Code: ${code}, Reason: ${reasonStr})`);
     }
   });
 
@@ -348,11 +340,9 @@ app.get('/api/ATC-list', (req, res) => {
 
   const session = sessions.get(code.toUpperCase());
   if (!session) {
-    console.warn(`[API] ATC-list requested for non-existent session: ${code}`);
     return res.status(404).json({ error: "Session not found" });
   }
 
-  console.log(`[API] ATC-list requested for ${code}. Returning ${session.atcList.length} items.`);
   res.json(session.atcList);
 });
 
@@ -502,12 +492,10 @@ commands.forEach(cmd => {
 
     const session = sessions.get(code.toUpperCase());
     if (!session || !session.ws) {
-      //console.warn(`[API] ${cmd} failed for code ${code}: Plugin not connected`);
       return res.status(412).json({ success: false, message: "Euroscope plugin not connected for this code" });
     }
 
     if (session.ws.readyState === WebSocket.OPEN) {
-      console.log(`[API] ${cmd} for ${payload.callsign || 'unknown'} (Code: ${code})`);
       session.ws.send(JSON.stringify({ type: cmd, ...payload }));
       res.json({ success: true });
     } else {
@@ -522,17 +510,13 @@ app.post('/api/:action', (req, res) => {
   const { code, ...payload } = req.body;
 
   if (!code) {
-    console.warn(`[API] ${action} failed: Missing Link Code`);
     return res.status(400).json({ success: false, message: "Missing Link Code" });
   }
 
   const session = sessions.get(code.toUpperCase());
   if (!session || !session.ws) {
-    //console.warn(`[API] ${action} failed for code ${code}: Plugin not connected`);
     return res.status(412).json({ success: false, message: "Euroscope plugin not connected for this code" });
   }
-
-  console.log(`[API] ${action} for ${payload.callsign || 'unknown'} (Code: ${code})`);
 
   if (session.ws.readyState === WebSocket.OPEN) {
     const command = JSON.stringify({ type: action, ...payload });
@@ -540,7 +524,6 @@ app.post('/api/:action', (req, res) => {
     return res.json({ success: true });
   }
   else {
-    console.warn(`[API] ${action} failed: Plugin WS not open`);
     res.status(503).json({ success: false, message: "Plugin connection not open" });
   }
 });
@@ -591,5 +574,5 @@ app.post('/api/rpc-update', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Gateway Hub (V1.0.2) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
+  console.log(`Gateway Hub (V1.0.5) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
 });
