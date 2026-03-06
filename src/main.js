@@ -158,20 +158,54 @@ ipcMain.on('save-settings', (event, settings) => {
 
 ipcMain.handle('check-for-updates', async () => {
     try {
-        const response = await fetch('https://api.github.com/repos/Simplezes/StripCol/releases/latest');
+        const response = await fetch('https://api.github.com/repos/Simplezes/StripCol/releases');
         if (!response.ok) throw new Error('GitHub API returned ' + response.status);
 
-        const data = await response.json();
-        const latestVersion = data.tag_name.replace('v', '');
+        const releases = await response.json();
+        if (!Array.isArray(releases) || releases.length === 0) {
+            throw new Error('No releases found');
+        }
+
+        // Helper to parse version string into comparable array of numbers [major, minor, patch]
+        const parseVersion = (v) => v.replace(/^v/, '').split('.').map(Number);
+
+        // Sort releases by version descending
+        const sortedReleases = releases.sort((a, b) => {
+            const vA = parseVersion(a.tag_name);
+            const vB = parseVersion(b.tag_name);
+            for (let i = 0; i < Math.max(vA.length, vB.length); i++) {
+                const numA = vA[i] || 0;
+                const numB = vB[i] || 0;
+                if (numA > numB) return -1;
+                if (numA < numB) return 1;
+            }
+            return 0;
+        });
+
+        const latestRelease = sortedReleases[0];
+        const latestVersion = latestRelease.tag_name.replace(/^v/, '');
         const currentVersion = require('../package.json').version;
+
+        // Custom version comparison to ensure we only update if latest > current
+        const isUpdateAvailable = (latest, current) => {
+            const l = parseVersion(latest);
+            const c = parseVersion(current);
+            for (let i = 0; i < Math.max(l.length, c.length); i++) {
+                const numL = l[i] || 0;
+                const numC = c[i] || 0;
+                if (numL > numC) return true;
+                if (numL < numC) return false;
+            }
+            return false;
+        };
 
         return {
             currentVersion,
             latestVersion,
-            updateAvailable: latestVersion !== currentVersion,
-            url: data.html_url,
-            notes: data.body,
-            zipUrl: data.zipball_url // GitHub provides a zipball_url for the release source
+            updateAvailable: isUpdateAvailable(latestVersion, currentVersion),
+            url: latestRelease.html_url,
+            notes: latestRelease.body,
+            zipUrl: latestRelease.zipball_url
         };
     } catch (error) {
         console.error('Update check failed:', error);
