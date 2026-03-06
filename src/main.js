@@ -1,12 +1,35 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { fork } = require('child_process');
 const rpc = require('./rpc');
 
 const net = require('net');
 
 let serverProcess;
-let currentServerIp = '127.0.0.1';
+const SETTINGS_PATH = path.join(app.getPath('userData'), 'settings.json');
+
+function getStoredSettings() {
+    try {
+        if (fs.existsSync(SETTINGS_PATH)) {
+            return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
+        }
+    } catch (e) {
+        console.error("Failed to load settings from file:", e);
+    }
+    return { serverIp: '127.0.0.1' };
+}
+
+function saveStoredSettings(settings) {
+    try {
+        fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+    } catch (e) {
+        console.error("Failed to save settings to file:", e);
+    }
+}
+
+let storedSettings = getStoredSettings();
+let currentServerIp = storedSettings.serverIp;
 let isServerHost = false;
 let failoverInterval = null;
 
@@ -34,7 +57,7 @@ async function startServer(ip) {
     const newIp = ip || '127.0.0.1';
 
     // If we're already the host, don't restart unless IP changed
-     if (isServerHost && serverProcess && newIp === currentServerIp) return;
+    if (isServerHost && serverProcess && newIp === currentServerIp) return;
 
     currentServerIp = newIp;
     const isRunning = await checkServerRunning(3000, currentServerIp);
@@ -102,8 +125,8 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-    // Start the API server manager
-    startServer();
+    // Start the API server manager with the stored IP
+    startServer(currentServerIp);
 
     rpc.initRPC();
 
@@ -123,7 +146,15 @@ ipcMain.handle('get-version', () => {
 ipcMain.on('restart-server', (event, ip) => {
     if (ip !== currentServerIp || !isServerHost) {
         console.log(`Requested server restart/refresh with IP: ${ip}`);
+        currentServerIp = ip;
+        saveStoredSettings({ serverIp: ip });
         startServer(ip);
+    }
+});
+
+ipcMain.on('save-settings', (event, settings) => {
+    if (settings && settings.serverIp) {
+        saveStoredSettings(settings);
     }
 });
 

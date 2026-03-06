@@ -33,6 +33,9 @@ function loadSettings() {
 
 function saveSettings() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(currentSettings));
+    if (window.electronAPI && window.electronAPI.saveSettings) {
+        window.electronAPI.saveSettings({ serverIp: currentSettings.serverIp });
+    }
     applySettings();
 }
 

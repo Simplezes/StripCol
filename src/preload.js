@@ -6,6 +6,7 @@ window.addEventListener('DOMContentLoaded', () => {
 contextBridge.exposeInMainWorld('electronAPI', {
     getVersion: () => ipcRenderer.invoke('get-version'),
     restartServer: (ip) => ipcRenderer.send('restart-server', ip),
+    saveSettings: (settings) => ipcRenderer.send('save-settings', settings),
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
     startUpdate: (zipUrl) => ipcRenderer.invoke('start-update', zipUrl),
     openExternal: (url) => ipcRenderer.send('open-external', url)
