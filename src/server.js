@@ -22,7 +22,7 @@ const app = express();
 const SERVER_IP = process.argv[2] || '127.0.0.1';
 
 app.use(cors({
-  origin: [`http://${SERVER_IP}:5500`, 'http://localhost:5500', `http://${SERVER_IP}:3000`, 'http://localhost:3000'],
+  origin: '*',
   credentials: true
 }));
 app.use(express.json());
@@ -502,7 +502,7 @@ commands.forEach(cmd => {
 
     const session = sessions.get(code.toUpperCase());
     if (!session || !session.ws) {
-      console.warn(`[API] ${cmd} failed for code ${code}: Plugin not connected`);
+      //console.warn(`[API] ${cmd} failed for code ${code}: Plugin not connected`);
       return res.status(412).json({ success: false, message: "Euroscope plugin not connected for this code" });
     }
 
@@ -528,7 +528,7 @@ app.post('/api/:action', (req, res) => {
 
   const session = sessions.get(code.toUpperCase());
   if (!session || !session.ws) {
-    console.warn(`[API] ${action} failed for code ${code}: Plugin not connected`);
+    //console.warn(`[API] ${action} failed for code ${code}: Plugin not connected`);
     return res.status(412).json({ success: false, message: "Euroscope plugin not connected for this code" });
   }
 
@@ -590,6 +590,6 @@ app.post('/api/rpc-update', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, SERVER_IP, () => {
-  console.log(`Gateway Hub (V1.0.2) listening on ${SERVER_IP}:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Gateway Hub (V1.0.2) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
 });

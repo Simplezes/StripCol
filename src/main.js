@@ -75,7 +75,7 @@ async function startServer(ip) {
             serverProcess.kill();
         }
 
-        serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp], { silent: true });
+        serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp]);
 
         serverProcess.on('message', (msg) => {
             if (msg.type === 'rpc_update') {
@@ -144,12 +144,10 @@ ipcMain.handle('get-version', () => {
 });
 
 ipcMain.on('restart-server', (event, ip) => {
-    if (ip !== currentServerIp || !isServerHost) {
-        console.log(`Requested server restart/refresh with IP: ${ip}`);
-        currentServerIp = ip;
-        saveStoredSettings({ serverIp: ip });
-        startServer(ip);
-    }
+    console.log(`Forced server restart/refresh requested with IP: ${ip}`);
+    currentServerIp = ip;
+    saveStoredSettings({ serverIp: ip });
+    startServer(ip);
 });
 
 ipcMain.on('save-settings', (event, settings) => {

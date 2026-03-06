@@ -78,12 +78,18 @@ function startEvent() {
     closeEventSource();
     if (sseReconnectTimeout) clearTimeout(sseReconnectTimeout);
 
-    fetch(`${GATEWAY_URL}/api`)
-        .then(response => {
-            if (response.ok) updateWsStatus(true);
-        })
-        .catch(() => {
-        });
+    const checkConnection = (retries = 5) => {
+        fetch(`${GATEWAY_URL}/api`)
+            .then(response => {
+                if (response.ok) updateWsStatus(true);
+            })
+            .catch(() => {
+                if (retries > 0) {
+                    setTimeout(() => checkConnection(retries - 1), 1000);
+                }
+            });
+    };
+    checkConnection();
 
     const code = getLinkCode();
     if (!code) {

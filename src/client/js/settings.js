@@ -451,6 +451,11 @@ document.getElementById('restartServerBtn').addEventListener('click', () => {
     currentSettings.serverIp = ip;
     saveSettings();
 
+    // Ensure the global GATEWAY_URL is updated immediately in this session
+    if (typeof updateGatewayUrl === 'function') {
+        updateGatewayUrl();
+    }
+
     if (window.electronAPI && window.electronAPI.restartServer) {
         window.electronAPI.restartServer(ip);
         originalServerIp = ip;
@@ -459,9 +464,10 @@ document.getElementById('restartServerBtn').addEventListener('click', () => {
             showToast("Server IP updated. Restarting...", "success");
         }
 
+        // Increased delay to allow the server to bind the new IP
         setTimeout(() => {
             window.location.reload();
-        }, 1000);
+        }, 1500);
     } else {
         console.error("restartServer bridge not available");
         if (typeof showToast === 'function') {
