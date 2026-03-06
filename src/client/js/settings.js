@@ -142,28 +142,6 @@ function initSettingsEvents() {
         saveSettings();
     });
 
-    document.getElementById('serverIpInput').addEventListener('change', (e) => {
-        currentSettings.serverIp = e.target.value.trim() || '127.0.0.1';
-        saveSettings();
-    });
-
-    // Handle server restart when modal closes IF IP changed
-    const settingsModal = document.getElementById('settingsModal');
-    if (settingsModal) {
-        settingsModal.addEventListener('hidden.bs.modal', () => {
-            if (currentSettings.serverIp !== originalServerIp) {
-                console.log("IP changed, requesting server restart...");
-                if (window.electronAPI && window.electronAPI.restartServer) {
-                    window.electronAPI.restartServer(currentSettings.serverIp);
-                    originalServerIp = currentSettings.serverIp;
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
-                }
-            }
-        });
-    }
-
     initPairingLogic();
 
     const linkCodeStatus = document.getElementById('linkCodeStatus');
@@ -469,11 +447,26 @@ function cleanupStrips() {
 document.getElementById('restartServerBtn').addEventListener('click', () => {
     const ip = document.getElementById('serverIpInput').value.trim() || '127.0.0.1';
 
+    // Save the new IP to settings first
+    currentSettings.serverIp = ip;
+    saveSettings();
+
     if (window.electronAPI && window.electronAPI.restartServer) {
         window.electronAPI.restartServer(ip);
-        originalServerIp = ip; // prevent modal auto-restart logic
+        originalServerIp = ip;
+
+        if (typeof showToast === 'function') {
+            showToast("Server IP updated. Restarting...", "success");
+        }
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
     } else {
         console.error("restartServer bridge not available");
+        if (typeof showToast === 'function') {
+            showToast("Failed to restart server.", "error");
+        }
     }
 });
 
