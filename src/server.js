@@ -34,7 +34,7 @@ app.get(['/', '/api'], (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.0.5',
+    version: '1.0.6',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -574,5 +574,5 @@ app.post('/api/rpc-update', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Gateway Hub (V1.0.5) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
+  console.log(`Gateway Hub (V1.0.6) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
 });
