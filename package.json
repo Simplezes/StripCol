@@ -16,11 +16,15 @@
     },
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "zip"
       ],
       "icon": "src/client/images/icon.ico",
       "extraFiles": [
-        "plugin/StripCol.dll"
+        {
+          "from": "plugin/StripCol.dll",
+          "to": "plugin/StripCol.dll"
+        }
       ]
     },
     "nsis": {
