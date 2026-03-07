@@ -108,10 +108,13 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
         const input = document.createElement("input");
         input.className = `box ${cls}`;
 
-        input.addEventListener("input", () => {
-            input.value = input.value.toUpperCase();
-            saveStripValues(div);
-        });
+        if (!input._hasBaseListener) {
+            input._hasBaseListener = true;
+            input.addEventListener("input", () => {
+                input.value = input.value.toUpperCase();
+                saveStripValues(div);
+            });
+        }
 
         fragment.appendChild(input);
 
@@ -155,8 +158,6 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
 //---- STRIP LISTENER #1 ----//
 function attachInputEventHandlers(strip) {
     strip.querySelectorAll("input.box").forEach(input => {
-        // Apply CSS clamp scaling to inputs to perform native browser scaling
-        // rather than heavy javascript layout recalculation
         if (!input.classList.contains("c33")) {
             input.style.fontSize = "clamp(8px, 1cqw, 16px)";
         }
@@ -198,18 +199,15 @@ function enableSortableForAllPanels() {
                     const panelName = panelElement.dataset.panelName;
                     const allStripsBefore = [];
 
-                    // Get all strips from state manager
                     stateManager.getPanels().forEach(p => {
                         if (p.strips) allStripsBefore.push(...p.strips);
                     });
 
-                    // Remove strips from other panels
                     Array.from(container.children).forEach(stripEl => {
                         const stripId = stripEl.dataset.stripId;
                         const currentPanel = stateManager.getPanel(panelName);
                         if (!currentPanel) return;
 
-                        // Check if strip is in a different panel and remove it
                         stateManager.getPanels().forEach(panel => {
                             if (panel.name !== panelName && panel.strips) {
                                 const stripInPanel = panel.strips.find(s => s.id === stripId);
@@ -220,7 +218,6 @@ function enableSortableForAllPanels() {
                         });
                     });
 
-                    // Build new order and update state
                     const newOrder = Array.from(container.children).map(stripEl => {
                         const stripId = stripEl.dataset.stripId;
                         const existing = allStripsBefore.find(s => s.id === stripId);
@@ -250,7 +247,6 @@ function enableSortableForAllPanels() {
                         };
                     });
 
-                    // Update state manager with new order
                     const panel = stateManager.getPanel(panelName);
                     if (panel) {
                         stateManager.updatePanel(panelName, { strips: newOrder });
@@ -294,7 +290,6 @@ function showGhostMoveMode(strip) {
             const targetType = getStripTypeFromPanelName(targetPanelName);
             if (targetType && strip.dataset.type !== targetType) {
                 strip.dataset.type = targetType;
-                // Find flightplan data from state manager
                 let flightPlan = null;
                 const stripId = strip.dataset.stripId;
                 const existingStrip = stateManager.getStrip(stripId);
@@ -307,9 +302,7 @@ function showGhostMoveMode(strip) {
         }
 
         let movedStripData;
-        // stripId already declared above
 
-        // Find and remove strip from current panel
         stateManager.getPanels().forEach(panel => {
             const index = panel.strips?.findIndex(s => s.id === stripId);
             if (index !== undefined && index !== -1) {
@@ -318,7 +311,6 @@ function showGhostMoveMode(strip) {
             }
         });
 
-        // Add to target panel
         if (movedStripData) {
             stateManager.addStrip(targetPanelName, movedStripData);
         }
@@ -365,7 +357,13 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
     strip.addEventListener("contextmenu", e => {
         e.preventDefault();
         e.stopPropagation();
-        document.querySelectorAll(".strip-context-menu").forEach(m => m.remove());
+        document.querySelectorAll(".strip-context-menu").forEach(m => {
+            if (m._outsideHandler) {
+                document.removeEventListener("mousedown", m._outsideHandler, true);
+                delete m._outsideHandler;
+            }
+            m.remove();
+        });
         const menu = document.createElement("div");
         menu.classList.add("strip-context-menu");
         menu.style.top = `${e.clientY}px`;
@@ -483,11 +481,13 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
 
         setTimeout(() => {
             const handler = ev => {
-                if (!menu.contains(ev.target)) {
+                if (!menu.isConnected || !menu.contains(ev.target)) {
                     menu.remove();
                     document.removeEventListener("mousedown", handler, true);
+                    delete menu._outsideHandler;
                 }
             };
+            menu._outsideHandler = handler;
             document.addEventListener("mousedown", handler, true);
         });
     });
@@ -893,11 +893,9 @@ function showTransitionsMenu(parentMenu, airport, procedureType, runway, baseNam
         const transBtn = document.createElement("div");
         transBtn.classList.add("transition-btn");
 
-        // Format name for display: "OSUSU4RxGIKPUxY" -> "via GIKPU Y"
         let displayName = transition.name;
         if (displayName.includes('x')) {
             const parts = displayName.split('x');
-            // Take all parts after the first 'x' and join them with spaces
             displayName = `via ${parts.slice(1).join(' ')}`;
         }
 
@@ -1410,7 +1408,9 @@ async function handleArrivalCenter(boxes, flight) {
 
 // Listeners
 function addStripEditListeners(strip, flight, type) {
-    if (!strip || !flight || !type) return
+    if (!strip || !flight || !type) return;
+    if (strip._editListenersAttached) return;
+    strip._editListenersAttached = true;
 
     // --- GLOBAL ---
     //SQUAWK
@@ -1436,11 +1436,14 @@ function addStripEditListeners(strip, flight, type) {
 
             const formatted = formatSquawk(rawValue);
 
-            c6Input.value = formatted;
-            if (boxes[5]) boxes[5].value = formatted;
+            c6Input.value = "A" + formatted;
+            if (boxes[5]) boxes[5].value = "A" + formatted;
             updateSquawk(formatted);
         };
 
+        c6Input.addEventListener("focus", () => {
+            c6Input.value = c6Input.value.replace(/^[Aa]/, "");
+        });
         c6Input.addEventListener("input", e => e.target.value = e.target.value.replace(/[^0-7]/g, "").slice(0, 4));
         c6Input.addEventListener("keydown", e => e.key === "Enter" && (e.preventDefault(), formatAndSubmit()));
         c6Input.addEventListener("blur", formatAndSubmit);
@@ -1489,22 +1492,24 @@ function addStripEditListeners(strip, flight, type) {
             const raw = c13Input.value.trim();
 
             if (!raw) {
-                if (c13Input.value === "001") return;
+                if (c13Input.value === "F001") return;
 
-                c13Input.value = "001";
-                if (boxes[12]) boxes[12].value = "001";
+                c13Input.value = "F001";
+                if (boxes[12]) boxes[12].value = "F001";
                 updateFinalAltitude(1);
                 return;
             }
 
             const { str, int } = formatFinalAltitude(raw);
-            if (c13Input.value === str) c13Input.value = int;
 
-            c13Input.value = str;
-            if (boxes[12]) boxes[12].value = str;
+            c13Input.value = "F" + str;
+            if (boxes[12]) boxes[12].value = "F" + str;
             updateFinalAltitude(int);
         };
 
+        c13Input.addEventListener("focus", () => {
+            c13Input.value = c13Input.value.replace(/^[Ff]/, "");
+        });
         c13Input.addEventListener("input", e => {
             e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
         });
@@ -1556,12 +1561,10 @@ function addStripEditListeners(strip, flight, type) {
             const lettersOnly = value.replace(/[^A-Z]/gi, "").toUpperCase();
             const digitsOnly = value.replace(/[^0-9]/g, "");
 
-            // Handle code inputs
             if (lettersOnly === "CA" || lettersOnly === "VA") {
                 return { str: lettersOnly, int: lettersOnly, isCode: true };
             }
 
-            // Numeric case
             let clean = digitsOnly.slice(0, 3);
             if (clean.length > 0 && clean.length < 3) {
                 clean = clean.padEnd(3, "0");
@@ -1714,7 +1717,7 @@ function addStripEditListeners(strip, flight, type) {
                 lastValues[pointType] = "";
                 if (etaElement) {
                     etaElement.value = "";
-                    etaElement.textContent = ""; // Just in case of fallback
+                    etaElement.textContent = "";
                 }
                 return;
             }
@@ -1724,7 +1727,6 @@ function addStripEditListeners(strip, flight, type) {
 
                 if (etaElement) {
                     etaElement.value = pointInfo.eta || "N/A";
-                    // Also trigger autoResize if applicable
                     if (typeof autoResizeInputFont === 'function') autoResizeInputFont(etaElement);
                 }
 
@@ -1778,7 +1780,6 @@ function addStripEditListeners(strip, flight, type) {
             const c9Input = strip.querySelector(".c9");
             if (!c9Input) return;
 
-            // Force text input for proper formatting
             if (c9Input.type === "number") {
                 c9Input.type = "text";
                 c9Input.setAttribute("inputmode", "decimal");
@@ -1832,7 +1833,6 @@ function addStripEditListeners(strip, flight, type) {
                         return { display: "", type: "empty", send: 0 };
                     }
 
-                    // Clamp to range
                     if (floatVal < 0.5) floatVal = 0.5;
                     if (floatVal > 4.99) floatVal = 4.99;
 
