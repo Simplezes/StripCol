@@ -211,51 +211,13 @@ function renderUpdateResult(result) {
     const updateStatus = document.getElementById('updateStatus');
     const versionDisplay = document.getElementById('appVersionDisplay');
 
-    if (result.error) {
+    if (result && result.error) {
         updateStatus.innerHTML = `<span class="text-danger">Failed: ${result.error}</span>`;
     } else {
-        if (result.updateAvailable) {
-            updateStatus.innerHTML = `
-                <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
-                    <div class="fw-bold">Update Available: V${result.latestVersion}</div>
-                    <div class="mt-1" style="font-size: 11px; color: var(--text-dim);">Release notes: ${result.notes ? result.notes.substring(0, 50) + '...' : 'New changes!'}</div>
-                    <div class="d-flex gap-2 mt-2">
-                        <button id="installUpdateBtn" class="btn btn-sm btn-success py-1 px-3" style="font-size: 11px;">
-                            Download & Install
-                        </button>
-                        <button id="viewOnGithubBtn" class="btn btn-sm btn-outline-success py-1 px-3" style="font-size: 11px;">
-                            View on GitHub
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('installUpdateBtn').addEventListener('click', async () => {
-                const installBtn = document.getElementById('installUpdateBtn');
-                installBtn.disabled = true;
-                installBtn.innerHTML = '<span class="material-icons rotating me-1" style="font-size: 14px;">sync</span>Downloading...';
-
-                try {
-                    const updateResult = await window.electronAPI.startUpdate(result.zipUrl);
-                    if (updateResult && updateResult.error) {
-                        updateStatus.innerHTML += `<div class="text-danger mt-2" style="font-size: 11px;">Error: ${updateResult.error}</div>`;
-                        installBtn.disabled = false;
-                        installBtn.textContent = 'Retry Install';
-                    }
-                } catch (e) {
-                    updateStatus.innerHTML += `<div class="text-danger mt-2" style="font-size: 11px;">Failed to start update.</div>`;
-                    installBtn.disabled = false;
-                    installBtn.textContent = 'Retry Install';
-                }
-            });
-
-            document.getElementById('viewOnGithubBtn').addEventListener('click', () => {
-                window.electronAPI.openExternal(result.url);
-            });
-        } else {
-            updateStatus.innerHTML = '<span class="text-success">You are up to date!</span>';
-        }
-        if (versionDisplay) versionDisplay.textContent = result.currentVersion;
+        // With electron-updater, checking-for-updates is the first step.
+        // The actual update availability is handled via events.
+        updateStatus.innerHTML = '<span class="text-info">Checking...</span>';
+        if (versionDisplay && result && result.currentVersion) versionDisplay.textContent = result.currentVersion;
     }
 }
 
@@ -273,7 +235,53 @@ function initUpdateCheck() {
     const checkBtn = document.getElementById('checkUpdatesBtn');
     const updateStatus = document.getElementById('updateStatus');
 
-    if (!checkBtn) return;
+    if (!checkBtn || !window.electronAPI) return;
+
+    // Register event listeners
+    window.electronAPI.onUpdateAvailable((info) => {
+        updateStatus.innerHTML = `
+            <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
+                <div class="fw-bold">Update Available: V${info.version}</div>
+                <div id="downloadProgress" class="mt-2" style="font-size: 11px; color: var(--text-dim);">
+                    Initializing download...
+                </div>
+            </div>
+        `;
+    });
+
+    window.electronAPI.onUpdateNotAvailable(() => {
+        updateStatus.innerHTML = '<span class="text-success">You are up to date!</span>';
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = '<span class="material-icons me-2" style="font-size: 16px;">update</span>Check for Updates';
+    });
+
+    window.electronAPI.onUpdateError((message) => {
+        updateStatus.innerHTML = `<span class="text-danger">Update error: ${message}</span>`;
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = '<span class="material-icons me-2" style="font-size: 16px;">update</span>Check for Updates';
+    });
+
+    window.electronAPI.onDownloadProgress((progress) => {
+        const progressEl = document.getElementById('downloadProgress');
+        if (progressEl) {
+            progressEl.innerHTML = `Downloading: ${Math.round(progress.percent)}% (${(progress.transferred / 1024 / 1024).toFixed(2)} MB / ${(progress.total / 1024 / 1024).toFixed(2)} MB)`;
+        }
+    });
+
+    window.electronAPI.onUpdateDownloaded((info) => {
+        updateStatus.innerHTML = `
+            <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
+                <div class="fw-bold">Update Downloaded! (V${info.version})</div>
+                <div class="mt-1" style="font-size: 11px;">Restart to apply the update.</div>
+                <button id="installUpdateBtn" class="btn btn-sm btn-success mt-2 py-1 px-3" style="font-size: 11px;">
+                    Restart & Install
+                </button>
+            </div>
+        `;
+        document.getElementById('installUpdateBtn').addEventListener('click', () => {
+            window.electronAPI.startUpdate();
+        });
+    });
 
     checkBtn.addEventListener('click', async () => {
         if (checkBtn.disabled) return;
@@ -283,11 +291,9 @@ function initUpdateCheck() {
         updateStatus.innerHTML = '';
 
         try {
-            const result = await window.electronAPI.checkForUpdates();
-            renderUpdateResult(result);
+            await window.electronAPI.checkForUpdates();
         } catch (e) {
             updateStatus.innerHTML = '<span class="text-danger">Check failed.</span>';
-        } finally {
             checkBtn.disabled = false;
             checkBtn.innerHTML = '<span class="material-icons me-2" style="font-size: 16px;">update</span>Check for Updates';
         }

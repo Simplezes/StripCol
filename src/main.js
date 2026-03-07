@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { fork } = require('child_process');
+const { autoUpdater } = require('electron-updater');
 const rpc = require('./rpc');
 
 const net = require('net');
@@ -156,195 +157,63 @@ ipcMain.on('save-settings', (event, settings) => {
     }
 });
 
+// --- AUTO UPDATER ---
+
+autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version);
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('update-available', info);
+    });
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    console.log('Update not available.');
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('update-not-available', info);
+    });
+});
+
+autoUpdater.on('error', (err) => {
+    console.error('Error in auto-updater:', err);
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('update-error', err.message);
+    });
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = "Download speed: " + progressObj.bytesPerSecond;
+    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+    console.log(log_message);
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('download-progress', progressObj);
+    });
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded');
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('update-downloaded', info);
+    });
+});
+
 ipcMain.handle('check-for-updates', async () => {
     try {
-        const response = await fetch('https://api.github.com/repos/Simplezes/StripCol/releases');
-        if (!response.ok) throw new Error('GitHub API returned ' + response.status);
-
-        const releases = await response.json();
-        if (!Array.isArray(releases) || releases.length === 0) {
-            throw new Error('No releases found');
-        }
-
-        // Helper to parse version string into comparable array of numbers [major, minor, patch]
-        const parseVersion = (v) => v.replace(/^v/, '').split('.').map(Number);
-
-        // Sort releases by version descending
-        const sortedReleases = releases.sort((a, b) => {
-            const vA = parseVersion(a.tag_name);
-            const vB = parseVersion(b.tag_name);
-            for (let i = 0; i < Math.max(vA.length, vB.length); i++) {
-                const numA = vA[i] || 0;
-                const numB = vB[i] || 0;
-                if (numA > numB) return -1;
-                if (numA < numB) return 1;
-            }
-            return 0;
-        });
-
-        const latestRelease = sortedReleases[0];
-        const latestVersion = latestRelease.tag_name.replace(/^v/, '');
-        const currentVersion = require('../package.json').version;
-
-        // Custom version comparison to ensure we only update if latest > current
-        const isUpdateAvailable = (latest, current) => {
-            const l = parseVersion(latest);
-            const c = parseVersion(current);
-            for (let i = 0; i < Math.max(l.length, c.length); i++) {
-                const numL = l[i] || 0;
-                const numC = c[i] || 0;
-                if (numL > numC) return true;
-                if (numL < numC) return false;
-            }
-            return false;
-        };
-
-        return {
-            currentVersion,
-            latestVersion,
-            updateAvailable: isUpdateAvailable(latestVersion, currentVersion),
-            url: latestRelease.html_url,
-            notes: latestRelease.body,
-            zipUrl: latestRelease.zipball_url
-        };
+        const result = await autoUpdater.checkForUpdates();
+        return { success: true, result };
     } catch (error) {
-        console.error('Update check failed:', error);
+        console.error('Manual update check failed:', error);
         return { error: error.message };
     }
 });
 
-ipcMain.handle('start-update', async (event, zipUrl) => {
-    const fs = require('fs');
-    const https = require('https');
-    const os = require('os');
-    const { exec } = require('child_process');
-
-    const tempZip = path.join(os.tmpdir(), 'stripcol-update.zip');
-    const tempExtract = path.join(os.tmpdir(), 'stripcol-update-extracted');
-    const appPath = app.getAppPath();
-
-    try {
-        // 1. Download ZIP
-        console.log("Downloading update from:", zipUrl);
-        const download = (url, dest) => {
-            return new Promise((resolve, reject) => {
-                const file = fs.createWriteStream(dest);
-                const request = https.get(url, { headers: { 'User-Agent': 'StripCol-Updater' } }, (response) => {
-                    if (response.statusCode === 302 || response.statusCode === 301) {
-                        download(response.headers.location, dest).then(resolve).catch(reject);
-                        return;
-                    }
-                    if (response.statusCode !== 200) {
-                        reject(new Error(`Failed to download: ${response.statusCode}`));
-                        return;
-                    }
-                    response.pipe(file);
-                    file.on('finish', () => {
-                        file.close();
-                        resolve();
-                    });
-                }).on('error', (err) => {
-                    fs.unlink(dest, () => { });
-                    reject(err);
-                });
-            });
-        };
-
-        await download(zipUrl, tempZip);
-        console.log("Download complete.");
-
-        const stats = fs.statSync(tempZip);
-        console.log(`ZIP downloaded. Size: ${stats.size} bytes`);
-
-        // 2. Extract
-        if (fs.existsSync(tempExtract)) fs.rmSync(tempExtract, { recursive: true, force: true });
-        fs.mkdirSync(tempExtract);
-
-        console.log("Extracting ZIP to:", tempExtract);
-        await new Promise((resolve, reject) => {
-            // Try 'tar' first (available on Win10 1803+), fallback to PowerShell
-            const cmd = `tar -xf "${tempZip}" -C "${tempExtract}"`;
-            console.log("Running extraction command:", cmd);
-            exec(cmd, (err, stdout, stderr) => {
-                if (err) {
-                    console.log("Tar failed, trying PowerShell Expand-Archive...");
-                    const psCmd = `powershell -Command "Expand-Archive -Path '${tempZip}' -DestinationPath '${tempExtract}' -Force"`;
-                    exec(psCmd, (psErr, psStdout, psStderr) => {
-                        if (psErr) {
-                            console.error("PowerShell extraction failed:", psStderr);
-                            reject(new Error(`Extraction failed: ${psStderr || psErr.message}`));
-                        } else {
-                            resolve();
-                        }
-                    });
-                } else {
-                    resolve();
-                }
-            });
-        });
-
-        // 3. Find the inner folder (GitHub zips have a top-level dir)
-        const entries = fs.readdirSync(tempExtract);
-        console.log("Extracted entries:", entries);
-
-        const innerFolders = entries.filter(f => fs.statSync(path.join(tempExtract, f)).isDirectory());
-        if (innerFolders.length === 0) {
-            // If no folder, maybe it extracted files directly? 
-            // But GitHub zipball always has a root folder.
-            throw new Error(`No folders found in extracted ZIP. Entries: ${entries.join(', ')}`);
-        }
-        const innerPath = path.join(tempExtract, innerFolders[0]);
-        console.log("Inner extraction path:", innerPath);
-
-        // 4. Create Updater Script
-        const updaterBat = path.join(os.tmpdir(), 'stripcol-install.bat');
-        const appDir = path.dirname(appPath); // In dev, this is project root. In build, it's resources/app
-
-        // If we are in dev, appPath is the root. If built, appPath is .../resources/app
-        const targetDir = appPath;
-
-        const batContent = `
-@echo off
-setlocal
-echo Finalizing update...
-timeout /t 2 /nobreak > nul
-
-:retry
-taskkill /f /im "StripCol.exe" > nul 2>&1
-taskkill /f /im "stripcol.exe" > nul 2>&1
-timeout /t 1 /nobreak > nul
-
-xcopy "${innerPath}\\*" "${targetDir}" /s /e /y /h /i
-if errorlevel 1 (
-    echo Error during copy. Retrying...
-    timeout /t 2 /nobreak
-    goto retry
-)
-
-echo Update successful!
-start "" "${process.execPath}"
-echo Closing...
-(goto) 2>nul & del "%~f0" & exit
-`;
-        fs.writeFileSync(updaterBat, batContent);
-
-        // 5. Execute and Quit
-        console.log("Launching updater script:", updaterBat);
-        const { spawn } = require('child_process');
-        const child = spawn('cmd.exe', ['/c', updaterBat], {
-            detached: true,
-            stdio: 'ignore',
-            windowsHide: true
-        });
-        child.unref();
-
-        app.quit();
-
-        return { success: true };
-    } catch (error) {
-        console.error("Update failed:", error);
-        return { error: error.message };
-    }
+ipcMain.handle('start-update', () => {
+    autoUpdater.quitAndInstall();
+    return { success: true };
 });
 
 ipcMain.on('open-external', (event, url) => {

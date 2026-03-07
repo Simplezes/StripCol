@@ -8,6 +8,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     restartServer: (ip) => ipcRenderer.send('restart-server', ip),
     saveSettings: (settings) => ipcRenderer.send('save-settings', settings),
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
-    startUpdate: (zipUrl) => ipcRenderer.invoke('start-update', zipUrl),
-    openExternal: (url) => ipcRenderer.send('open-external', url)
+    startUpdate: () => ipcRenderer.invoke('start-update'),
+    openExternal: (url) => ipcRenderer.send('open-external', url),
+    onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, info) => callback(info)),
+    onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', (event, info) => callback(info)),
+    onUpdateError: (callback) => ipcRenderer.on('update-error', (event, message) => callback(message)),
+    onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (event, progress) => callback(progress)),
+    onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (event, info) => callback(info))
 });

@@ -5,7 +5,41 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-packager . StripCol --icon=src/client/images/icon.ico --platform=win32 --arch=x64 --overwrite"
+    "build": "electron-builder build",
+    "publish": "electron-builder build --publish always"
+  },
+  "build": {
+    "appId": "com.simplezes.stripcol",
+    "productName": "StripCol",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "src/client/images/icon.ico",
+      "extraFiles": [
+        "plugin/StripCol.dll"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "runAfterFinish": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Simplezes",
+        "repo": "StripCol"
+      }
+    ],
+    "files": [
+      "src/**/*",
+      "package.json"
+    ]
   },
   "repository": {
     "type": "git",
@@ -35,15 +69,17 @@
     "electron": "^40.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
   },
   "dependencies": {
     "cors": "^2.8.6",
     "discord-rpc": "^4.0.1",
     "dotenv": "^17.2.4",
-    "electron-packager": "^17.1.2",
     "express": "^5.2.1",
     "fs": "^0.0.1-security",
-    "ws": "^8.19.0"
+    "ws": "^8.19.0",
+    "electron-updater": "^6.3.9"
   }
 }
