@@ -304,6 +304,44 @@ input:focus::selection {
     background: var(--sys-border);
 }
 
+.sys-search-group {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--sys-border);
+    border-radius: 4px;
+    padding: 0 8px;
+    height: 28px;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.sys-search-group:focus-within {
+    border-color: var(--atm-blue);
+    background: rgba(33, 150, 243, 0.05);
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.2);
+}
+
+.sys-search-group .material-icons {
+    font-size: 14px;
+    color: var(--sys-text-dim);
+}
+
+.sys-search-group input {
+    background: transparent;
+    border: none;
+    color: var(--sys-text);
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 500;
+    width: 150px;
+    outline: none;
+}
+
+.sys-search-group input::placeholder {
+    color: var(--sys-text-dim);
+}
+
 .sys-right {
     display: flex;
     align-items: center;
@@ -482,6 +520,11 @@ input:focus::selection {
 .strip:hover {
     cursor: pointer;
     border-color: var(--atm-blue);
+}
+
+.strip.filtered-out {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .strip input {

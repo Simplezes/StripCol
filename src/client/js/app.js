@@ -106,4 +106,40 @@ function cleanupStripObservers(strip) {
 document.addEventListener('DOMContentLoaded', async function () {
     setInterval(updateZuluTime, 1000);
     updateZuluTime();
+
+    // Global Search Logic
+    const searchInput = document.getElementById('globalSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            filterStrips(query);
+        });
+    }
 });
+
+function filterStrips(query) {
+    const strips = document.querySelectorAll('.strip');
+    strips.forEach(strip => {
+        if (!query) {
+            strip.style.display = '';
+            strip.classList.remove('filtered-out');
+            return;
+        }
+
+        // Get values from inputs (searching callsign, departure, arrival mainly)
+        const inputs = Array.from(strip.querySelectorAll('input.box'));
+        const matches = inputs.some(input => input.value.toLowerCase().includes(query));
+
+        // Also check dataset attributes just in case
+        const dataMatches = (strip.dataset.callsign || '').toLowerCase().includes(query) ||
+            (strip.dataset.type || '').toLowerCase().includes(query);
+
+        if (matches || dataMatches) {
+            strip.style.display = '';
+            strip.classList.remove('filtered-out');
+        } else {
+            strip.style.display = 'none';
+            strip.classList.add('filtered-out');
+        }
+    });
+}
