@@ -804,7 +804,7 @@ input:focus::selection {
 .strip-context-menu {
     position: absolute;
     min-width: 200px;
-    max-width: 30%;
+    max-width: 600px;
     background: #1a1c1e;
     color: var(--text-main);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -917,11 +917,48 @@ input:focus::selection {
 }
 
 .route-display {
-    padding: 12px;
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 6px;
+    max-width: 600px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.route-badge {
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
     font-family: var(--font-mono);
-    font-size: 0.8rem;
-    line-height: 1.4;
-    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s ease;
+    cursor: default;
+}
+
+.route-badge:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.route-connector {
+    color: #555;
+    font-size: 1.1rem;
+    line-height: 1;
+    user-select: none;
+    padding: 0 2px;
+}
+
+.badge-text {
+    letter-spacing: 0.5px;
+}
+
+.badge-extra {
+    color: #8b949e;
+    padding-left: 4px;
+    margin-left: 2px;
 }
 
 /* === Procedure & Transition Buttons === */

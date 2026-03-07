@@ -128,7 +128,7 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
     fragment.appendChild(dtDiv);
     div.appendChild(fragment);
 
-    setTimeout(() => attachAutoResizeToStripInputs(div), 0);
+    setTimeout(() => attachInputEventHandlers(div), 0);
 
     if (fromEuroscope) {
         if (!flightplan && existingId) {
@@ -153,43 +153,13 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
 }
 
 //---- STRIP LISTENER #1 ----//
-function autoResizeInputFont(input) {
-    const minFont = 6;
-    const maxFont = 16;
-    const testSpan = document.createElement("span");
-    testSpan.style.visibility = "hidden";
-    testSpan.style.position = "fixed";
-    testSpan.style.whiteSpace = "pre";
-    testSpan.style.fontWeight = "200";
-    testSpan.style.fontFamily = window.getComputedStyle(input).fontFamily;
-    document.body.appendChild(testSpan);
-
-    let fontSize = maxFont;
-    testSpan.textContent = input.value || input.placeholder || "";
-    while (fontSize > minFont) {
-        testSpan.style.fontSize = fontSize + "px";
-        if (testSpan.offsetWidth <= input.offsetWidth - 8) break;
-        fontSize -= 1;
-    }
-    input.style.fontSize = fontSize + "px";
-    document.body.removeChild(testSpan);
-}
-
-function observeInputResize(input) {
-    if (input._resizeObserver) return;
-    input._resizeObserver = new ResizeObserver(() => autoResizeInputFont(input));
-    input._resizeObserver.observe(input);
-    if (input.parentElement && !input.parentElement._resizeObserver) {
-        input.parentElement._resizeObserver = new ResizeObserver(() => autoResizeInputFont(input));
-        input.parentElement._resizeObserver.observe(input.parentElement);
-    }
-}
-
-function attachAutoResizeToStripInputs(strip) {
+function attachInputEventHandlers(strip) {
     strip.querySelectorAll("input.box").forEach(input => {
-        input.addEventListener("input", () => autoResizeInputFont(input));
-        autoResizeInputFont(input);
-        observeInputResize(input);
+        // Apply CSS clamp scaling to inputs to perform native browser scaling
+        // rather than heavy javascript layout recalculation
+        if (!input.classList.contains("c33")) {
+            input.style.fontSize = "clamp(8px, 1cqw, 16px)";
+        }
 
         input.addEventListener("mousedown", e => {
             e.stopPropagation();
@@ -533,26 +503,28 @@ function showRouteMenu(parentMenu, flight, strip) {
 
     const words = flight.route.split(/\s+/);
 
-    words.forEach(word => {
+    words.forEach((word, index) => {
         let span = document.createElement("span");
 
         if (word.includes("/")) {
             const [point, extra] = word.split("/", 2);
-            span.innerHTML = point;
+            span.innerHTML = `<span class="badge-text">${point}</span><span class="badge-extra">/${extra}</span>`;
             span.style.color = getColorForAviationPoint(point);
-
-            const extraSpan = document.createElement("span");
-            extraSpan.innerHTML = "/" + extra;
-            extraSpan.style.color = "#7f8c8d";
+            span.className = "route-badge";
             routeDiv.appendChild(span);
-            routeDiv.appendChild(extraSpan);
         } else {
-            span.innerHTML = word;
+            span.innerHTML = `<span class="badge-text">${word}</span>`;
             span.style.color = getColorForAviationPoint(word);
+            span.className = "route-badge";
             routeDiv.appendChild(span);
         }
 
-        routeDiv.appendChild(document.createTextNode(" "));
+        if (index < words.length - 1) {
+            let connector = document.createElement("span");
+            connector.className = "route-connector";
+            connector.innerHTML = "›";
+            routeDiv.appendChild(connector);
+        }
     });
 
     parentMenu.appendChild(routeDiv);
@@ -567,19 +539,19 @@ function showRouteMenu(parentMenu, flight, strip) {
 function getColorForAviationPoint(word) {
     const w = word.toUpperCase();
     if (w === "DCT") {
-        return "#7b848f"; // Muted Steel
+        return "#8b949e"; // Soft Gray
     } else if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) {
-        return "#ff3d00"; // Vibrant Red (Runway)
+        return "#ff7b72"; // Soft Red
     } else if (/^[A-Z]{3}$/i.test(w)) {
-        return "#00e676"; // Emerald Green (VOR)
+        return "#7ee787"; // Soft Green
     } else if (/^[A-Z]{5}$/i.test(w)) {
-        return "#2196f3"; // Vibrant Blue (Waypoint)
+        return "#79c0ff"; // Soft Blue
     } else if (/^[A-Z]+\d+$/i.test(w) && w.length <= 6) {
-        return "#ffab00"; // Amber (Airway)
+        return "#d2a8ff"; // Soft Purple
     } else if (/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{3,}$/i.test(w)) {
-        return "#a855f7"; // Vibrant Purple (Procedure)
+        return "#ffb564"; // Soft Orange
     } else {
-        return "#e0e6ed"; // Default System Text
+        return "#c9d1d9"; // Light Gray
     }
 }
 
@@ -1260,24 +1232,27 @@ function applyTooltipsToStrip(strip, type) {
         box.removeAttribute('title');
 
         // Custom tooltip listeners
-        box.addEventListener('mouseenter', e => {
-            const tip = box.getAttribute('data-tooltip');
-            if (tip) {
-                if (tooltipTimeout) clearTimeout(tooltipTimeout);
-                tooltipTimeout = setTimeout(() => {
-                    showTooltip(tip, e.clientX, e.clientY);
-                }, 500); // 2 second delay
-            }
-        });
+        if (!box._hasTooltipListeners) {
+            box._hasTooltipListeners = true;
+            box.addEventListener('mouseenter', e => {
+                const tip = box.getAttribute('data-tooltip');
+                if (tip) {
+                    if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                    tooltipTimeout = setTimeout(() => {
+                        showTooltip(tip, e.clientX, e.clientY);
+                    }, 500); // 2 second delay
+                }
+            });
 
-        box.addEventListener('mousemove', e => {
-            if (globalTooltipEl && globalTooltipEl.classList.contains('visible')) {
-                globalTooltipEl.style.left = (e.clientX + 10) + "px";
-                globalTooltipEl.style.top = (e.clientY + 10) + "px";
-            }
-        });
+            box.addEventListener('mousemove', e => {
+                if (globalTooltipEl && globalTooltipEl.classList.contains('visible')) {
+                    globalTooltipEl.style.left = (e.clientX + 10) + "px";
+                    globalTooltipEl.style.top = (e.clientY + 10) + "px";
+                }
+            });
 
-        box.addEventListener('mouseleave', hideTooltip);
+            box.addEventListener('mouseleave', hideTooltip);
+        }
     });
 }
 
@@ -1397,13 +1372,6 @@ async function handleArrivalApproach(boxes, flight) {
         const point = await fetchPointETA(flight.callsign, { name: entryPointName });
         setValue(18, point.name);
         setValue(23, point.eta);
-
-        const stripId = `strip-${flight.callsign}`;
-        const strip = document.querySelector(`.strip[data-strip-id="${stripId}"]`);
-        if (strip) {
-            const etaInput = strip.querySelector('.box.c17');
-            if (etaInput) autoResizeInputFont(etaInput);
-        }
     }
 
     const result = await getMatchedPointsWithETA(flight, jsonData, "STAR");
@@ -2140,6 +2108,34 @@ async function fetchPointETA(flightCallsign, point) {
     return point;
 }
 
+async function fetchMultiplePointETAs(flightCallsign, points) {
+    const pointsToFetch = points.filter(p => !p.eta);
+    if (pointsToFetch.length === 0) return points;
+
+    try {
+        const pointNames = pointsToFetch.map(p => p.name).join(',');
+        const response = await fetch(
+            `${GATEWAY_URL}/api/point-time?code=${getLinkCode()}&callsign=${encodeURIComponent(flightCallsign)}&points=${encodeURIComponent(pointNames)}`,
+            { method: "GET", headers: { "Content-Type": "application/json" } }
+        );
+
+        if (response.ok) {
+            const pointData = await response.json();
+            pointsToFetch.forEach(p => {
+                const pointInfo = pointData.find(data => data.name === p.name);
+                p.eta = pointInfo ? (pointInfo.eta || "N/A") : "N/A";
+            });
+        } else {
+            pointsToFetch.forEach(p => p.eta = "N/A");
+        }
+    } catch (err) {
+        console.error(`Failed to fetch ETAs for ${flightCallsign}:`, err);
+        pointsToFetch.forEach(p => p.eta = "N/A");
+    }
+
+    return points;
+}
+
 function getProcedurePoint(procedures, procedureType, airport, runway, procedureName) {
     if (!procedures[airport] || !procedures[airport][procedureType] || !procedures[airport][procedureType][runway]) {
         console.log("Runway or procedure type not found");
@@ -2197,14 +2193,8 @@ async function getMatchedPointsWithETA(flight, procedures, type = "SID", isTower
         if (lastIndex === -1) return [];
 
         const fixesToReturn = proc.fixes.slice(lastIndex, lastIndex + 3);
-        const fixesWithETA = [];
-
-        for (const fix of fixesToReturn) {
-            const existing = flightMap.get(fix.toUpperCase()) || { name: fix };
-            fixesWithETA.push(await fetchPointETA(flight.callsign, existing));
-        }
-
-        return fixesWithETA;
+        const fixesObj = fixesToReturn.map(fix => flightMap.get(fix.toUpperCase()) || { name: fix });
+        return await fetchMultiplePointETAs(flight.callsign, fixesObj);
     }
 
     const uniqueFixes = [];
@@ -2331,30 +2321,34 @@ function extractStatus(remarks) {
     return match ? match[1] : match2 ? match2[1] : "";
 }
 
+let _rpcSyncTimeout = null;
 async function syncRPC() {
-    const panels = document.querySelectorAll(".card[data-panel-name]");
-    let dep = 0, arr = 0, ovr = 0;
+    if (_rpcSyncTimeout) clearTimeout(_rpcSyncTimeout);
+    _rpcSyncTimeout = setTimeout(async () => {
+        const panels = document.querySelectorAll(".card[data-panel-name]");
+        let dep = 0, arr = 0, ovr = 0;
 
-    panels.forEach(panel => {
-        const name = panel.dataset.panelName.toLowerCase();
-        const count = panel.querySelectorAll(".strip").length;
+        panels.forEach(panel => {
+            const name = panel.dataset.panelName.toLowerCase();
+            const count = panel.querySelectorAll(".strip").length;
 
-        if (name.includes("departure")) dep += count;
-        else if (name.includes("arrival")) arr += count;
-        else if (name.includes("overfly") || name.includes("unassigned")) ovr += count;
-    });
-
-    const state = `${dep} Dep / ${arr} Arr / ${ovr} Ovr`;
-    const code = getLinkCode();
-    if (!code) return;
-
-    try {
-        await fetch(`${GATEWAY_URL}/api/rpc-update`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code, state })
+            if (name.includes("departure")) dep += count;
+            else if (name.includes("arrival")) arr += count;
+            else if (name.includes("overfly") || name.includes("unassigned")) ovr += count;
         });
-    } catch (e) {
-        console.error("[RPC] Failed to sync with server:", e);
-    }
+
+        const state = `${dep} Dep / ${arr} Arr / ${ovr} Ovr`;
+        const code = typeof getLinkCode === 'function' ? getLinkCode() : null;
+        if (!code) return;
+
+        try {
+            await fetch(`${GATEWAY_URL}/api/rpc-update`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code, state })
+            });
+        } catch (e) {
+            console.error("[RPC] Failed to sync with server:", e);
+        }
+    }, 500);
 }

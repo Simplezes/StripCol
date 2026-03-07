@@ -385,7 +385,6 @@ function renderStrips() {
                             const input = stripEl.querySelector(`input.${cls}`);
                             if (input && val) {
                                 input.value = val;
-                                autoResizeInputFont(input);
                             }
                         });
                     }
