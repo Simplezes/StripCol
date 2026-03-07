@@ -943,7 +943,6 @@ function updateStripWithProcedure(strip, procedureType, procedureName, procedure
         }
     }
 
-    // Save strip values to state manager after procedure update
     saveStripValues(strip);
 }
 
@@ -986,7 +985,6 @@ function saveStripValues(stripEl) {
 function deleteStripFromPanels(callsign) {
     if (!callsign) return;
 
-    // Search and remove from DOM - try common ID patterns
     const stripEl = document.querySelector(`.strip[data-strip-id="strip-${callsign}"]`)
         || document.querySelector(`.strip[data-strip-id="${callsign}"]`)
         || document.querySelector(`.strip[data-callsign="${callsign}"]`);
@@ -996,18 +994,14 @@ function deleteStripFromPanels(callsign) {
         stripEl.remove();
     }
 
-    // Remove from state manager by ID or callsign match
     const panels = stateManager.getPanels();
     let changed = false;
 
     panels.forEach(panel => {
         if (panel.strips) {
             const toRemove = panel.strips.filter(strip => {
-                // Check if ID matches common patterns
                 if (strip.id === `strip-${callsign}` || strip.id === callsign) return true;
-                // Check if flight plan callsign matches
                 if (strip.flightPlan && strip.flightPlan.callsign === callsign) return true;
-                // Check if callsign is in the "c1" box value
                 if (strip.values && strip.values.c1 === callsign) return true;
                 return false;
             });
@@ -1225,10 +1219,7 @@ function applyTooltipsToStrip(strip, type) {
             else text = "Manual Input / Free Text";
         }
 
-        // Store the tooltip text
         box.setAttribute('data-tooltip', text);
-
-        // Remove native title if it exists
         box.removeAttribute('title');
 
         // Custom tooltip listeners
@@ -2073,10 +2064,88 @@ function addStripEditListeners(strip, flight, type) {
         initNotificationPoints(strip, flight);
     }
 
+    function initRunwayField(strip, flight, type) {
+        const isDepAerodrome = type === "departure" && window.controllerMode === "aerodrome";
+        const selector = isDepAerodrome ? ".c16" : ".c18";
+        const runwayInput = strip.querySelector(selector);
+        if (!runwayInput) return;
+
+        const airport = type === "departure" ? flight.departure : flight.arrival;
+        const procedureType = type === "departure" ? "SID" : "STAR";
+
+        const airportObj = getAirport(jsonData, airport);
+        const runwaysObj = airportObj ? getTypeObject(airportObj, procedureType) : null;
+        if (!runwaysObj) return;
+        let lastGoodRunway = null;
+
+        const tryApplyRunway = () => {
+            const rawInput = runwayInput.value.trim().toUpperCase();
+
+            if (lastGoodRunway === null) {
+                lastGoodRunway = rawInput;
+                return;
+            }
+
+            if (!rawInput || rawInput === lastGoodRunway) {
+                runwayInput.value = lastGoodRunway;
+                return;
+            }
+
+            if (!runwaysObj[rawInput]) {
+                runwayInput.value = lastGoodRunway;
+                showToast(`Runway ${rawInput} not available at ${airport}`, 'warning');
+                runwayInput.value = lastGoodRunway;
+                return;
+            }
+
+            const boxes = strip.querySelectorAll("input.box");
+            const currentProcName = (boxes[7]?.value || "").trim();
+
+            if (!currentProcName) {
+                lastGoodRunway = rawInput;
+                runwayInput.value = rawInput;
+                return;
+            }
+
+            const runwayProcs = runwaysObj[rawInput];
+            const baseProcName = currentProcName.split("/")[0].toUpperCase();
+            const matchedProcKey = Object.keys(runwayProcs).find(k => {
+                const ku = k.toUpperCase();
+                return ku === baseProcName || ku.startsWith(baseProcName) || baseProcName.startsWith(ku);
+            });
+
+            if (!matchedProcKey) {
+                runwayInput.value = lastGoodRunway;
+                showToast(`${baseProcName} not available on runway ${rawInput} at ${airport}`, 'warning');
+                return;
+            }
+
+            lastGoodRunway = rawInput;
+            updateStripWithProcedure(strip, procedureType, matchedProcKey, rawInput, runwayProcs[matchedProcKey]);
+        };
+
+        runwayInput.addEventListener("focus", () => {
+            if (lastGoodRunway === null) {
+                lastGoodRunway = runwayInput.value.trim().toUpperCase();
+            }
+        });
+        runwayInput.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                tryApplyRunway();
+            }
+        });
+        runwayInput.addEventListener("blur", tryApplyRunway);
+    }
+
     initSquawkField(strip, flight);
     initFAltitudeField(strip, flight);
     initCAltitudeField(strip, flight);
     initDepTimeField(strip, flight);
+
+    if (type === "departure" || type === "arrival") {
+        initRunwayField(strip, flight, type);
+    }
 
     if (window.controllerMode === "aerodrome" && type === "arrival") {
         initNotificationPoints(strip, flight);
