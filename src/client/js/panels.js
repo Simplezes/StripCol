@@ -83,23 +83,17 @@ function showPanelContextMenu(event, panelElement, stripContainer) {
     menu.style.top = `${event.clientY}px`;
     menu.style.left = `${event.clientX}px`;
 
-    const createMenuItem = (text, icon, onClick) => {
-        const item = document.createElement("div");
-        item.innerHTML = `<span class="material-icons">${icon}</span>${text}`;
-        item.classList.add("menu-item");
-        item.addEventListener("click", onClick);
-        return item;
-    };
+    ;
 
-    const addStripOption = createMenuItem("Add Strip", "add", () => {
+    const addStripBtn = createGlobalMenuItem("Add Strip Manually", "add", (e) => {
         showPanelAddStripMenu(menu, panelElement, stripContainer);
     });
 
-    const assumeAircraftOption = createMenuItem("Assume aircraft", "search", () => {
+    const assumeBtn = createGlobalMenuItem("Assume Aircraft", "connecting_airports", (e) => {
         showAssumeAircraftMenu(menu, panelElement, stripContainer);
     });
 
-    const removePanelOption = createMenuItem("Remove Panel", "delete", () => {
+    const removePanelOption = createGlobalMenuItem("Remove Panel", "delete", () => {
         const panelName = panelElement.dataset.panelName;
         removePanel(panelName);
         panelElement.remove();
@@ -107,8 +101,8 @@ function showPanelContextMenu(event, panelElement, stripContainer) {
         menu.remove();
     });
 
-    menu.appendChild(addStripOption);
-    menu.appendChild(assumeAircraftOption);
+    menu.appendChild(addStripBtn);
+    menu.appendChild(assumeBtn);
     menu.appendChild(removePanelOption);
 
     document.body.appendChild(menu);
@@ -165,10 +159,13 @@ function showPanelAddStripMenu(menu, panelElement, stripContainer) {
                     callsignInput.addEventListener("blur", async (e) => {
                         const callsign = e.target.value.trim();
                         if (callsign) {
-                            const response = await fetch(`${GATEWAY_URL}/api/assume-aircraft`, {
+                            const response = await apiFetch(`/api/assume-aircraft`, {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ code: getLinkCode(), callsign }),
+                                body: JSON.stringify({
+                                    code: getLinkCode(),
+                                    callsign: callsignInput.value.trim().toUpperCase(),
+                                    panel: panelName
+                                })
                             });
                             if (response.ok) {
                                 const data = await response.json();
@@ -190,9 +187,8 @@ function showPanelAddStripMenu(menu, panelElement, stripContainer) {
 function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
     menu.innerHTML = `<div class="menu-item disabled">Searching...</div>`;
 
-    fetch(`${GATEWAY_URL}/api/get-nearby-aircraft`, {
+    apiFetch(`/api/get-nearby-aircraft`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: getLinkCode() })
     });
 
@@ -254,12 +250,15 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
                 item.className = "menu-item";
                 item.innerHTML = `<span class="material-icons">airplanemode_active</span>${callsign}`;
                 item.addEventListener("click", async () => {
-                    const response = await fetch(`${GATEWAY_URL}/api/assume-aircraft`, {
+                    const panelName = panelElement.dataset.panelName;
+                    const response = await apiFetch(`/api/assume-aircraft`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ code: getLinkCode(), callsign })
+                        body: JSON.stringify({
+                            code: getLinkCode(),
+                            callsign: callsign,
+                            panel: panelName
+                        })
                     });
-
                     if (response.ok) {
                         menu.remove();
                         showToast(`Assumed ${callsign}`, 'success');

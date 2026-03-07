@@ -17,15 +17,7 @@ let evtSource = null;
 window.controllerMode = "aerodrome";
 window.positionId = "";
 
-function getLinkCode() {
-    const saved = localStorage.getItem('stripcol_settings');
-    if (saved) {
-        try {
-            return JSON.parse(saved).linkCode;
-        } catch (e) { return null; }
-    }
-    return null;
-}
+
 
 function startConnectionMonitoring() {
     stopConnectionMonitoring();
@@ -81,7 +73,7 @@ function startEvent() {
     if (sseReconnectTimeout) clearTimeout(sseReconnectTimeout);
 
     const checkConnection = (retries = 5) => {
-        fetch(`${GATEWAY_URL}/api`)
+        apiFetch('/api')
             .then(response => {
                 if (response.ok) updateWsStatus(true);
             })
@@ -207,7 +199,7 @@ function resetSession() {
 
 function fetchAndRenderAircraftList() {
     const code = getLinkCode();
-    fetch(`${GATEWAY_URL}/api/assumed?code=${code}`)
+    apiFetch(`/api/assumed?code=${code}`)
         .then(response => response.json())
         .then(aircrafts => {
             aircrafts.forEach(ac => {

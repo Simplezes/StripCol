@@ -1,13 +1,35 @@
 let GATEWAY_URL = "http://127.0.0.1:3000";
 
-function updateGatewayUrl() {
+function getSettings() {
     const saved = localStorage.getItem('stripcol_settings');
     if (saved) {
         try {
-            const settings = JSON.parse(saved);
-            const ip = settings.serverIp || '127.0.0.1';
-            GATEWAY_URL = `http://${ip}:3000`;
-        } catch (e) { }
+            return JSON.parse(saved);
+        } catch (e) { return {}; }
+    }
+    return {};
+}
+
+function updateGatewayUrl() {
+    const settings = getSettings();
+    const ip = settings.serverIp || '127.0.0.1';
+    GATEWAY_URL = `http://${ip}:3000`;
+}
+
+async function apiFetch(endpoint, options = {}) {
+    const url = endpoint.startsWith('http') ? endpoint : `${GATEWAY_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+    // Default headers if not provided
+    if (options.method && options.method !== 'GET' && !options.headers) {
+        options.headers = { 'Content-Type': 'application/json' };
+    }
+
+    try {
+        const response = await fetch(url, options);
+        return response;
+    } catch (e) {
+        console.error(`API Fetch failed: ${url}`, e);
+        throw e;
     }
 }
 
@@ -24,13 +46,15 @@ function capitalize(str) {
 }
 
 function getLinkCode() {
-    const saved = localStorage.getItem('stripcol_settings');
-    if (saved) {
-        try {
-            return JSON.parse(saved).linkCode;
-        } catch (e) { return null; }
-    }
-    return null;
+    return getSettings().linkCode || null;
+}
+
+function createGlobalMenuItem(text, icon, onClick) {
+    const item = document.createElement("div");
+    item.innerHTML = `<span class="material-icons">${icon}</span>${text}`;
+    item.classList.add("menu-item");
+    item.addEventListener("click", onClick);
+    return item;
 }
 
 function updateZuluTime() {

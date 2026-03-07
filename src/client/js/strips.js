@@ -63,12 +63,13 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
 
         acceptBtn.onclick = async (e) => {
             e.stopPropagation();
-            const response = await fetch(`${GATEWAY_URL}/api/accept-handoff`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: getLinkCode(), callsign: flightplan.callsign })
-            });
-            if (response.ok) {
+            const response = await apiFetch(`/api/accept-handoff`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    code: getLinkCode(),
+                    callsign: flightplan.callsign
+                })
+            }); if (response.ok) {
                 deleteStripFromPanels(flightplan.callsign);
                 flightplan.transfer = false;
                 if (typeof renderAircraft === 'function') renderAircraft(flightplan);
@@ -77,12 +78,13 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
 
         refuseBtn.onclick = async (e) => {
             e.stopPropagation();
-            const response = await fetch(`${GATEWAY_URL}/api/refuse-handoff`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: getLinkCode(), callsign: flightplan.callsign })
-            });
-            if (response.ok) {
+            const response = await apiFetch(`/api/refuse-handoff`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    code: getLinkCode(),
+                    callsign: flightplan.callsign
+                })
+            }); if (response.ok) {
                 deleteStripFromPanels(flightplan.callsign);
             } else div.remove();
         };
@@ -344,13 +346,7 @@ function showGhostMoveMode(strip) {
 }
 
 function OptionsMenu(strip, flight, fromEuroscope = false) {
-    function createMenuItem(text, icon, onClick) {
-        const item = document.createElement("div");
-        item.innerHTML = `<span class="material-icons">${icon}</span>${text}`;
-        item.classList.add("menu-item");
-        item.addEventListener("click", onClick);
-        return item;
-    }
+
 
     strip.addEventListener("contextmenu", e => {
         e.preventDefault();
@@ -370,10 +366,9 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
         menu.addEventListener("wheel", e => e.stopPropagation());
 
         if (fromEuroscope && flight && flight.transfer) {
-            const acceptOption = createMenuItem("Accept handoff", "check_circle", async () => {
-                const response = await fetch(`${GATEWAY_URL}/api/accept-handoff`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+            const acceptOption = createGlobalMenuItem("Accept handoff", "check_circle", async () => {
+                const response = await apiFetch(`/api/accept-handoff`, {
+                    method: 'POST',
                     body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign })
                 });
                 if (response.ok) {
@@ -383,10 +378,9 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.remove();
             });
 
-            const refuseOption = createMenuItem("Refuse handoff", "cancel", async () => {
-                const response = await fetch(`${GATEWAY_URL}/api/refuse-handoff`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+            const refuseOption = createGlobalMenuItem("Refuse handoff", "cancel", async () => {
+                const response = await apiFetch(`/api/refuse-handoff`, {
+                    method: 'POST',
                     body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign })
                 });
                 if (response.ok) {
@@ -395,7 +389,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.remove();
             });
 
-            const deleteOption = createMenuItem("Delete strip", "delete", () => {
+            const deleteOption = createGlobalMenuItem("Delete strip", "delete", () => {
                 if (!fromEuroscope) {
                     let panels = JSON.parse(localStorage.getItem("panels")) || [];
                     panels.forEach(panel => {
@@ -416,13 +410,13 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
             if (fromEuroscope) {
 
 
-                const routeOption = createMenuItem("Show Route", "route", () => showRouteMenu(menu, flight, strip));
-                const transferOption = createMenuItem("Transfer", "compare_arrows", () => showTransferMenu(menu, flight, strip));
-                const typeOption = createMenuItem("Change Type", "flight", () => showTypeMenu(menu, strip, flight));
+                const routeOption = createGlobalMenuItem("Show Route", "route", () => showRouteMenu(menu, flight, strip));
+                const transferOption = createGlobalMenuItem("Transfer", "compare_arrows", () => showTransferMenu(menu, flight, strip));
+                const typeOption = createGlobalMenuItem("Change Type", "flight", () => showTypeMenu(menu, strip, flight));
                 let procedureOption
 
                 if (strip.dataset.type === "departure" || strip.dataset.type === "arrival") {
-                    procedureOption = createMenuItem("Change Procedure", "flight_takeoff", (e) => {
+                    procedureOption = createGlobalMenuItem("Change Procedure", "flight_takeoff", (e) => {
                         e.stopPropagation();
                         const airport = strip.dataset.type === "departure" ? flight.departure : flight.arrival;
                         const acProc = strip.dataset.type === "departure" ? "SID" : "STAR";
@@ -430,10 +424,9 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                     });
                 }
 
-                const freeOption = createMenuItem("Free", "swap_horiz", async () => {
-                    const response = await fetch(`${GATEWAY_URL}/api/end-tracking`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                const freeOption = createGlobalMenuItem("Free", "swap_horiz", async () => {
+                    const response = await apiFetch(`/api/end-tracking`, {
+                        method: 'POST',
                         body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign })
                     });
                     if (response.ok) {
@@ -456,7 +449,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.remove();
             });*/
 
-            const deleteOption = createMenuItem("Delete strip", "delete", () => {
+            const deleteOption = createGlobalMenuItem("Delete strip", "delete", () => {
                 if (!fromEuroscope) {
                     let panels = JSON.parse(localStorage.getItem("panels")) || [];
                     panels.forEach(panel => {
@@ -558,7 +551,7 @@ async function showTransferMenu(menu, ac, strip) {
     addBackButton(menu, strip);
 
     try {
-        const res = await fetch(`${GATEWAY_URL}/api/ATC-list?code=${getLinkCode()}`);
+        const res = await apiFetch(`/api/ATC-list?code=${getLinkCode()}`);
         let atcList = await res.json();
 
         atcList = atcList
@@ -602,7 +595,7 @@ async function showTransferMenu(menu, ac, strip) {
                     <span class="atc-frequency">${atc.frequency}</span>
                 `;
                 atcBtn.addEventListener("click", async () => {
-                    await fetch(`${GATEWAY_URL}/api/ATC-transfer`, {
+                    await apiFetch(`/api/ATC-transfer`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ code: getLinkCode(), callsign: ac.callsign, targetATC: atc.callsign })
@@ -626,9 +619,8 @@ async function showTransferMenu(menu, ac, strip) {
             <span class="atc-frequency">122.800</span>
         `;
         unicomBtn.addEventListener("click", async () => {
-            const response = await fetch(`${GATEWAY_URL}/api/end-tracking`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const response = await apiFetch(`/api/end-tracking`, {
+                method: 'POST',
                 body: JSON.stringify({ code: getLinkCode(), callsign: ac.callsign })
             });
             if (response.ok) {
@@ -1125,7 +1117,7 @@ async function updateRunway(flight, runway, inputElem, type, procedureName) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        const response = await fetch(`${GATEWAY_URL}/api/${endpoint}`, {
+        const response = await apiFetch(`/api/${endpoint}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -1425,7 +1417,7 @@ function addStripEditListeners(strip, flight, type) {
 
         const updateSquawk = async (value) => {
             try {
-                await fetch(`${GATEWAY_URL}/api/set-squawk`, {
+                await apiFetch(`/api/set-squawk`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign, squawk: value || "2000" })
                 });
@@ -1460,7 +1452,7 @@ function addStripEditListeners(strip, flight, type) {
         const updateFinalAltitude = async (value) => {
             const actualAltitude = parseInt(value, 10) * 100;
             try {
-                await fetch(`${GATEWAY_URL}/api/set-final-alt`, {
+                await apiFetch(`/api/set-final-alt`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1543,7 +1535,7 @@ function addStripEditListeners(strip, flight, type) {
             }
 
             try {
-                await fetch(`${GATEWAY_URL}/api/set-cleared-alt`, {
+                await apiFetch(`/api/set-cleared-alt`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1652,7 +1644,7 @@ function addStripEditListeners(strip, flight, type) {
 
         const updateDepTime = async (value) => {
             try {
-                await fetch(`${GATEWAY_URL}/api/set-departureTime`, {
+                await apiFetch(`/api/set-departureTime`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1786,7 +1778,7 @@ function addStripEditListeners(strip, flight, type) {
 
             const updateSpeed = async (intVal) => {
                 try {
-                    await fetch(`${GATEWAY_URL}/api/set-assigned-speed`, {
+                    await apiFetch(`/api/set-assigned-speed`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -1802,7 +1794,7 @@ function addStripEditListeners(strip, flight, type) {
 
             const updateMach = async (floatVal) => {
                 try {
-                    await fetch(`${GATEWAY_URL}/api/set-assigned-mach`, {
+                    await apiFetch(`/api/set-assigned-mach`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -1886,9 +1878,8 @@ function addStripEditListeners(strip, flight, type) {
 
             const updateDirectTo = async (value) => {
                 try {
-                    await fetch(`${GATEWAY_URL}/api/set-direct-point`, {
+                    await apiFetch(`/api/set-direct-point`, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             code: getLinkCode(),
                             callsign: flight.callsign,
@@ -1903,13 +1894,12 @@ function addStripEditListeners(strip, flight, type) {
 
             const updateHeading = async (intValue) => {
                 try {
-                    await fetch(`${GATEWAY_URL}/api/set-assigned-heading`, {
+                    await apiFetch(`/api/set-assigned-heading`, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             code: getLinkCode(),
                             callsign: flight.callsign,
-                            assignedHeading: intValue ? parseInt(intValue, 10).toString() : "0"
+                            heading: intValue
                         })
                     });
                 } catch (err) {
@@ -1978,7 +1968,7 @@ function addStripEditListeners(strip, flight, type) {
 
             const updateHeading = async (intValue) => {
                 try {
-                    await fetch(`${GATEWAY_URL}/api/set-assigned-heading`, {
+                    await apiFetch(`${GATEWAY_URL}/api/set-assigned-heading`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -2153,7 +2143,7 @@ async function fetchPointETA(flightCallsign, point) {
     if (point.eta) return point;
 
     try {
-        const response = await fetch(
+        const response = await apiFetch(
             `${GATEWAY_URL}/api/point-time?code=${getLinkCode()}&callsign=${encodeURIComponent(flightCallsign)}&points=${encodeURIComponent(point.name)}`,
             { method: "GET", headers: { "Content-Type": "application/json" } }
         );
@@ -2179,7 +2169,7 @@ async function fetchMultiplePointETAs(flightCallsign, points) {
 
     try {
         const pointNames = pointsToFetch.map(p => p.name).join(',');
-        const response = await fetch(
+        const response = await apiFetch(
             `${GATEWAY_URL}/api/point-time?code=${getLinkCode()}&callsign=${encodeURIComponent(flightCallsign)}&points=${encodeURIComponent(pointNames)}`,
             { method: "GET", headers: { "Content-Type": "application/json" } }
         );
@@ -2283,7 +2273,7 @@ function findProcedure(flight, procedures) {
     if (!tokens.length) return null;
 
     const find = (airport, type, procedureName, runway) => {
-        const typeObj = getTypeObject(getAirport(procedures, airport), type);
+        const typeObj = getTypeObject(procedures, airport, type);
         if (!typeObj) return null;
 
         const runwaysToCheck = runway && typeObj[runway] ? [runway] : Object.keys(typeObj || {});
@@ -2333,7 +2323,8 @@ function getAirport(procedures, code) {
         procedures[code.toLowerCase()] || null;
 }
 
-function getTypeObject(airportObj, type) {
+function getTypeObject(procedures, airportCode, type) {
+    const airportObj = getAirport(procedures, airportCode);
     if (!airportObj || !type) return null;
     const key = Object.keys(airportObj).find(k => k.toLowerCase() === type.toLowerCase());
     return key ? airportObj[key] : null;
@@ -2407,9 +2398,8 @@ async function syncRPC() {
         if (!code) return;
 
         try {
-            await fetch(`${GATEWAY_URL}/api/rpc-update`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            await apiFetch(`/api/rpc-update`, {
+                method: 'POST',
                 body: JSON.stringify({ code, state })
             });
         } catch (e) {

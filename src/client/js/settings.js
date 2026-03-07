@@ -18,14 +18,10 @@ let originalServerIp = '127.0.0.1';
 let currentSettings = { ...DEFAULT_SETTINGS };
 
 function loadSettings() {
-    const saved = localStorage.getItem(SETTINGS_KEY);
-    if (saved) {
-        try {
-            currentSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
-            originalServerIp = currentSettings.serverIp;
-        } catch (e) {
-            console.error("Failed to parse settings", e);
-        }
+    const settings = getSettings();
+    if (settings) {
+        currentSettings = { ...DEFAULT_SETTINGS, ...settings };
+        originalServerIp = currentSettings.serverIp;
     }
     applySettings();
     updateUIFromSettings();
@@ -162,7 +158,7 @@ function initSettingsEvents() {
                 const newCode = input.value.trim().toUpperCase();
                 if (newCode.length === 5) {
                     try {
-                        const response = await fetch(`${GATEWAY_URL}/api/pair/${newCode}`);
+                        const response = await apiFetch(`/api/pair/${newCode}`);
                         const result = await response.json();
 
                         if (result.success) {
@@ -333,7 +329,7 @@ function initPairingLogic() {
         pairingStatus.innerHTML = '<span class="text-info">Checking connection...</span>';
 
         try {
-            const response = await fetch(`${GATEWAY_URL}/api/pair/${code}`);
+            const response = await apiFetch(`/api/pair/${code}`);
             const result = await response.json();
 
             if (result.success) {
