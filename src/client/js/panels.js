@@ -160,7 +160,6 @@ function showPanelAddStripMenu(menu, panelElement, stripContainer) {
                 stripContainer.appendChild(strip);
                 addStripToPanel(panelName, strip);
 
-                // Add listener for newly created local strip
                 const callsignInput = strip.querySelector(".c1");
                 if (callsignInput) {
                     callsignInput.addEventListener("blur", async (e) => {
@@ -191,14 +190,12 @@ function showPanelAddStripMenu(menu, panelElement, stripContainer) {
 function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
     menu.innerHTML = `<div class="menu-item disabled">Searching...</div>`;
 
-    // Request nearby aircraft list from plugin via server
     fetch(`${GATEWAY_URL}/api/get-nearby-aircraft`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: getLinkCode() })
     });
 
-    // Define the global handler for the response
     window.onNearbyAircraftReceived = (callsigns) => {
         menu.innerHTML = '';
 
@@ -215,7 +212,6 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
         });
         menu.appendChild(backBtn);
 
-        // Sort callsigns alphabetically
         if (callsigns) {
             callsigns.sort((a, b) => a.localeCompare(b));
         }
@@ -228,7 +224,6 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
             return;
         }
 
-        // Add Search Bar
         const searchContainer = document.createElement("div");
         searchContainer.className = "menu-search-container";
         const searchInput = document.createElement("input");
@@ -238,7 +233,6 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
         searchContainer.appendChild(searchInput);
         menu.appendChild(searchContainer);
 
-        // Scrollable Container for items
         const scrollContainer = document.createElement("div");
         scrollContainer.className = "menu-scroll-container";
         menu.appendChild(scrollContainer);
@@ -283,7 +277,6 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
 
         renderItems();
 
-        // Focus search bar
         setTimeout(() => searchInput.focus(), 50);
 
         // Clean up global listener

@@ -57,7 +57,6 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `atm-toast ${type}`;
 
-    // Choose icon based on type
     let icon = 'info';
     if (type === 'success') icon = 'check_circle';
     if (type === 'error') icon = 'error';
@@ -70,7 +69,6 @@ function showToast(message, type = 'info') {
 
     container.appendChild(toast);
 
-    // Auto-remove after 4 seconds
     setTimeout(() => {
         toast.classList.add('hiding');
         toast.addEventListener('animationend', () => {
@@ -107,7 +105,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     setInterval(updateZuluTime, 1000);
     updateZuluTime();
 
-    // Global Search Logic
     const searchInput = document.getElementById('globalSearchInput');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -126,11 +123,9 @@ function filterStrips(query) {
             return;
         }
 
-        // Get values from inputs (searching callsign, departure, arrival mainly)
         const inputs = Array.from(strip.querySelectorAll('input.box'));
         const matches = inputs.some(input => input.value.toLowerCase().includes(query));
 
-        // Also check dataset attributes just in case
         const dataMatches = (strip.dataset.callsign || '').toLowerCase().includes(query) ||
             (strip.dataset.type || '').toLowerCase().includes(query);
 

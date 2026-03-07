@@ -126,7 +126,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-    // Start the API server manager with the stored IP
     startServer(currentServerIp);
 
     rpc.initRPC();
@@ -156,8 +155,6 @@ ipcMain.on('save-settings', (event, settings) => {
         saveStoredSettings(settings);
     }
 });
-
-// --- AUTO UPDATER ---
 
 autoUpdater.on('checking-for-update', () => {
     console.log('Checking for update...');

@@ -11,7 +11,6 @@ try {
   const sectorsPath = path.join(__dirname, 'client', 'assets', 'sectors.json');
   if (fs.existsSync(sectorsPath)) {
     sectorsData = JSON.parse(fs.readFileSync(sectorsPath, 'utf8'));
-    // sectorsData loaded
   }
 } catch (err) {
   console.error('[Server] Failed to load sectors.json:', err.message);
@@ -80,7 +79,6 @@ console.log('Gateway Hub starting...');
 wss.on('connection', (ws, req) => {
   const headers = req.headers;
   const ip = headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection?.remoteAddress;
-  // Connection established
 
   let currentCode = null;
 
@@ -346,8 +344,6 @@ app.get('/api/ATC-list', (req, res) => {
   res.json(session.atcList);
 });
 
-// --- LOGGING ---
-
 app.get('/api/logs.html', (req, res) => {
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -475,8 +471,6 @@ app.get('/api/logs.html', (req, res) => {
 
 app.get('/api/logs', (req, res) => res.json({ logs }));
 app.post('/api/logs/clear', (req, res) => { logs.length = 0; console.log('Logs cleared'); res.json({ success: true }); });
-
-// --- COMMANDS ---
 
 const commands = [
   'set-final-alt', 'set-cleared-alt', 'set-assigned-heading', 'set-direct-point',

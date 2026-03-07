@@ -49,7 +49,6 @@ function closeConnection() {
     isConnected = false;
     updateWsStatus(false);
 
-    // Clear all Euroscope strips on explicit close
     stateManager.clearEuroscopeStrips();
 }
 
@@ -160,7 +159,7 @@ function startEvent() {
         console.log("Gateway Link: Established");
         window.isConnected = true;
         updateWsStatus(true);
-        sseRetryDelay = 2000; // Reset backoff on success
+        sseRetryDelay = 2000;
 
         const now = Date.now();
         if (now - lastFetchTime > 10000) {
@@ -279,12 +278,12 @@ function renderAircraft(flight) {
 
 function setControllerInfo(data, returnPositionName = false) {
     const facilityMap = {
-        1: ["aerodrome", "Flight Service Station"], // Flight Service Station
-        2: ["aerodrome", "Clearance Delivery"],     // Clearance Delivery
-        3: ["aerodrome", "Ground"],                 // Ground
-        4: ["aerodrome", "Tower"],                  // Tower
-        5: ["approach", "Approach / Departure"],    // Approach / Departure
-        6: ["center", "Area Control Center"]        // Area Control Center
+        1: ["aerodrome", "Flight Service Station"],
+        2: ["aerodrome", "Clearance Delivery"],
+        3: ["aerodrome", "Ground"],
+        4: ["aerodrome", "Tower"],
+        5: ["approach", "Approach / Departure"],
+        6: ["center", "Area Control Center"]
     };
 
     if (returnPositionName) {

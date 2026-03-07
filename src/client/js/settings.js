@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS = {
     serverIp: '127.0.0.1'
 };
 
-let originalServerIp = '127.0.0.1'; // To detect change
+let originalServerIp = '127.0.0.1';
 
 let currentSettings = { ...DEFAULT_SETTINGS };
 
@@ -41,23 +41,19 @@ function saveSettings() {
 
 function applySettings() {
     const root = document.documentElement;
-    // Apply colors
     root.style.setProperty('--custom-departure-color', currentSettings.departureColor);
     root.style.setProperty('--custom-arrival-color', currentSettings.arrivalColor);
     root.style.setProperty('--custom-overfly-color', currentSettings.overflyColor);
 
-    // Heartbeat
     const heartbeat = document.getElementById('sysHeartbeat');
     if (heartbeat) {
         heartbeat.style.display = currentSettings.showHeartbeat ? 'block' : 'none';
         heartbeat.style.animation = currentSettings.showHeartbeat ? 'pulse 2s infinite' : 'none';
     }
 
-    // Cleanup Visibility
     const cleanupTimer = document.getElementById('cleanupTimerContainer');
     if (cleanupTimer) cleanupTimer.style.display = currentSettings.cleanupEnabled ? 'flex' : 'none';
 
-    // Link Code Display
     const codeDisplay = document.getElementById('currentLinkCodeDisplay');
     if (codeDisplay) codeDisplay.textContent = currentSettings.linkCode || '-----';
 }

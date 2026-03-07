@@ -155,7 +155,6 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
     return div;
 }
 
-//---- STRIP LISTENER #1 ----//
 function attachInputEventHandlers(strip) {
     strip.querySelectorAll("input.box").forEach(input => {
         if (!input.classList.contains("c33")) {
@@ -344,7 +343,6 @@ function showGhostMoveMode(strip) {
     }
 }
 
-//---- STRIP MENU ----//
 function OptionsMenu(strip, flight, fromEuroscope = false) {
     function createMenuItem(text, icon, onClick) {
         const item = document.createElement("div");
@@ -944,7 +942,6 @@ function updateStripWithProcedure(strip, procedureType, procedureName, procedure
     saveStripValues(strip);
 }
 
-// Menu
 function addBackButton(parentMenu, strip) {
     const backBtn = document.createElement("div");
     backBtn.classList.add("menu-back-btn");
@@ -959,7 +956,6 @@ function addBackButton(parentMenu, strip) {
     parentMenu.appendChild(backBtn);
 }
 
-// Storage
 function saveStripValues(stripEl) {
     const panelElement = stripEl.closest("[data-panel-name]");
     if (!panelElement) return;
@@ -1014,7 +1010,6 @@ function deleteStripFromPanels(callsign) {
     if (changed) syncRPC();
 }
 
-// Flight Data
 async function fillStripFromFlightData(strip, flight, type) {
     const boxes = strip.querySelectorAll("input.box");
 
@@ -1155,7 +1150,6 @@ async function updateRunway(flight, runway, inputElem, type, procedureName) {
     }
 }
 
-// Tooltips
 let globalTooltipEl = null;
 let tooltipTimeout = null;
 
@@ -1232,7 +1226,6 @@ function applyTooltipsToStrip(strip, type) {
         box.setAttribute('data-tooltip', text);
         box.removeAttribute('title');
 
-        // Custom tooltip listeners
         if (!box._hasTooltipListeners) {
             box._hasTooltipListeners = true;
             box.addEventListener('mouseenter', e => {
@@ -1418,14 +1411,11 @@ async function handleArrivalCenter(boxes, flight) {
     }
 }
 
-// Listeners
 function addStripEditListeners(strip, flight, type) {
     if (!strip || !flight || !type) return;
     if (strip._editListenersAttached) return;
     strip._editListenersAttached = true;
 
-    // --- GLOBAL ---
-    //SQUAWK
     function initSquawkField(strip, flight) {
         const c6Input = strip.querySelector(".c6");
         if (!c6Input) return;
@@ -1461,7 +1451,6 @@ function addStripEditListeners(strip, flight, type) {
         c6Input.addEventListener("blur", formatAndSubmit);
     }
 
-    //FINAL ALTITUDE
     function initFAltitudeField(strip, flight) {
         const c13Input = strip.querySelector(".c13");
         if (!c13Input) return;
@@ -1536,7 +1525,6 @@ function addStripEditListeners(strip, flight, type) {
         c13Input.addEventListener("blur", formatAndSubmit);
     }
 
-    //CLEARED ALTITUDE
     function initCAltitudeField(strip, flight) {
         const c14Input = strip.querySelector(".c14");
         if (!c14Input) return;
@@ -1638,7 +1626,6 @@ function addStripEditListeners(strip, flight, type) {
         c14Input.addEventListener("blur", formatAndSubmit);
     }
 
-    //DEPARTURE TIME
     function initDepTimeField(strip, flight) {
         const c7Input = strip.querySelector(".c7");
         if (!c7Input) return;
@@ -1787,7 +1774,6 @@ function addStripEditListeners(strip, flight, type) {
     }
 
     if (window.controllerMode === "approach" || window.controllerMode === "center") {
-        //SPEED/MACH
         function initSpeedField(strip, flight) {
             const c9Input = strip.querySelector(".c9");
             if (!c9Input) return;
@@ -1977,7 +1963,6 @@ function addStripEditListeners(strip, flight, type) {
             c12Input.addEventListener("blur", formatAndSubmit);
         }
 
-        // HEADING
         function initHeadingField(strip, flight) {
             const c16Input = strip.querySelector(".c16");
             if (!c16Input) return;
@@ -2164,7 +2149,6 @@ function addStripEditListeners(strip, flight, type) {
     }
 }
 
-//---- FUNCTIONS ----//
 async function fetchPointETA(flightCallsign, point) {
     if (point.eta) return point;
 

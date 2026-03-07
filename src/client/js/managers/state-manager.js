@@ -19,7 +19,6 @@ class PanelStateManager {
 
             const parsed = JSON.parse(stored);
 
-            // Validate data
             const validation = validatePanels(parsed);
             if (!validation.valid) {
                 console.warn('Invalid panel data in localStorage:', validation.errors);
@@ -46,7 +45,6 @@ class PanelStateManager {
 
         this.saveTimeout = setTimeout(() => {
             try {
-                // Clone panels and filter out Euroscope strips for persistent storage
                 const panelsToSave = this.panels.map(panel => ({
                     ...panel,
                     strips: panel.strips ? panel.strips.filter(s => s.euroscope !== true) : []
@@ -67,7 +65,6 @@ class PanelStateManager {
         }
 
         try {
-            // Clone panels and filter out Euroscope strips for persistent storage
             const panelsToSave = this.panels.map(panel => ({
                 ...panel,
                 strips: panel.strips ? panel.strips.filter(s => s.euroscope !== true) : []
@@ -98,7 +95,6 @@ class PanelStateManager {
             return false;
         }
 
-        // Check for duplicate name
         if (this.panels.some(p => p.name === panel.name)) {
             console.warn(`Panel with name "${panel.name}" already exists`);
             return false;
@@ -150,7 +146,6 @@ class PanelStateManager {
             return false;
         }
 
-        // Check if new name already exists
         if (this.panels.some(p => p.name === newName && p !== panel)) {
             console.warn(`Panel with name "${newName}" already exists`);
             return false;
@@ -181,10 +176,8 @@ class PanelStateManager {
             panel.strips = [];
         }
 
-        // Check for duplicate ID
         const existingIndex = panel.strips.findIndex(s => s.id === strip.id);
         if (existingIndex >= 0) {
-            // Update existing strip
             panel.strips[existingIndex] = strip;
         } else {
             panel.strips.push(strip);
@@ -252,7 +245,6 @@ class PanelStateManager {
         let strip = null;
         let sourcePanelName = null;
 
-        // Find and remove from source panel
         for (const panel of this.panels) {
             if (panel.strips) {
                 const index = panel.strips.findIndex(s => s.id === stripId);
@@ -269,7 +261,6 @@ class PanelStateManager {
             return false;
         }
 
-        // Add to target panel
         if (!targetPanel.strips) {
             targetPanel.strips = [];
         }
