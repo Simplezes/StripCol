@@ -1057,9 +1057,21 @@ async function UpdateStrip(flight, type = null) {
     if (!strip) return;
 
     const stripType = type ? type : strip.dataset.type;
+    const boxes = strip.querySelectorAll("input.box");
+
+    // Check if procedure (SID/STAR) has changed
+    const currentProc = (boxes[7]?.value || "").trim().toUpperCase();
+    const newProc = (stripType === "departure" ? flight.sid : stripType === "arrival" ? flight.star : "").trim().toUpperCase();
+
+    if (currentProc !== "" && newProc !== "" && currentProc !== newProc) {
+        // Procedure changed, clear notification points and ETAs to allow re-fill from new flight data
+        for (let i = 18; i <= 27; i++) {
+            if (boxes[i]) boxes[i].value = "";
+        }
+    }
 
     const customValues = {};
-    strip.querySelectorAll("input.box").forEach((input, index) => {
+    boxes.forEach((input, index) => {
         if (CUSTOM_STRIP_BOXES.includes(index) && input.value.trim() !== "") {
             customValues[index] = input.value;
         }

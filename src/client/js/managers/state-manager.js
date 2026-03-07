@@ -46,7 +46,13 @@ class PanelStateManager {
 
         this.saveTimeout = setTimeout(() => {
             try {
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.panels));
+                // Clone panels and filter out Euroscope strips for persistent storage
+                const panelsToSave = this.panels.map(panel => ({
+                    ...panel,
+                    strips: panel.strips ? panel.strips.filter(s => s.euroscope !== true) : []
+                }));
+
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(panelsToSave));
                 this.saveTimeout = null;
             } catch (error) {
                 console.error('Failed to save panels to localStorage:', error);
@@ -61,7 +67,13 @@ class PanelStateManager {
         }
 
         try {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.panels));
+            // Clone panels and filter out Euroscope strips for persistent storage
+            const panelsToSave = this.panels.map(panel => ({
+                ...panel,
+                strips: panel.strips ? panel.strips.filter(s => s.euroscope !== true) : []
+            }));
+
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(panelsToSave));
         } catch (error) {
             console.error('Failed to save panels to localStorage:', error);
         }

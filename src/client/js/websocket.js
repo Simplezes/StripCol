@@ -48,6 +48,9 @@ function closeConnection() {
     closeEventSource();
     isConnected = false;
     updateWsStatus(false);
+
+    // Clear all Euroscope strips on explicit close
+    stateManager.clearEuroscopeStrips();
 }
 
 function updateWsStatus(connected) {
@@ -108,10 +111,12 @@ function startEvent() {
         if (payload.status === 'plugin_connected') {
             window.isPluginLinked = true;
             if (payload.controller) setControllerInfo(payload.controller);
+            updateWsStatus(true);
         } else {
             window.isPluginLinked = false;
+            updateWsStatus(false);
+            stateManager.clearEuroscopeStrips();
         }
-        //updateWsStatus(true);
     });
 
     evtSource.addEventListener('aircraft', e => {
@@ -157,7 +162,6 @@ function startEvent() {
         updateWsStatus(true);
         sseRetryDelay = 2000; // Reset backoff on success
 
-        // Fetch list if we haven't in some time
         const now = Date.now();
         if (now - lastFetchTime > 10000) {
             lastFetchTime = now;
@@ -171,6 +175,8 @@ function startEvent() {
         window.isPluginLinked = false;
         updateWsStatus(false);
         closeEventSource();
+
+        stateManager.clearEuroscopeStrips();
 
         sseReconnectTimeout = setTimeout(() => {
             sseRetryDelay = Math.min(sseRetryDelay * 1.5, MAX_SSE_RETRY_DELAY);
@@ -195,7 +201,6 @@ function resetSession() {
         container.innerHTML = "";
     });
 
-    // Clear all Euroscope strips from state manager
     stateManager.clearEuroscopeStrips();
 
     updateWsStatus(false);
@@ -249,7 +254,6 @@ function renderAircraft(flight) {
 
     const stripId = `strip-${flight.callsign}`;
 
-    // Check if strip already exists in state
     const existingStrip = stateManager.getStrip(stripId);
     if (existingStrip) return;
 
@@ -341,7 +345,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 fetchJson(REMOTE_PROCEDURES, LOCAL_PROCEDURES),
                 fetchJson(REMOTE_SECTORS, LOCAL_SECTORS),
             ]);
-            // Start connection only after data is ready
+
             startConnectionMonitoring();
         } catch (e) {
             console.error("Error loading data", e);
