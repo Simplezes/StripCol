@@ -109,6 +109,7 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
     inputClasses.forEach((cls, i) => {
         const input = document.createElement("input");
         input.className = `box ${cls}`;
+        if (i === 7) input.classList.add("procedure");
 
         if (!input._hasBaseListener) {
             input._hasBaseListener = true;
@@ -902,7 +903,7 @@ function showTransitionsMenu(parentMenu, airport, procedureType, runway, baseNam
 function updateStripWithProcedure(strip, procedureType, procedureName, procedureRunway, route) {
     const procedureField = strip.querySelector('.procedure');
     if (procedureField) {
-        procedureField.textContent = procedureName;
+        procedureField.value = procedureName;
     }
 
     if (procedureRunway) {
@@ -1134,7 +1135,7 @@ async function updateRunway(flight, runway, inputElem, type, procedureName) {
 
         const procedureInput = inputElem.closest(".strip")?.querySelector(".procedure");
         if (procedureInput) {
-            procedureInput.textContent = updatedValue;
+            procedureInput.value = updatedValue;
         }
     } catch (err) {
         console.error("Failed to update runway:", err);
@@ -2055,13 +2056,14 @@ function addStripEditListeners(strip, flight, type) {
         const isDepAerodrome = type === "departure" && window.controllerMode === "aerodrome";
         const selector = isDepAerodrome ? ".c16" : ".c18";
         const runwayInput = strip.querySelector(selector);
+
         if (!runwayInput) return;
 
         const airport = type === "departure" ? flight.departure : flight.arrival;
         const procedureType = type === "departure" ? "SID" : "STAR";
 
-        const airportObj = getAirport(jsonData, airport);
-        const runwaysObj = airportObj ? getTypeObject(airportObj, procedureType) : null;
+        const runwaysObj = getTypeObject(jsonData, airport, procedureType);
+
         if (!runwaysObj) return;
         let lastGoodRunway = null;
 
@@ -2096,6 +2098,7 @@ function addStripEditListeners(strip, flight, type) {
 
             const runwayProcs = runwaysObj[rawInput];
             const baseProcName = currentProcName.split("/")[0].toUpperCase();
+
             const matchedProcKey = Object.keys(runwayProcs).find(k => {
                 const ku = k.toUpperCase();
                 return ku === baseProcName || ku.startsWith(baseProcName) || baseProcName.startsWith(ku);
@@ -2122,7 +2125,9 @@ function addStripEditListeners(strip, flight, type) {
                 tryApplyRunway();
             }
         });
-        runwayInput.addEventListener("blur", tryApplyRunway);
+        runwayInput.addEventListener("blur", () => {
+            tryApplyRunway();
+        });
     }
 
     initSquawkField(strip, flight);
