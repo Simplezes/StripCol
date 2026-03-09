@@ -5,7 +5,7 @@ const DEFAULT_SETTINGS = {
     cleanupEnabled: false,
     cleanupMinutes: 15,
     showSeconds: true,
-    showHeartbeat: true,
+
     departureColor: '#6ee7b7',
     arrivalColor: '#f87171',
     overflyColor: '#fde68a',
@@ -41,11 +41,7 @@ function applySettings() {
     root.style.setProperty('--custom-arrival-color', currentSettings.arrivalColor);
     root.style.setProperty('--custom-overfly-color', currentSettings.overflyColor);
 
-    const heartbeat = document.getElementById('sysHeartbeat');
-    if (heartbeat) {
-        heartbeat.style.display = currentSettings.showHeartbeat ? 'block' : 'none';
-        heartbeat.style.animation = currentSettings.showHeartbeat ? 'pulse 2s infinite' : 'none';
-    }
+
 
     const cleanupTimer = document.getElementById('cleanupTimerContainer');
     if (cleanupTimer) cleanupTimer.style.display = currentSettings.cleanupEnabled ? 'flex' : 'none';
@@ -59,7 +55,7 @@ function updateUIFromSettings() {
         'audioToggle': currentSettings.audioEnabled,
         'cleanupToggle': currentSettings.cleanupEnabled,
         'showSecondsToggle': currentSettings.showSeconds,
-        'showHeartbeatToggle': currentSettings.showHeartbeat
+
     };
 
     for (const [id, val] of Object.entries(toggles)) {
@@ -104,7 +100,7 @@ function initSettingsEvents() {
         'audioToggle': 'audioEnabled',
         'cleanupToggle': 'cleanupEnabled',
         'showSecondsToggle': 'showSeconds',
-        'showHeartbeatToggle': 'showHeartbeat'
+
     };
 
     for (const [id, key] of Object.entries(toggleBindings)) {

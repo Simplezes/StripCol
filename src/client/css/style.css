@@ -20,7 +20,7 @@
     --sys-text-header: #95a5a6;
 
     --atm-green: #00e676;
-    /* Emerald Heartbeat */
+
     --atm-amber: #ffab00;
     /* Caution/Zulu */
     --atm-red: #ff3d00;
@@ -243,28 +243,7 @@ input:focus::selection {
     gap: 8px;
 }
 
-.sys-indicator {
-    width: 8px;
-    height: 8px;
-    background: var(--atm-green);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--atm-green);
-    animation: pulse 2s infinite;
-}
 
-@keyframes pulse {
-    0% {
-        opacity: 0.4;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0.4;
-    }
-}
 
 .sys-badge {
     font-family: var(--font-data);
