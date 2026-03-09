@@ -162,3 +162,17 @@ function filterStrips(query) {
         }
     });
 }
+
+// Handle external links to open in browser
+document.addEventListener('click', (event) => {
+    const externalLink = event.target.closest('.external-link');
+    if (externalLink) {
+        event.preventDefault();
+        const url = externalLink.getAttribute('href');
+        if (window.electronAPI && window.electronAPI.openExternal) {
+            window.electronAPI.openExternal(url);
+        } else {
+            window.open(url, '_blank');
+        }
+    }
+});

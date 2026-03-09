@@ -1449,6 +1449,17 @@ body.dark-mode .controller-info select:focus {
     }
 }
 
+.external-link {
+    color: var(--atm-blue);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.external-link:hover {
+    color: var(--sys-text);
+    text-decoration: underline;
+}
+
 .settings-section-title {
     font-family: var(--font-data);
     font-size: 0.7rem;
