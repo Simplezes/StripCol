@@ -1,10 +1,8 @@
-# 🛫 StripCol — VATSIM Colombia Strip Hub
+<div align="center">
+    <img src="src\client\img\icon_name.png" alt="StripCol Icon" style="width:45%">
+</div>
 
-![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
-![Platform](https://img.shields.io/badge/platform-Windows-lightgrey?style=for-the-badge)
-![Target](https://img.shields.io/badge/VATSIM-Colombia-yellow?style=for-the-badge)
-
-**StripCol** is a high-performance, electronic flight strip management ecosystem custom-built for **VATSIM Colombia (VATCOL)**. It bridges the gap between traditional EuroScope operations and modern web-based interfaces, providing Air Traffic Controllers with a sleek, responsive, and highly functional workspace.
+**StripCol** is a high-performance, electronic flight strip management ecosystem custom-built for **[VATSIM Colombia (VATCOL)](https://vatcol.org/)**. It bridges the gap between traditional EuroScope operations and modern web-based interfaces, providing Air Traffic Controllers with a sleek, responsive, and highly functional workspace.
 
 ![StripCol Interface](screenshot.png)
 
