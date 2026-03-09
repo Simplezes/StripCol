@@ -117,7 +117,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         },
         autoHideMenuBar: true,
-        icon: path.join(__dirname, 'client/images/icon.png')
+        icon: path.join(__dirname, 'client/img/icon.png')
     });
 
     win.loadFile(path.join(__dirname, 'client/index.html'));

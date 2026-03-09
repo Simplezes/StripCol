@@ -1563,25 +1563,15 @@ body.dark-mode .controller-info select:focus {
 
 /* --- ABOUT SECTION --- */
 .about-header {
+    background: var(--sys-bg-3);
     text-align: center;
-    padding: 1rem 0;
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
 }
 
 .about-logo {
-    width: 30%;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 0 10px rgba(33, 150, 243, 0.4));
-}
-
-.about-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-    margin-bottom: 0.2rem;
-    background: linear-gradient(135deg, var(--sys-text), var(--atm-blue));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    width: 100%;
 }
 
 .about-version {

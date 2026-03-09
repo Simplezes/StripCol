@@ -19,7 +19,7 @@
         "nsis",
         "zip"
       ],
-      "icon": "src/client/images/icon.ico",
+      "icon": "src/client/img/icon.ico",
       "extraFiles": [
         {
           "from": "plugin/StripCol.dll",
