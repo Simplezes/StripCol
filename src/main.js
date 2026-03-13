@@ -18,7 +18,7 @@ function getStoredSettings() {
     } catch (e) {
         console.error("Failed to load settings from file:", e);
     }
-    return { serverIp: '127.0.0.1' };
+    return { serverIp: '127.0.0.1', discordRpcEnabled: true };
 }
 
 function saveStoredSettings(settings) {
@@ -79,9 +79,9 @@ async function startServer(ip) {
         serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp]);
 
         serverProcess.on('message', (msg) => {
-            if (msg.type === 'rpc_update') {
+            if (msg.type === 'rpc_update' && storedSettings.discordRpcEnabled) {
                 rpc.updatePresence(msg.data);
-            } else if (msg.type === 'rpc_clear') {
+            } else if (msg.type === 'rpc_clear' && storedSettings.discordRpcEnabled) {
                 rpc.updatePresence();
             }
         });
@@ -128,7 +128,9 @@ function createWindow() {
 app.whenReady().then(() => {
     startServer(currentServerIp);
 
-    rpc.initRPC();
+    if (storedSettings.discordRpcEnabled) {
+        rpc.initRPC();
+    }
 
     createWindow();
 
@@ -146,13 +148,26 @@ ipcMain.handle('get-version', () => {
 ipcMain.on('restart-server', (event, ip) => {
     console.log(`Forced server restart/refresh requested with IP: ${ip}`);
     currentServerIp = ip;
-    saveStoredSettings({ serverIp: ip });
+    storedSettings.serverIp = ip;
+    saveStoredSettings(storedSettings);
     startServer(ip);
 });
 
 ipcMain.on('save-settings', (event, settings) => {
-    if (settings && settings.serverIp) {
-        saveStoredSettings(settings);
+    if (settings) {
+        const rpcChanged = settings.discordRpcEnabled !== storedSettings.discordRpcEnabled;
+        
+        // Update stored settings object
+        storedSettings = { ...storedSettings, ...settings };
+        saveStoredSettings(storedSettings);
+
+        if (rpcChanged) {
+            if (storedSettings.discordRpcEnabled) {
+                rpc.initRPC();
+            } else {
+                rpc.clearRPC();
+            }
+        }
     }
 });
 

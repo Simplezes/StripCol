@@ -10,7 +10,8 @@ const DEFAULT_SETTINGS = {
     arrivalColor: '#f87171',
     overflyColor: '#fde68a',
     linkCode: '',
-    serverIp: '127.0.0.1'
+    serverIp: '127.0.0.1',
+    discordRpcEnabled: true
 };
 
 let originalServerIp = '127.0.0.1';
@@ -30,7 +31,10 @@ function loadSettings() {
 function saveSettings() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(currentSettings));
     if (window.electronAPI && window.electronAPI.saveSettings) {
-        window.electronAPI.saveSettings({ serverIp: currentSettings.serverIp });
+        window.electronAPI.saveSettings({ 
+            serverIp: currentSettings.serverIp,
+            discordRpcEnabled: currentSettings.discordRpcEnabled 
+        });
     }
     applySettings();
 }
@@ -55,7 +59,7 @@ function updateUIFromSettings() {
         'audioToggle': currentSettings.audioEnabled,
         'cleanupToggle': currentSettings.cleanupEnabled,
         'showSecondsToggle': currentSettings.showSeconds,
-
+        'discordRpcToggle': currentSettings.discordRpcEnabled
     };
 
     for (const [id, val] of Object.entries(toggles)) {
@@ -100,7 +104,7 @@ function initSettingsEvents() {
         'audioToggle': 'audioEnabled',
         'cleanupToggle': 'cleanupEnabled',
         'showSecondsToggle': 'showSeconds',
-
+        'discordRpcToggle': 'discordRpcEnabled'
     };
 
     for (const [id, key] of Object.entries(toggleBindings)) {
