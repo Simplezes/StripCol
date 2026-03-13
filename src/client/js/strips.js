@@ -69,11 +69,15 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
                     code: getLinkCode(),
                     callsign: flightplan.callsign
                 })
-            }); if (response.ok) {
+            });
+            if (response.ok) {
                 deleteStripFromPanels(flightplan.callsign);
                 flightplan.transfer = false;
                 if (typeof renderAircraft === 'function') renderAircraft(flightplan);
-            } else div.remove();
+            } else {
+                div.remove();
+            }
+            if (typeof window.collapseHandoverIfEmpty === 'function') window.collapseHandoverIfEmpty(0);
         };
 
         refuseBtn.onclick = async (e) => {
@@ -84,9 +88,13 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
                     code: getLinkCode(),
                     callsign: flightplan.callsign
                 })
-            }); if (response.ok) {
+            });
+            if (response.ok) {
                 deleteStripFromPanels(flightplan.callsign);
-            } else div.remove();
+            } else {
+                div.remove();
+            }
+            if (typeof window.collapseHandoverIfEmpty === 'function') window.collapseHandoverIfEmpty(0);
         };
 
         enableSortableForAllPanels();
@@ -128,7 +136,7 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
 
     const dtDiv = document.createElement("div");
     dtDiv.className = "box c33 ri_ot bt_ot";
-    dtDiv.style.cssText = "display:flex;flex-direction:column;text-align:center;font-size:60%;color:var(--font-main);";
+    dtDiv.style.cssText = "display:flex;flex-direction:column;text-align:center;font-size:60%;color:var(--sys-text);";
     dtDiv.innerHTML = `<span>${dateStr}</span><span>${timeStr}</span>`;
 
     fragment.appendChild(dtDiv);
@@ -646,7 +654,7 @@ function showTypeMenu(menu, strip, flight) {
         { name: "Overfly", color: "var(--strip-overfly)", value: "overfly", icon: "airplanemode_active" }
     ];
 
-    const currentType = strip.style.backgroundColor;
+    const currentType = strip.dataset.type;
 
     addBackButton(menu, strip);
 
@@ -656,12 +664,11 @@ function showTypeMenu(menu, strip, flight) {
         typeBtn.innerHTML = `
             <span class="material-icons">${type.icon}</span>
             <span style="flex:1;font-weight:500;">${type.name}</span>
-            ${currentType === type.color ? '<span class="material-icons">check</span>' : ''}
+            ${currentType === type.value ? '<span class="material-icons">check</span>' : ''}
         `;
 
-        if (currentType !== type.color) {
+        if (currentType !== type.value) {
             typeBtn.addEventListener("click", async () => {
-                strip.style.backgroundColor = type.color;
                 strip.dataset.type = type.value;
                 strip.querySelectorAll("input.box").forEach(box => box.value = "");
                 if (flight) UpdateStrip(flight, type.value);
@@ -967,6 +974,58 @@ function saveStripValues(stripEl) {
     });
 
     stateManager.updateStrip(stripId, { values });
+}
+
+function moveStripToHandover(callsign) {
+    if (!callsign) return;
+
+    const stripId = `strip-${callsign}`;
+    const stripEl = document.querySelector(`.strip[data-strip-id="${stripId}"]`)
+        || document.querySelector(`.strip[data-callsign="${callsign}"]`);
+
+    if (!stripEl) return;
+
+    // Determine the handoff panel based on the layout
+    let targetPanelName = "Handover";
+    const targetPanel = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
+    
+    if (!targetPanel) return; // if Handover doesn't exist, fallback to delete
+    
+    const targetContainer = targetPanel.querySelector(".strip-container");
+    if (!targetContainer) return;
+
+    // Move in DOM
+    targetContainer.appendChild(stripEl);
+
+    // Stop it from tracking if it was from euroscope (so it becomes a ghost strip)
+    // but we keep the visual data intact
+    stripEl.dataset.euroscope = "false";
+    
+    // Move in state
+    let movedStripData = null;
+    const panels = stateManager.getPanels();
+    
+    panels.forEach(panel => {
+        if (panel.strips && panel.name !== targetPanelName) {
+            const index = panel.strips.findIndex(s => s.id === stripId || s.id === callsign || (s.flightPlan && s.flightPlan.callsign === callsign));
+            if (index !== -1) {
+                movedStripData = panel.strips[index];
+                // Remove from old panel implicitly by letting stateManager handle it
+                stateManager.removeStrip(movedStripData.id);
+            }
+        }
+    });
+
+    if (movedStripData) {
+        stateManager.addStrip(targetPanelName, movedStripData);
+    }
+
+    if (typeof enableSortableForAllPanels === 'function') enableSortableForAllPanels();
+    document.querySelectorAll('.card').forEach(c => {
+        if (typeof updatePanelBadge === 'function') updatePanelBadge(c);
+    });
+    
+    syncRPC();
 }
 
 function deleteStripFromPanels(callsign) {

@@ -1,48 +1,64 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  FIXED ATC STRIP BOARD — 3 columns × 2 rows
+//
+//  Col 1: Clearance (top)   | Pushback (bottom)
+//  Col 2: Ground (top)      | HP RWY   (bottom)
+//  Col 3: Sequence (top)    | Handover (bottom)
+//
+//  Panels are FIXED — they cannot be added or removed, only renamed.
+// ─────────────────────────────────────────────────────────────────────────────
+
 const mainLayout = document.getElementById("mainLayout");
+
+// We still keep this element reference so existing code doesn't break, but
+// it will be hidden via CSS / HTML now.
 const addPanelBtn = document.getElementById("addPanelBtn");
-const MAX_PANELS = 6;
+
 let panelUnderMouse = null;
 let stripUnderMouse = null;
 
-function savePanel(panel) {
-    const panelData = { name: panel.name, strips: [] };
+// ── Fixed panel definitions ──────────────────────────────────────────────────
+const TOWER_PANELS = [
+    { key: "clearance", defaultName: "Clearance", cssClass: "panel-clearance", badgeCount: true, col: 1 },
+    { key: "pushback", defaultName: "Pushback", cssClass: "panel-pushback", badgeCount: true, col: 1 },
+    { key: "ground", defaultName: "Ground Movement", cssClass: "panel-ground", badgeCount: true, col: 2 },
+    { key: "hp-rwy", defaultName: "Holding Point RWY", cssClass: "panel-hp-rwy", badgeCount: true, col: 2 },
+    { key: "sequence", defaultName: "Sequence RWY", cssClass: "panel-sequence", badgeCount: true, col: 3 },
+    { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
+];
 
+const RADAR_PANELS = [
+    { key: "departures", defaultName: "Departures", cssClass: "panel-departures", badgeCount: true, col: 1 },
+    { key: "arrivals", defaultName: "Arrivals", cssClass: "panel-arrivals", badgeCount: true, col: 2 },
+    { key: "overfly", defaultName: "Overfly", cssClass: "panel-overfly", badgeCount: true, col: 3 },
+    { key: "holding", defaultName: "Holding", cssClass: "panel-holding", badgeCount: true, col: 3 },
+    { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
+];
+
+let currentLayoutMode = null; // "tower" or "radar"
+
+// ── State helpers (delegate to stateManager) ─────────────────────────────────
+function savePanel(panel) {
     const existing = stateManager.getPanel(panel.name);
     if (existing) {
-        stateManager.updatePanel(panel.name, panelData);
+        stateManager.updatePanel(panel.name, { name: panel.name, strips: [] });
     } else {
-        stateManager.addPanel(panelData);
+        stateManager.addPanel({ name: panel.name, strips: [] });
     }
 }
 
 function loadPanels() {
-    return stateManager.getPanels().map(panel => ({ ...panel }));
+    return stateManager.getPanels().map(p => ({ ...p }));
 }
 
-function removePanel(panelName) {
-    stateManager.removePanel(panelName);
+// ── Strip count badge ─────────────────────────────────────────────────────────
+function updatePanelBadge(panelElement) {
+    const badge = panelElement.querySelector(".panel-strip-count");
+    const count = panelElement.querySelectorAll(".strip").length;
+    if (badge) badge.textContent = count;
 }
 
-function createPanelElement(panel) {
-    const panelElement = document.createElement("div");
-    panelElement.className = "card h-100 mb-4";
-    panelElement.dataset.panelName = panel.name;
-
-    const stripContainer = document.createElement("div");
-    stripContainer.className = "strip-container";
-    const header = createPanelHeader(panel.name);
-
-    panelElement.appendChild(header);
-    panelElement.appendChild(stripContainer);
-    mainLayout.appendChild(panelElement);
-
-    panelElement.addEventListener("contextmenu", (e) => {
-        showPanelContextMenu(e, panelElement, stripContainer);
-    });
-
-    return { panelElement, header };
-}
-
+// ── Panel header (editable name + strip count badge) ─────────────────────────
 function createPanelHeader(panelName) {
     const header = document.createElement("div");
     header.className = "card-header d-flex align-items-center gap-2";
@@ -51,29 +67,159 @@ function createPanelHeader(panelName) {
     nameInput.type = "text";
     nameInput.value = panelName;
     nameInput.className = "form-control form-control-sm flex-grow-1 bg-transparent border-0 text-white panel-name-input";
-    nameInput.style = "font-weight: bold;";
+    nameInput.style.fontWeight = "bold";
+
+    const badge = document.createElement("span");
+    badge.className = "panel-strip-count";
+    badge.textContent = "0";
 
     header.appendChild(nameInput);
+    header.appendChild(badge);
 
-    nameInput.addEventListener("blur", function () {
-        const oldName = panelName;
-        const newName = this.value.trim();
+    if (panelName === "Handover" || panelName.toUpperCase() === "HANDOVER") {
+        const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
+        const isCollapsedInitial = settings[currentLayoutMode] !== false;
 
-        if (oldName !== newName) {
-            updatePanelName(oldName, newName);
+        const toggleIcon = document.createElement("span");
+        toggleIcon.className = "material-icons handover-toggle-icon";
+        toggleIcon.textContent = isCollapsedInitial ? "expand_less" : "expand_more";
+        header.insertBefore(toggleIcon, nameInput);
 
-            const panelElement = header.closest('[data-panel-name]');
-            if (panelElement) {
-                panelElement.dataset.panelName = newName;
+        nameInput.readOnly = true;
+        nameInput.style.pointerEvents = "none";
+        header.style.cursor = "pointer";
+        header.title = "Click to expand/collapse Handover";
+        header.addEventListener("click", () => {
+            const colElement = header.closest(".panel-col");
+            if (colElement) {
+                colElement.classList.toggle("handover-collapsed");
+                const isCollapsed = colElement.classList.contains("handover-collapsed");
+
+                const colIndex = colElement.dataset.col;
+                const numCards = colElement.querySelectorAll('.card').length;
+                const isRadar = currentLayoutMode === "radar";
+                const defaultH = isRadar ? (colIndex == 3 ? 35 : 100) : (colIndex == 3 ? 60 : 70);
+
+                if (isCollapsed) {
+                    mainLayout.style.setProperty(`--h${colIndex}`, '95%');
+                    toggleIcon.textContent = "expand_less";
+                } else {
+                    mainLayout.style.setProperty(`--h${colIndex}`, '65%');
+                    toggleIcon.textContent = "expand_more";
+                }
+
+                // Track state in preferences
+                const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
+                settings[currentLayoutMode] = isCollapsed;
+                localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
+
+                if (typeof saveGridDimensions === 'function') saveGridDimensions();
             }
-
-            panelName = newName;
-        }
-    });
+        });
+    } else {
+        nameInput.addEventListener("blur", function () {
+            const oldName = panelName;
+            const newName = this.value.trim();
+            if (oldName !== newName && newName.length > 0) {
+                updatePanelName(oldName, newName);
+                const panelElement = header.closest("[data-panel-name]");
+                if (panelElement) panelElement.dataset.panelName = newName;
+                panelName = newName;
+            } else {
+                this.value = panelName; // revert on empty
+            }
+        });
+    }
 
     return header;
 }
 
+// ── Create a single panel DOM element ────────────────────────────────────────
+function createPanelElement(panel, cssClass, colIndex) {
+    const panelElement = document.createElement("div");
+    panelElement.className = `card ${cssClass}`;
+    panelElement.dataset.panelName = panel.name;
+
+    const stripContainer = document.createElement("div");
+    stripContainer.className = "strip-container";
+
+    const header = createPanelHeader(panel.name);
+
+    panelElement.appendChild(header);
+    panelElement.appendChild(stripContainer);
+
+    const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
+    if (colDiv) colDiv.appendChild(panelElement);
+
+    panelElement.addEventListener("contextmenu", (e) => {
+        showPanelContextMenu(e, panelElement, stripContainer);
+    });
+
+    // Strip count observer — update badge whenever strips change
+    const observer = new MutationObserver(() => updatePanelBadge(panelElement));
+    observer.observe(stripContainer, { childList: true, subtree: false });
+
+    return { panelElement, header };
+}
+
+window.expandHandover = function () {
+    const handoverPanel = document.querySelector('.panel-handover');
+    if (!handoverPanel) return;
+
+    const colElement = handoverPanel.closest(".panel-col");
+    if (colElement && colElement.classList.contains("handover-collapsed")) {
+        colElement.classList.remove("handover-collapsed");
+        const colIndex = colElement.dataset.col;
+        mainLayout.style.setProperty(`--h${colIndex}`, '65%');
+
+        // Update icon
+        const icon = handoverPanel.querySelector('.handover-toggle-icon');
+        if (icon) icon.textContent = "expand_more";
+
+        // Track state in preferences
+        const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
+        settings[currentLayoutMode] = false;
+        localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
+
+        if (typeof saveGridDimensions === 'function') saveGridDimensions();
+    }
+};
+
+window.collapseHandoverIfEmpty = function (expectedCount = 0) {
+    const handoverPanel = document.querySelector('.panel-handover');
+    if (!handoverPanel) return;
+
+    // Use a small timeout to ensure the DOM has actually updated
+    setTimeout(() => {
+        const stripContainer = handoverPanel.querySelector('.strip-container');
+        if (!stripContainer) return;
+
+        // Check if there are any remaining transfer request strips
+        const remainingTransfers = stripContainer.querySelectorAll('.transfer-request').length;
+
+        if (remainingTransfers <= expectedCount) {
+            const colElement = handoverPanel.closest(".panel-col");
+            if (colElement && !colElement.classList.contains("handover-collapsed")) {
+                colElement.classList.add("handover-collapsed");
+                const colIndex = colElement.dataset.col;
+                mainLayout.style.setProperty(`--h${colIndex}`, '95%');
+
+                // Update icon
+                const icon = handoverPanel.querySelector('.handover-toggle-icon');
+                if (icon) icon.textContent = "expand_less";
+
+                // Track state in preferences
+                const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
+                settings[currentLayoutMode] = true;
+                localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
+
+                if (typeof saveGridDimensions === 'function') saveGridDimensions();
+            }
+        }
+    }, 100);
+};
+
+// ── Context menu ─────────────────────────────────────────────────────────────
 function showPanelContextMenu(event, panelElement, stripContainer) {
     event.preventDefault();
     document.querySelectorAll(".strip-context-menu").forEach(m => m.remove());
@@ -83,30 +229,19 @@ function showPanelContextMenu(event, panelElement, stripContainer) {
     menu.style.top = `${event.clientY}px`;
     menu.style.left = `${event.clientX}px`;
 
-    ;
-
-    const addStripBtn = createGlobalMenuItem("Add Strip Manually", "add", (e) => {
+    const addStripBtn = createGlobalMenuItem("Add Strip Manually", "add", () => {
         showPanelAddStripMenu(menu, panelElement, stripContainer);
     });
 
-    const assumeBtn = createGlobalMenuItem("Assume Aircraft", "connecting_airports", (e) => {
+    const assumeBtn = createGlobalMenuItem("Assume Aircraft", "connecting_airports", () => {
         showAssumeAircraftMenu(menu, panelElement, stripContainer);
-    });
-
-    const removePanelOption = createGlobalMenuItem("Remove Panel", "delete", () => {
-        const panelName = panelElement.dataset.panelName;
-        removePanel(panelName);
-        panelElement.remove();
-        updatePanels();
-        menu.remove();
     });
 
     menu.appendChild(addStripBtn);
     menu.appendChild(assumeBtn);
-    menu.appendChild(removePanelOption);
 
     document.body.appendChild(menu);
-    if (typeof positionMenuSafely === 'function') {
+    if (typeof positionMenuSafely === "function") {
         positionMenuSafely(menu, event.clientX, event.clientY);
     }
 
@@ -122,7 +257,7 @@ function showPanelContextMenu(event, panelElement, stripContainer) {
 }
 
 function showPanelAddStripMenu(menu, panelElement, stripContainer) {
-    menu.innerHTML = '';
+    menu.innerHTML = "";
 
     const backBtn = document.createElement("div");
     backBtn.classList.add("menu-back-btn");
@@ -160,7 +295,7 @@ function showPanelAddStripMenu(menu, panelElement, stripContainer) {
                         const callsign = e.target.value.trim();
                         if (callsign) {
                             const response = await apiFetch(`/api/assume-aircraft`, {
-                                method: 'POST',
+                                method: "POST",
                                 body: JSON.stringify({
                                     code: getLinkCode(),
                                     callsign: callsignInput.value.trim().toUpperCase(),
@@ -188,12 +323,12 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
     menu.innerHTML = `<div class="menu-item disabled">Searching...</div>`;
 
     apiFetch(`/api/get-nearby-aircraft`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({ code: getLinkCode() })
     });
 
     window.onNearbyAircraftReceived = (callsigns) => {
-        menu.innerHTML = '';
+        menu.innerHTML = "";
 
         const backBtn = document.createElement("div");
         backBtn.classList.add("menu-back-btn");
@@ -208,9 +343,7 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
         });
         menu.appendChild(backBtn);
 
-        if (callsigns) {
-            callsigns.sort((a, b) => a.localeCompare(b));
-        }
+        if (callsigns) callsigns.sort((a, b) => a.localeCompare(b));
 
         if (!callsigns || callsigns.length === 0) {
             const empty = document.createElement("div");
@@ -252,7 +385,7 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
                 item.addEventListener("click", async () => {
                     const panelName = panelElement.dataset.panelName;
                     const response = await apiFetch(`/api/assume-aircraft`, {
-                        method: 'POST',
+                        method: "POST",
                         body: JSON.stringify({
                             code: getLinkCode(),
                             callsign: callsign,
@@ -261,74 +394,32 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
                     });
                     if (response.ok) {
                         menu.remove();
-                        showToast(`Assumed ${callsign}`, 'success');
+                        showToast(`Assumed ${callsign}`, "success");
                     } else {
-                        showToast(`Failed to assume ${callsign}`, 'error');
+                        showToast(`Failed to assume ${callsign}`, "error");
                     }
                 });
                 scrollContainer.appendChild(item);
             });
         };
 
-        searchInput.addEventListener("input", (e) => {
-            renderItems(e.target.value);
-        });
-
+        searchInput.addEventListener("input", (e) => renderItems(e.target.value));
         renderItems();
-
         setTimeout(() => searchInput.focus(), 50);
 
-        // Clean up global listener
         window.onNearbyAircraftReceived = null;
     };
 }
 
-
+// ── Panel rename ──────────────────────────────────────────────────────────────
 function updatePanelName(oldName, newName) {
     if (stateManager.renamePanel(oldName, newName)) {
         const panelElement = document.querySelector(`[data-panel-name="${oldName}"]`);
-        if (panelElement) {
-            panelElement.dataset.panelName = newName;
-        }
+        if (panelElement) panelElement.dataset.panelName = newName;
     }
 }
 
-function createPanel(name = "Panel") {
-    const panels = loadPanels();
-    if (panels.find(p => p.name === name)) return;
-
-    const panel = { name };
-    savePanel(panel);
-    createPanelElement(panel);
-    updatePanels();
-    enableSortableForAllPanels();
-}
-
-function updatePanels() {
-    updateAddButton();
-    updateMainLayoutGrid();
-}
-
-function updateAddButton() {
-    if (addPanelBtn) addPanelBtn.disabled = mainLayout.children.length >= MAX_PANELS;
-}
-
-function updateMainLayoutGrid() {
-    const paneCount = mainLayout.children.length;
-    if (paneCount === 0) return;
-
-    let columns = 1;
-    let rows = 1;
-
-    if (paneCount === 1) { columns = 1; rows = 1; }
-    else if (paneCount === 2) { columns = 2; rows = 1; }
-    else if (paneCount <= 4) { columns = 2; rows = 2; }
-    else if (paneCount <= 6) { columns = 3; rows = 2; }
-
-    mainLayout.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-    mainLayout.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-}
-
+// ── addStripToPanel / renderStrips ────────────────────────────────────────────
 function addStripToPanel(panelName, stripEl, flightPlan = null) {
     const stripId = stripEl.dataset.stripId || ("strip-" + Date.now());
     stripEl.dataset.stripId = stripId;
@@ -375,9 +466,7 @@ function renderStrips() {
                     if (stripData.values) {
                         Object.entries(stripData.values).forEach(([cls, val]) => {
                             const input = stripEl.querySelector(`input.${cls}`);
-                            if (input && val) {
-                                input.value = val;
-                            }
+                            if (input && val) input.value = val;
                         });
                     }
                 }, 0);
@@ -385,37 +474,343 @@ function renderStrips() {
                 stripContainer.appendChild(stripEl);
             });
         }
+
+        updatePanelBadge(panelElement);
     });
+
     enableSortableForAllPanels();
 }
 
-addPanelBtn.addEventListener("click", () => {
-    if (mainLayout.children.length < MAX_PANELS) {
-        const panels = loadPanels();
-        let i = 1;
-        let newName = `Panel ${i}`;
-        while (panels.some(p => p.name === newName)) {
-            i++;
-            newName = `Panel ${i}`;
+// ── Facility Switcher ─────────────────────────────────────────────────────────
+
+window.applyFacilityLayout = function () {
+    const isRadar = window.controllerMode === "approach" || window.controllerMode === "center";
+    const targetLayout = isRadar ? "radar" : "tower";
+
+    // Don't re-render if the mode hasn't changed
+    if (currentLayoutMode === targetLayout && mainLayout.children.length > 0) return;
+
+    currentLayoutMode = targetLayout;
+
+    // Update main container attributes for CSS
+    mainLayout.dataset.layout = targetLayout;
+    mainLayout.innerHTML = `
+        <div class="panel-col" data-col="1"></div>
+        <div class="panel-col" data-col="2"></div>
+        <div class="panel-col" data-col="3"></div>
+    `;
+
+    // Restore saved height preferences for this layout
+    const settings = JSON.parse(localStorage.getItem('layoutGridHeights') || '{}');
+    if (settings[targetLayout]) {
+        if (settings[targetLayout].h1 !== undefined) mainLayout.style.setProperty('--h1', `${settings[targetLayout].h1}%`);
+        if (settings[targetLayout].h2 !== undefined) mainLayout.style.setProperty('--h2', `${settings[targetLayout].h2}%`);
+        if (settings[targetLayout].h3 !== undefined) mainLayout.style.setProperty('--h3', `${settings[targetLayout].h3}%`);
+        
+        if (settings[targetLayout].c1 !== undefined) {
+            mainLayout.style.setProperty('--c1', `${settings[targetLayout].c1}fr`);
+            mainLayout.style.setProperty('--c2', `${settings[targetLayout].c2}fr`);
+            mainLayout.style.setProperty('--c3', `${settings[targetLayout].c3}fr`);
         }
-        createPanel(newName);
-        updatePanels();
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const panels = loadPanels();
-
-    if (panels.length === 0) {
-        createPanel("Departure");
-        createPanel("Arrival");
-        createPanel("Overfly");
-        createPanel("Ground");
     } else {
-        panels.forEach(panel => createPanelElement(panel));
-        waitForControllerModeAndRender();
+        // Apply strict defaults if no settings exist to prevent layout bleed
+        if (isRadar) {
+            mainLayout.style.setProperty('--h1', '100%');
+            mainLayout.style.setProperty('--h2', '100%');
+            mainLayout.style.setProperty('--h3', '35%');
+        } else {
+            mainLayout.style.setProperty('--h1', '70%');
+            mainLayout.style.setProperty('--h2', '50%');
+            mainLayout.style.setProperty('--h3', '60%');
+        }
+        mainLayout.style.setProperty('--c1', '35fr');
+        mainLayout.style.setProperty('--c2', '35fr');
+        mainLayout.style.setProperty('--c3', '30fr');
     }
-    updatePanels();
+
+    const TARGET_DEF = isRadar ? RADAR_PANELS : TOWER_PANELS;
+    const targetNames = new Set(TARGET_DEF.map(d => d.defaultName));
+
+    // Safety check against old or mismatched data
+    const savedPanels = loadPanels();
+    const saveNames = new Set(savedPanels.map(p => p.name));
+
+    // Does the current local storage align with the layout we want?
+    const hasMatchingLayout = [...targetNames].some(tn => saveNames.has(tn));
+    if (!hasMatchingLayout || savedPanels.length !== 6) {
+        console.info(`[panels] Switching layout to ${targetLayout}. Wiping old layout data.`);
+        localStorage.removeItem("panels");
+        stateManager.panels = [];
+    }
+
+    // Render the panels
+    TARGET_DEF.forEach(def => {
+        const saved = loadPanels().find(p => p.name === def.defaultName);
+        let panelName = (saved && saved.name) ? saved.name : def.defaultName;
+
+        // Force Handover to remain Handover even if someone renamed it prior to the patch
+        if (def.key === "handover") panelName = "Handover";
+
+        if (!stateManager.getPanel(panelName)) {
+            stateManager.addPanel({ name: panelName, key: def.key, strips: [] });
+        }
+
+        createPanelElement({ name: panelName }, def.cssClass, def.col);
+    });
+
+    // Default Handover to closed unless user previously expanded it
+    const collSettings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
+    if (collSettings[targetLayout] !== false) {
+        document.querySelectorAll(".panel-col").forEach(col => {
+            const lastCard = col.querySelector(".card:last-child");
+            if (lastCard && (lastCard.dataset.panelName === "Handover" || lastCard.classList.contains("panel-handover"))) {
+                col.classList.add("handover-collapsed");
+                mainLayout.style.setProperty(`--h${col.dataset.col}`, '95%');
+            }
+        });
+    } else {
+        document.querySelectorAll(".panel-col").forEach(col => {
+            const lastCard = col.querySelector(".card:last-child");
+            if (lastCard && (lastCard.dataset.panelName === "Handover" || lastCard.classList.contains("panel-handover"))) {
+                mainLayout.style.setProperty(`--h${col.dataset.col}`, '65%');
+            }
+        });
+    }
+
+    renderStrips(); // Redraw any strips if loaded
+
+    // Add Resizers
+    setTimeout(addResizeHandles, 0);
+
+    // Setup adaptive widths
+    setTimeout(setupAdaptiveWidths, 0);
+};
+
+// ── Adaptive Width Management ────────────────────────────────────────────────
+function setupAdaptiveWidths() {
+    const observer = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const width = entry.contentRect.width;
+            let mode = "full";
+
+            // Breakpoints for the column width
+            if (width < 220) mode = "compact-1";      // Callsign only
+            else if (width < 320) mode = "compact-2"; // Callsign, Type
+            else if (width < 450) mode = "compact-3"; // Callsign, Type, Squawk
+
+            if (entry.target.dataset.widthMode !== mode) {
+                entry.target.dataset.widthMode = mode;
+            }
+        }
+    });
+
+    document.querySelectorAll(".panel-col").forEach(col => {
+        observer.observe(col);
+    });
+}
+
+// ── Heights / Grid Resizing ──────────────────────────────────────────────────
+function addResizeHandles() {
+    document.querySelectorAll(".resize-handle, .resize-handle-v").forEach(h => h.remove());
+
+    // --- HORIZONTAL (HEIGHT) RESIZERS FOR EACH COLUMN ---
+    [1, 2, 3].forEach(colIndex => {
+        // Skip adding a vertical height resizer for columns where Handover handles the split
+        // or where there is only one panel taking all height.
+        if (currentLayoutMode === 'radar') {
+            if (colIndex === 1 || colIndex === 2) return; // 100% height panels
+            if (colIndex === 3) return; // Overfly/Holding/Handover split
+        } else if (currentLayoutMode === 'tower') {
+            if (colIndex === 3) return; // Sequence/Handover split
+        }
+
+        const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
+        if (!colDiv) return;
+
+        const secondCard = colDiv.querySelector('.card:last-child');
+        if (!secondCard) return;
+
+        secondCard.style.position = "relative";
+
+        const handle = document.createElement("div");
+        handle.className = "resize-handle d-flex justify-content-center align-items-center";
+
+        const visual = document.createElement("div");
+        visual.style.width = "40px";
+        visual.style.height = "2px";
+        visual.style.background = "var(--sys-border)";
+        visual.style.borderRadius = "2px";
+        visual.style.transition = "background 0.2s";
+        handle.appendChild(visual);
+
+        secondCard.appendChild(handle);
+
+        handle.addEventListener("mousedown", e => {
+            e.preventDefault();
+            const startY = e.clientY;
+
+            const curHStyle = mainLayout.style.getPropertyValue(`--h${colIndex}`);
+            const isRadar = currentLayoutMode === "radar";
+            const defaults = isRadar ? [65, 100, 50] : [70, 50, 60];
+            const curH = curHStyle ? parseFloat(curHStyle) : defaults[colIndex - 1];
+
+            const totalH = colDiv.clientHeight;
+
+            handle.classList.add("active");
+            document.body.style.cursor = 'ns-resize';
+
+            function onMouseMove(moveEvent) {
+                const deltaY = moveEvent.clientY - startY;
+                const deltaPct = (deltaY / totalH) * 100;
+                let newH = curH + deltaPct;
+
+                if (newH < 10) newH = 10;
+                if (newH > 90) newH = 90;
+
+                mainLayout.style.setProperty(`--h${colIndex}`, `${newH}%`);
+            }
+
+            function onMouseUp() {
+                handle.classList.remove("active");
+                document.body.style.removeProperty('cursor');
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
+                saveGridDimensions();
+            }
+
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        });
+
+        handle.addEventListener("dblclick", e => {
+            e.preventDefault();
+            const isRadar = currentLayoutMode === "radar";
+            const defaults = isRadar ? [65, 100, 50] : [70, 50, 60];
+            mainLayout.style.setProperty(`--h${colIndex}`, `${defaults[colIndex - 1]}%`);
+            saveGridDimensions();
+        });
+    });
+
+    // --- VERTICAL (WIDTH) RESIZERS BETWEEN COLUMNS ---
+    [2, 3].forEach(colIndex => {
+        const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
+        if (!colDiv) return;
+
+        const handleV = document.createElement("div");
+        handleV.className = "resize-handle-v d-flex justify-content-center align-items-center";
+
+        const visualV = document.createElement("div");
+        visualV.style.width = "2px";
+        visualV.style.height = "40px";
+        visualV.style.background = "var(--sys-border)";
+        visualV.style.borderRadius = "2px";
+        visualV.style.transition = "background 0.2s";
+        handleV.appendChild(visualV);
+
+        colDiv.appendChild(handleV);
+
+        handleV.addEventListener("mousedown", e => {
+            e.preventDefault();
+            const startX = e.clientX;
+            const totalWidth = mainLayout.clientWidth;
+
+            const isRadar = currentLayoutMode === "radar";
+            const curC1 = parseFloat(mainLayout.style.getPropertyValue('--c1')) || 35;
+            const curC2 = parseFloat(mainLayout.style.getPropertyValue('--c2')) || 35;
+            const curC3 = parseFloat(mainLayout.style.getPropertyValue('--c3')) || 30;
+
+            handleV.classList.add("active");
+            document.body.style.cursor = 'ew-resize';
+
+            function onMouseMove(moveEvent) {
+                const deltaX = moveEvent.clientX - startX;
+                const deltaPct = (deltaX / totalWidth) * 100;
+
+                let newC1 = curC1, newC2 = curC2, newC3 = curC3;
+
+                if (colIndex === 2) {
+                    newC1 = curC1 + deltaPct;
+                    newC2 = curC2 - deltaPct;
+                    if (newC1 < 10) { newC1 = 10; newC2 = curC1 + curC2 - 10; }
+                    if (newC2 < 10) { newC2 = 10; newC1 = curC1 + curC2 - 10; }
+                } else if (colIndex === 3) {
+                    newC2 = curC2 + deltaPct;
+                    newC3 = curC3 - deltaPct;
+                    if (newC2 < 10) { newC2 = 10; newC3 = curC2 + curC3 - 10; }
+                    if (newC3 < 10) { newC3 = 10; newC2 = curC2 + curC3 - 10; }
+                }
+
+                mainLayout.style.setProperty('--c1', `${newC1}fr`);
+                mainLayout.style.setProperty('--c2', `${newC2}fr`);
+                mainLayout.style.setProperty('--c3', `${newC3}fr`);
+            }
+
+            function onMouseUp() {
+                handleV.classList.remove("active");
+                document.body.style.removeProperty('cursor');
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
+                saveGridDimensions();
+            }
+
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        });
+
+        handleV.addEventListener("dblclick", e => {
+            e.preventDefault();
+            const isRadar = currentLayoutMode === "radar";
+            const defaults = { c1: 35, c2: 35, c3: 30 };
+
+            const curC1 = parseFloat(mainLayout.style.getPropertyValue('--c1')) || defaults.c1;
+            const curC2 = parseFloat(mainLayout.style.getPropertyValue('--c2')) || defaults.c2;
+            const curC3 = parseFloat(mainLayout.style.getPropertyValue('--c3')) || defaults.c3;
+
+            if (colIndex === 2) {
+                // Reset boundary between Col 1 and 2 (35% mark)
+                const combined = curC1 + curC2;
+                mainLayout.style.setProperty('--c1', `${defaults.c1}fr`);
+                mainLayout.style.setProperty('--c2', `${combined - defaults.c1}fr`);
+            } else if (colIndex === 3) {
+                // Reset boundary between Col 2 and 3 (70% mark)
+                // C1 stays same, C2/C3 snap to the 70/30 split point
+                const total = curC1 + curC2 + curC3;
+                mainLayout.style.setProperty('--c2', `${70 - curC1}fr`);
+                mainLayout.style.setProperty('--c3', `${total - 70}fr`);
+            }
+            saveGridDimensions();
+        });
+    });
+}
+
+function saveGridDimensions() {
+    const isRadar = currentLayoutMode === "radar";
+    const settings = JSON.parse(localStorage.getItem('layoutGridHeights') || '{}');
+    if (!settings[currentLayoutMode]) settings[currentLayoutMode] = {};
+
+    settings[currentLayoutMode].h1 = parseFloat(mainLayout.style.getPropertyValue('--h1')) || (isRadar ? 65 : 70);
+    settings[currentLayoutMode].h2 = parseFloat(mainLayout.style.getPropertyValue('--h2')) || (isRadar ? 100 : 50);
+    settings[currentLayoutMode].h3 = parseFloat(mainLayout.style.getPropertyValue('--h3')) || (isRadar ? 50 : 60);
+
+    settings[currentLayoutMode].c1 = parseFloat(mainLayout.style.getPropertyValue('--c1')) || 35;
+    settings[currentLayoutMode].c2 = parseFloat(mainLayout.style.getPropertyValue('--c2')) || 35;
+    settings[currentLayoutMode].c3 = parseFloat(mainLayout.style.getPropertyValue('--c3')) || 30;
+
+    localStorage.setItem('layoutGridHeights', JSON.stringify(settings));
+}
+
+// ── Boot — initialise layout ─────────────────────────────────────────────────
+function initFixedPanels() {
+    applyFacilityLayout();
+}
+
+// Hide the "Add Panel" button — layout is now fixed
+if (addPanelBtn) addPanelBtn.style.display = "none";
+
+// ── DOMContentLoaded ──────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", function () {
+    initFixedPanels();
+    waitForControllerModeAndRender();
 });
 
 function waitForControllerModeAndRender() {
@@ -426,3 +821,8 @@ function waitForControllerModeAndRender() {
         }
     }, 100);
 }
+
+// ── Stub — kept so any external callers don't throw ──────────────────────────
+function updatePanels() { /* no-op: layout is fixed */ }
+function createPanel() { /* no-op: panels are fixed */ }
+function removePanel() { /* no-op: panels are fixed */ }

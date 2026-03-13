@@ -109,8 +109,8 @@ function startFailoverWatchdog() {
 
 function createWindow() {
     const win = new BrowserWindow({
-        width: 1200,
-        height: 800,
+        width: 1550,
+        height: 840,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -156,7 +156,7 @@ ipcMain.on('restart-server', (event, ip) => {
 ipcMain.on('save-settings', (event, settings) => {
     if (settings) {
         const rpcChanged = settings.discordRpcEnabled !== storedSettings.discordRpcEnabled;
-        
+
         // Update stored settings object
         storedSettings = { ...storedSettings, ...settings };
         saveStoredSettings(storedSettings);

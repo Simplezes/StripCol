@@ -125,7 +125,15 @@ function startEvent() {
     evtSource.addEventListener('release', e => {
         const { callsign } = JSON.parse(e.data);
         delete aircraftMap[callsign];
-        deleteStripFromPanels(callsign);
+
+        // When Euroscope drops tracking (handoff completes or tracking is dropped),
+        // move the strip to the Handover board so the controller can keep a physical 
+        // record of it until they manually delete it.
+        if (typeof moveStripToHandover === 'function') {
+            moveStripToHandover(callsign);
+        } else {
+            deleteStripFromPanels(callsign);
+        }
     });
 
     evtSource.addEventListener('transfer', e => {
@@ -248,7 +256,20 @@ function renderAircraft(flight) {
     const existingStrip = stateManager.getStrip(stripId);
     if (existingStrip) return;
 
-    let panel = document.querySelector(`[data-panel-name="${capitalize(type)}"]`);
+    let targetPanelName = "Overfly"; // Default bucket
+    if (flight.transfer) {
+        targetPanelName = "Handover";
+    } else if (type === "departure") {
+        targetPanelName = window.controllerMode === "aerodrome" ? "Clearance" : "Departures";
+    } else if (type === "arrival") {
+        targetPanelName = window.controllerMode === "aerodrome" ? "Sequence RWY" : "Arrivals";
+    } else if (type === "overfly") {
+        targetPanelName = window.controllerMode === "aerodrome" ? "Handover" : "Overfly";
+    }
+
+    let panel = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
+
+    // Fallback if the target panel doesn't exist in the current layout
     if (!panel) {
         panel = document.querySelector("[data-panel-name]");
         if (!panel) return;
@@ -260,7 +281,14 @@ function renderAircraft(flight) {
     const strip = createStrip(type, flight, true, stripId);
     strip.dataset.callsign = flight.callsign;
     if (!flight.callsign) strip.dataset.euroscope = "false";
-    stripContainer.appendChild(strip);
+
+    // For transfers, always prepend to the top of the container
+    if (flight.transfer) {
+        stripContainer.prepend(strip);
+        if (typeof window.expandHandover === 'function') window.expandHandover();
+    } else {
+        stripContainer.appendChild(strip);
+    }
 
     const panelNameInput = panel.querySelector("input");
     const panelName = panelNameInput ? panelNameInput.value.trim() : panel.dataset.panelName;
@@ -295,7 +323,10 @@ function setControllerInfo(data, returnPositionName = false) {
     window.controllerCallsign = data.callsign || "";
 
     if (modeChanged) {
-        console.log(`Controller mode changed to: ${newMode}. Refreshing tooltips.`);
+        console.log(`Controller mode changed to: ${newMode}. Refreshing tooltips & layout.`);
+        if (typeof applyFacilityLayout === 'function') {
+            applyFacilityLayout();
+        }
         document.querySelectorAll('.strip').forEach(strip => {
             if (typeof applyTooltipsToStrip === 'function') {
                 applyTooltipsToStrip(strip, strip.dataset.type);

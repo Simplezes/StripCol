@@ -52,6 +52,8 @@ function applySettings() {
 
     const codeDisplay = document.getElementById('currentLinkCodeDisplay');
     if (codeDisplay) codeDisplay.textContent = currentSettings.linkCode || '-----';
+
+
 }
 
 function updateUIFromSettings() {
@@ -86,6 +88,8 @@ function updateUIFromSettings() {
 
     const serverIpInput = document.getElementById('serverIpInput');
     if (serverIpInput) serverIpInput.value = currentSettings.serverIp;
+
+
 }
 
 function initSettingsEvents() {
@@ -125,6 +129,8 @@ function initSettingsEvents() {
             saveSettings();
         });
     });
+
+
 
     document.getElementById('resetColors').addEventListener('click', () => {
         currentSettings.departureColor = DEFAULT_SETTINGS.departureColor;
