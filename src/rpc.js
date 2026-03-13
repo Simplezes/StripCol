@@ -17,9 +17,22 @@ function initRPC() {
         updatePresence();
     });
 
+    rpc.on('disconnected', () => {
+        console.log('[RPC] Discord RPC disconnected');
+        rpc = null;
+    });
+
+    rpc.on('error', (err) => {
+        console.error('[RPC] Error:', err.message);
+        rpc = null;
+    });
+
     rpc.login({ clientId }).catch(err => {
         console.error('[RPC] Failed to connect to Discord:', err.message);
         rpc = null;
+    }).then(() => {
+        // Double check if we were destroyed during login
+        if (rpc && !rpc.transport) rpc = null;
     });
 }
 
@@ -57,10 +70,15 @@ function updatePresence(data = {}) {
 
 function clearRPC() {
     if (rpc) {
-        rpc.clearActivity();
-        rpc.destroy();
+        try {
+            rpc.clearActivity().catch(() => {});
+            rpc.destroy();
+        } catch (err) {
+            console.error('[RPC] Error during cleanup:', err.message);
+        }
         rpc = null;
         startTimestamp = null;
+        lastUpdateData = null;
     }
 }
 
