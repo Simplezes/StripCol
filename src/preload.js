@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
     startUpdate: () => ipcRenderer.invoke('start-update'),
     openExternal: (url) => ipcRenderer.send('open-external', url),
+    listUserThemes: () => ipcRenderer.invoke('list-user-themes'),
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, info) => callback(info)),
     onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', (event, info) => callback(info)),
     onUpdateError: (callback) => ipcRenderer.on('update-error', (event, message) => callback(message)),

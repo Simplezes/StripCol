@@ -47,11 +47,11 @@ body {
    font-weight: 800;
    font-size: 1.5rem;
    margin-bottom: 1rem;
-   color: var(--text-primary);
+   color: #fff;
 }
 
 .auth-body p {
-   color: var(--text-secondary);
+   color: #ccc;
    margin-bottom: 1rem;
 }
 
@@ -78,7 +78,7 @@ body {
    align-items: center;
    gap: 0.5rem;
    padding: 0 0.75rem;
-   color: var(--text-secondary);
+   color: var(--sys-text-dim);
    font-size: 0.8rem;
    font-weight: 600;
 }
@@ -104,7 +104,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-   background: var(--atm-blue);
+   background: var(--sys-highlight);
 }
 
 ::-webkit-scrollbar-corner {
@@ -112,8 +112,8 @@ body {
 }
 
 ::selection {
-   background: rgba(33, 150, 243, 0.3);
-   color: inherit;
+   background: var(--sys-highlight);
+   color: var(--sys-highlight-text);
 }
 
 input::selection {
@@ -122,8 +122,8 @@ input::selection {
 }
 
 input:focus::selection {
-   background: rgba(33, 150, 243, 0.5);
-   
+   background: var(--sys-highlight);
+   color: var(--sys-highlight-text);
 }
 
 #appWorkstation {

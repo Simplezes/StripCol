@@ -21,7 +21,7 @@ const RADAR_PANELS = [
     { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
 ];
 
-let currentLayoutMode = null; 
+let currentLayoutMode = null;
 
 
 
@@ -84,7 +84,7 @@ function createPanelHeader(panelName) {
                     toggleIcon.textContent = "expand_more";
                 }
 
-                
+
                 const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
                 settings[currentLayoutMode] = isCollapsed;
                 localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
@@ -102,7 +102,7 @@ function createPanelHeader(panelName) {
                 if (panelElement) panelElement.dataset.panelName = newName;
                 panelName = newName;
             } else {
-                this.value = panelName; 
+                this.value = panelName;
             }
         });
     }
@@ -130,7 +130,7 @@ function createPanelElement(panel, cssClass, colIndex) {
         showPanelContextMenu(e, panelElement, stripContainer);
     });
 
-    
+
     const observer = new MutationObserver(() => updatePanelBadge(panelElement));
     observer.observe(stripContainer, { childList: true, subtree: false });
 
@@ -147,11 +147,11 @@ window.expandHandover = function () {
         const colIndex = colElement.dataset.col;
         mainLayout.style.setProperty(`--h${colIndex}`, '65%');
 
-        
+
         const icon = handoverPanel.querySelector('.handover-toggle-icon');
         if (icon) icon.textContent = "expand_more";
 
-        
+
         const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
         settings[currentLayoutMode] = false;
         localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
@@ -164,12 +164,12 @@ window.collapseHandoverIfEmpty = function (expectedCount = 0) {
     const handoverPanel = document.querySelector('.panel-handover');
     if (!handoverPanel) return;
 
-    
+
     setTimeout(() => {
         const stripContainer = handoverPanel.querySelector('.strip-container');
         if (!stripContainer) return;
 
-        
+
         const remainingTransfers = stripContainer.querySelectorAll('.transfer-request').length;
 
         if (remainingTransfers <= expectedCount) {
@@ -179,11 +179,11 @@ window.collapseHandoverIfEmpty = function (expectedCount = 0) {
                 const colIndex = colElement.dataset.col;
                 mainLayout.style.setProperty(`--h${colIndex}`, '95%');
 
-                
+
                 const icon = handoverPanel.querySelector('.handover-toggle-icon');
                 if (icon) icon.textContent = "expand_less";
 
-                
+
                 const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
                 settings[currentLayoutMode] = true;
                 localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
@@ -457,12 +457,12 @@ window.applyFacilityLayout = function () {
     const isRadar = window.controllerMode === "approach" || window.controllerMode === "center";
     const targetLayout = isRadar ? "radar" : "tower";
 
-    
+
     if (currentLayoutMode === targetLayout && mainLayout.children.length > 0) return;
 
     currentLayoutMode = targetLayout;
 
-    
+
     mainLayout.dataset.layout = targetLayout;
     mainLayout.innerHTML = `
         <div class="panel-col" data-col="1"></div>
@@ -470,20 +470,20 @@ window.applyFacilityLayout = function () {
         <div class="panel-col" data-col="3"></div>
     `;
 
-    
+
     const settings = JSON.parse(localStorage.getItem('layoutGridHeights') || '{}');
     if (settings[targetLayout]) {
         if (settings[targetLayout].h1 !== undefined) mainLayout.style.setProperty('--h1', `${settings[targetLayout].h1}%`);
         if (settings[targetLayout].h2 !== undefined) mainLayout.style.setProperty('--h2', `${settings[targetLayout].h2}%`);
         if (settings[targetLayout].h3 !== undefined) mainLayout.style.setProperty('--h3', `${settings[targetLayout].h3}%`);
-        
+
         if (settings[targetLayout].c1 !== undefined) {
             mainLayout.style.setProperty('--c1', `${settings[targetLayout].c1}fr`);
             mainLayout.style.setProperty('--c2', `${settings[targetLayout].c2}fr`);
             mainLayout.style.setProperty('--c3', `${settings[targetLayout].c3}fr`);
         }
     } else {
-        
+
         if (isRadar) {
             mainLayout.style.setProperty('--h1', '100%');
             mainLayout.style.setProperty('--h2', '100%');
@@ -501,11 +501,11 @@ window.applyFacilityLayout = function () {
     const TARGET_DEF = isRadar ? RADAR_PANELS : TOWER_PANELS;
     const targetNames = new Set(TARGET_DEF.map(d => d.defaultName));
 
-    
+
     const savedPanels = loadPanels();
     const saveNames = new Set(savedPanels.map(p => p.name));
 
-    
+
     const hasMatchingLayout = [...targetNames].some(tn => saveNames.has(tn));
     if (!hasMatchingLayout || savedPanels.length !== 6) {
         console.info(`[panels] Switching layout to ${targetLayout}. Wiping old layout data.`);
@@ -513,12 +513,12 @@ window.applyFacilityLayout = function () {
         stateManager.panels = [];
     }
 
-    
+
     TARGET_DEF.forEach(def => {
         const saved = loadPanels().find(p => p.name === def.defaultName);
         let panelName = (saved && saved.name) ? saved.name : def.defaultName;
 
-        
+
         if (def.key === "handover") panelName = "Handover";
 
         if (!stateManager.getPanel(panelName)) {
@@ -528,7 +528,7 @@ window.applyFacilityLayout = function () {
         createPanelElement({ name: panelName }, def.cssClass, def.col);
     });
 
-    
+
     const collSettings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
     if (collSettings[targetLayout] !== false) {
         document.querySelectorAll(".panel-col").forEach(col => {
@@ -547,12 +547,12 @@ window.applyFacilityLayout = function () {
         });
     }
 
-    renderStrips(); 
+    renderStrips();
 
-    
+
     setTimeout(addResizeHandles, 0);
 
-    
+
     setTimeout(setupAdaptiveWidths, 0);
 };
 
@@ -562,10 +562,10 @@ function setupAdaptiveWidths() {
             const width = entry.contentRect.width;
             let mode = "full";
 
-            
-            if (width < 220) mode = "compact-1";      
-            else if (width < 320) mode = "compact-2"; 
-            else if (width < 450) mode = "compact-3"; 
+
+            if (width < 220) mode = "compact-1";
+            else if (width < 320) mode = "compact-2";
+            else if (width < 450) mode = "compact-3";
 
             if (entry.target.dataset.widthMode !== mode) {
                 entry.target.dataset.widthMode = mode;
@@ -581,15 +581,15 @@ function setupAdaptiveWidths() {
 function addResizeHandles() {
     document.querySelectorAll(".resize-handle, .resize-handle-v").forEach(h => h.remove());
 
-    
+
     [1, 2, 3].forEach(colIndex => {
-        
-        
+
+
         if (currentLayoutMode === 'radar') {
-            if (colIndex === 1 || colIndex === 2) return; 
-            if (colIndex === 3) return; 
+            if (colIndex === 1 || colIndex === 2) return;
+            if (colIndex === 3) return;
         } else if (currentLayoutMode === 'tower') {
-            if (colIndex === 3) return; 
+            if (colIndex === 3) return;
         }
 
         const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
@@ -659,7 +659,7 @@ function addResizeHandles() {
         });
     });
 
-    
+
     [2, 3].forEach(colIndex => {
         const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
         if (!colDiv) return;
@@ -735,13 +735,13 @@ function addResizeHandles() {
             const curC3 = parseFloat(mainLayout.style.getPropertyValue('--c3')) || defaults.c3;
 
             if (colIndex === 2) {
-                
+
                 const combined = curC1 + curC2;
                 mainLayout.style.setProperty('--c1', `${defaults.c1}fr`);
                 mainLayout.style.setProperty('--c2', `${combined - defaults.c1}fr`);
             } else if (colIndex === 3) {
-                
-                
+
+
                 const total = curC1 + curC2 + curC3;
                 mainLayout.style.setProperty('--c2', `${70 - curC1}fr`);
                 mainLayout.style.setProperty('--c3', `${total - 70}fr`);

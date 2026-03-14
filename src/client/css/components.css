@@ -2,11 +2,11 @@
    position: absolute;
    min-width: 200px;
    max-width: 320px;
-   background: #0f1113;
+   background: var(--sys-bg-2);
    color: var(--sys-text);
-   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-   border: 1px solid #232a31;
-   border-radius: 6px;
+   box-shadow: var(--shadow-technical);
+   border: 1px solid var(--sys-border);
+   border-radius: var(--radius-ui);
    padding: 2px;
    z-index: 10000;
    max-height: 70vh;
@@ -51,17 +51,17 @@
 }
 
 .menu-item:hover {
-   background: var(--atm-blue);
-   color: #fff;
+   background: var(--sys-highlight);
+   color: var(--sys-highlight-text);
 }
 
 .menu-item .material-icons {
    font-size: 1rem;
-   color: var(--atm-blue);
+   color: var(--sys-highlight);
 }
 
 .menu-item:hover .material-icons {
-   color: #fff;
+   color: var(--sys-highlight-text);
 }
 
 .menu-search-container {
@@ -83,7 +83,7 @@
 }
 
 .menu-search-input:focus {
-   border-color: var(--atm-blue);
+   border-color: var(--sys-highlight);
    background: var(--sys-bg-3);
 }
 
@@ -94,7 +94,7 @@
    font-size: 0.7rem;
    font-weight: 700;
    text-transform: uppercase;
-   color: var(--atm-amber);
+   color: var(--sys-highlight);
    display: flex;
    align-items: center;
    gap: 6px;
@@ -168,9 +168,17 @@
 .type-option:hover,
 .atc-btn:hover,
 .runway-btn:hover {
-   background: rgba(33, 150, 243, 0.1);
-   border-color: rgba(33, 150, 243, 0.3);
-   color: #fff;
+   background: var(--sys-highlight);
+   border-color: var(--sys-highlight);
+   color: var(--sys-highlight-text);
+}
+
+.atc-btn:hover .atc-callsign,
+.atc-btn:hover .atc-frequency,
+.atc-btn:hover .atc-icon,
+.procedure-btn:hover .procedure-name,
+.procedure-btn:hover .procedure-count {
+   color: var(--sys-highlight-text) !important;
 }
 
 .procedure-btn.base-procedure {
@@ -192,17 +200,17 @@
 }
 
 .procedure-name {
-    font-weight: 600;
-    flex: 1;
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+   font-weight: 600;
+   flex: 1;
+   text-align: left;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
 }
 
 .runway-btn span:first-child {
-    flex: 1;
-    text-align: left;
+   flex: 1;
+   text-align: left;
 }
 
 .transition-count,
@@ -253,7 +261,7 @@
 .atc-callsign {
    flex: 1;
    font-weight: 700;
-   color: #fff;
+   color: var(--sys-text);
 }
 
 .atc-frequency {

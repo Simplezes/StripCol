@@ -1,51 +1,62 @@
 :root {
-   
-   --sys-bg-0: #050607;
-   
-   --sys-bg-1: #0a0c0e;
-   
-   --sys-bg-2: #14181c;
-   
-   --sys-bg-3: #1c2229;
-   
-   --sys-bg-4: #2d3641;
-   
 
-   --sys-border: #232a31;
-   
-   --sys-border-active: #3498db;
+    --sys-bg-0: #050607;
 
-   --sys-text: #e0e6ed;
-   --sys-text-dim: #7f8c8d;
-   --sys-text-header: #95a5a6;
+    --sys-bg-1: #0a0c0e;
 
-   --atm-green: #00e676;
+    --sys-bg-2: #14181c;
 
-   --atm-amber: #ffab00;
-   
-   --atm-red: #ff3d00;
-   
-   --atm-blue: #2196f3;
-   
-   --atm-steel: #455a64;
-   
+    --sys-bg-3: #1c2229;
 
-   --font-ui: 'Inter', system-ui, sans-serif;
-   --font-data: 'JetBrains Mono', monospace;
-   --font-strip: 'Inconsolata', monospace;
+    --sys-bg-4: #2d3641;
 
-   --radius-pane: 0px;
-   
-   --radius-ui: 4px;
-   --shadow-technical: 0 0 15px rgba(0, 0, 0, 0.6);
 
-   
-   --custom-departure-color: #6ee7b7;
-   --custom-arrival-color: #f87171;
-   --custom-overfly-color: #fde68a;
+    --sys-border: #232a31;
 
-   --strip-departure: var(--custom-departure-color);
-   --strip-arrival: var(--custom-arrival-color);
-   --strip-overfly: var(--custom-overfly-color);
+    --sys-border-active: #3498db;
 
+    --sys-text: #e0e6ed;
+    --sys-text-dim: #7f8c8d;
+    --sys-text-header: #95a5a6;
+
+    --sys-highlight: #3498db;
+    --sys-highlight-text: #ffffff;
+
+    --atm-green: #00e676;
+
+    --atm-amber: #ffab00;
+
+    --atm-red: #ff3d00;
+
+    --atm-blue: #2196f3;
+
+    --atm-steel: #455a64;
+
+
+    --font-ui: 'Inter', system-ui, sans-serif;
+    --font-data: 'JetBrains Mono', monospace;
+    --font-strip: 'Inconsolata', monospace;
+
+    --radius-pane: 0px;
+
+    --radius-ui: 4px;
+    --shadow-technical: 0 0 15px rgba(0, 0, 0, 0.6);
+
+
+    --custom-departure-color: #6ee7b7;
+    --custom-arrival-color: #f87171;
+    --custom-overfly-color: #fde68a;
+
+    --strip-departure: var(--custom-departure-color);
+    --strip-arrival: var(--custom-arrival-color);
+    --strip-overfly: var(--custom-overfly-color);
+
+    --strip-bg: #ffffff;
+    --strip-text: #000000;
+    --strip-focus-bg: rgba(33, 150, 243, 0.2);
+}
+
+body.theme-dark-strips {
+    --strip-bg: #000000;
+    --strip-text: #ffffff;
 }

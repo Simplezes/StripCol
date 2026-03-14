@@ -11,18 +11,23 @@ const DEFAULT_SETTINGS = {
     overflyColor: '#fde68a',
     linkCode: '',
     serverIp: '127.0.0.1',
-    discordRpcEnabled: true
+    discordRpcEnabled: true,
+    theme: 'dark',
+    darkStrips: false,
+    autohideHeader: false
 };
 
-
-
 let currentSettings = { ...DEFAULT_SETTINGS };
+
+function getSettings() {
+    const settings = localStorage.getItem(SETTINGS_KEY);
+    return settings ? JSON.parse(settings) : null;
+}
 
 function loadSettings() {
     const settings = getSettings();
     if (settings) {
         currentSettings = { ...DEFAULT_SETTINGS, ...settings };
-
     }
     applySettings();
     updateUIFromSettings();
@@ -51,6 +56,59 @@ function applySettings() {
     const codeDisplay = document.getElementById('currentLinkCodeDisplay');
     if (codeDisplay) codeDisplay.textContent = currentSettings.linkCode || '-----';
 
+
+    const themeClasses = ['theme-light', 'theme-dark-strips', 'theme-classic', 'theme-radar', 'theme-autohide-header'];
+
+
+    const existingCustom = document.getElementById('custom-theme-link');
+    if (currentSettings.theme.endsWith('.css')) {
+        const targetHref = `./css/styles/${currentSettings.theme}`;
+        if (!existingCustom || existingCustom.getAttribute('href') !== targetHref) {
+            if (existingCustom) existingCustom.remove();
+            const link = document.createElement('link');
+            link.id = 'custom-theme-link';
+            link.rel = 'stylesheet';
+            link.href = targetHref;
+            document.head.appendChild(link);
+
+
+            themeClasses.forEach(c => {
+                if (c !== 'theme-autohide-header') document.body.classList.remove(c);
+            });
+            const themeClass = currentSettings.theme.replace('.css', '');
+            document.body.classList.add(`theme-${themeClass}`);
+        }
+    } else {
+        if (existingCustom) existingCustom.remove();
+
+
+        const currentThemeClass = `theme-${currentSettings.theme}`;
+        if (currentSettings.theme !== 'dark' && !document.body.classList.contains(currentThemeClass)) {
+            themeClasses.forEach(c => {
+                if (c !== 'theme-autohide-header') document.body.classList.remove(c);
+            });
+            if (currentSettings.theme !== 'dark') {
+                document.body.classList.add(currentThemeClass);
+            }
+        } else if (currentSettings.theme === 'dark') {
+             themeClasses.forEach(c => {
+                 if (c !== 'theme-dark-strips' && c !== 'theme-autohide-header') document.body.classList.remove(c);
+             });
+        }
+    }
+
+
+    if (currentSettings.darkStrips) {
+        document.body.classList.add('theme-dark-strips');
+    } else {
+        document.body.classList.remove('theme-dark-strips');
+    }
+
+    if (currentSettings.autohideHeader) {
+        document.body.classList.add('theme-autohide-header');
+    } else {
+        document.body.classList.remove('theme-autohide-header');
+    }
 }
 
 function updateUIFromSettings() {
@@ -58,7 +116,9 @@ function updateUIFromSettings() {
         'audioToggle': currentSettings.audioEnabled,
         'cleanupToggle': currentSettings.cleanupEnabled,
         'showSecondsToggle': currentSettings.showSeconds,
-        'discordRpcToggle': currentSettings.discordRpcEnabled
+        'discordRpcToggle': currentSettings.discordRpcEnabled,
+        'darkStripsToggle': currentSettings.darkStrips,
+        'autohideHeaderToggle': currentSettings.autohideHeader
     };
 
     for (const [id, val] of Object.entries(toggles)) {
@@ -86,6 +146,32 @@ function updateUIFromSettings() {
     const serverIpInput = document.getElementById('serverIpInput');
     if (serverIpInput) serverIpInput.value = currentSettings.serverIp;
 
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+
+        const staticOptionsCount = 1;
+        while (themeSelect.options.length > staticOptionsCount) {
+            themeSelect.remove(staticOptionsCount);
+        }
+
+        if (window.electronAPI && window.electronAPI.listUserThemes) {
+            console.log("Requesting themes from main process...");
+            window.electronAPI.listUserThemes().then(themes => {
+                console.log("Themes received:", themes);
+                themes.forEach(theme => {
+                    const themeName = theme.replace('.css', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const option = new Option(themeName, theme);
+                    themeSelect.add(option);
+                });
+                themeSelect.value = currentSettings.theme;
+            }).catch(err => {
+                console.error("Error loading themes:", err);
+            });
+        } else {
+            console.warn("electronAPI.listUserThemes not available");
+            themeSelect.value = currentSettings.theme;
+        }
+    }
 }
 
 function initSettingsEvents() {
@@ -100,11 +186,12 @@ function initSettingsEvents() {
         });
     });
 
-    // Clear update dot when opening settings
+
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
             settingsBtn.classList.remove('has-update');
+            updateUIFromSettings();
         });
     }
 
@@ -112,14 +199,19 @@ function initSettingsEvents() {
         'audioToggle': 'audioEnabled',
         'cleanupToggle': 'cleanupEnabled',
         'showSecondsToggle': 'showSeconds',
-        'discordRpcToggle': 'discordRpcEnabled'
+        'discordRpcToggle': 'discordRpcEnabled',
+        'darkStripsToggle': 'darkStrips',
+        'autohideHeaderToggle': 'autohideHeader'
     };
 
     for (const [id, key] of Object.entries(toggleBindings)) {
-        document.getElementById(id).addEventListener('change', (e) => {
-            currentSettings[key] = e.target.checked;
-            saveSettings();
-        });
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', (e) => {
+                currentSettings[key] = e.target.checked;
+                saveSettings();
+            });
+        }
     }
 
     document.getElementById('cleanupMinutes').addEventListener('change', (e) => {
@@ -128,19 +220,33 @@ function initSettingsEvents() {
     });
 
     ['departureColor', 'arrivalColor', 'overflyColor'].forEach(id => {
-        document.getElementById(id).addEventListener('input', (e) => {
-            currentSettings[id] = e.target.value;
-            saveSettings();
-        });
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', (e) => {
+                currentSettings[id] = e.target.value;
+                saveSettings();
+            });
+        }
     });
 
-    document.getElementById('resetColors').addEventListener('click', () => {
-        currentSettings.departureColor = DEFAULT_SETTINGS.departureColor;
-        currentSettings.arrivalColor = DEFAULT_SETTINGS.arrivalColor;
-        currentSettings.overflyColor = DEFAULT_SETTINGS.overflyColor;
-        updateUIFromSettings();
-        saveSettings();
-    });
+    const resetColors = document.getElementById('resetColors');
+    if (resetColors) {
+        resetColors.addEventListener('click', () => {
+            currentSettings.departureColor = DEFAULT_SETTINGS.departureColor;
+            currentSettings.arrivalColor = DEFAULT_SETTINGS.arrivalColor;
+            currentSettings.overflyColor = DEFAULT_SETTINGS.overflyColor;
+            updateUIFromSettings();
+            saveSettings();
+        });
+    }
+
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+        themeSelect.addEventListener('change', (e) => {
+            currentSettings.theme = e.target.value;
+            saveSettings();
+        });
+    }
 
     initPairingLogic();
 
@@ -239,7 +345,7 @@ function initUpdateCheck() {
 
 
     window.electronAPI.onUpdateAvailable((info) => {
-        // Show notification dot on settings button
+
         const settingsBtn = document.getElementById('settingsBtn');
         if (settingsBtn) settingsBtn.classList.add('has-update');
 
@@ -282,9 +388,12 @@ function initUpdateCheck() {
                 </button>
             </div>
         `;
-        document.getElementById('installUpdateBtn').addEventListener('click', () => {
-            window.electronAPI.startUpdate();
-        });
+        const installUpdateBtn = document.getElementById('installUpdateBtn');
+        if (installUpdateBtn) {
+            installUpdateBtn.addEventListener('click', () => {
+                window.electronAPI.startUpdate();
+            });
+        }
     });
 
     checkBtn.addEventListener('click', async () => {
@@ -308,8 +417,6 @@ async function autoCheckForUpdates() {
     if (!window.electronAPI || !window.electronAPI.checkForUpdates) return;
 
     try {
-        // Just trigger the check. The listeners in initUpdateCheck will handle the 'update-available' event
-        // and show the notification dot.
         await window.electronAPI.checkForUpdates();
     } catch (e) {
         console.error("Auto update check failed", e);
@@ -344,8 +451,11 @@ function initPairingLogic() {
                 if (window.reconnectSSE) window.reconnectSSE();
 
                 setTimeout(() => {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('settingsModal'));
-                    if (modal) modal.hide();
+                    const modalEl = document.getElementById('settingsModal');
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
                 }, 1000);
             } else {
                 pairingStatus.innerHTML = `<span class="text-danger">${result.message}</span>`;
@@ -418,65 +528,63 @@ window.playNotification = function () {
 }
 
 function cleanupStrips() {
-    if (!currentSettings.cleanupEnabled) return;
+    if (!currentSettings.cleanupEnabled || !window.stateManager) return;
 
-    const panels = JSON.parse(localStorage.getItem("panels")) || [];
+    const panels = window.stateManager.getPanels();
     const now = Date.now();
     const threshold = currentSettings.cleanupMinutes * 60 * 1000;
     let modified = false;
 
     panels.forEach(panel => {
         if (!panel.strips) return;
-        const initialCount = panel.strips.length;
-        panel.strips = panel.strips.filter(strip => {
+        const toRemove = panel.strips.filter(strip => {
             const age = now - (strip.lastUpdate || now);
-            const isOld = age > threshold;
-            if (isOld) {
-                const el = document.querySelector(`.strip[data-strip-id="${strip.id}"]`);
-                if (el) el.remove();
-                modified = true;
-            }
-            return !isOld;
+            return age > threshold;
+        });
+
+        toRemove.forEach(strip => {
+            const el = document.querySelector(`.strip[data-strip-id="${strip.id}"]`);
+            if (el) el.remove();
+            window.stateManager.removeStrip(strip.id);
+            modified = true;
         });
     });
 
     if (modified) {
-        localStorage.setItem("panels", JSON.stringify(panels));
         console.log("Auto-cleanup performed.");
     }
 }
 
-document.getElementById('restartServerBtn').addEventListener('click', () => {
-    const ip = document.getElementById('serverIpInput').value.trim() || '127.0.0.1';
+const restartServerBtn = document.getElementById('restartServerBtn');
+if (restartServerBtn) {
+    restartServerBtn.addEventListener('click', () => {
+        const ip = document.getElementById('serverIpInput').value.trim() || '127.0.0.1';
 
+        currentSettings.serverIp = ip;
+        saveSettings();
 
-    currentSettings.serverIp = ip;
-    saveSettings();
-
-
-    if (typeof updateGatewayUrl === 'function') {
-        updateGatewayUrl();
-    }
-
-    if (window.electronAPI && window.electronAPI.restartServer) {
-        window.electronAPI.restartServer(ip);
-
-
-        if (typeof showToast === 'function') {
-            showToast("Server IP updated. Restarting...", "success");
+        if (typeof updateGatewayUrl === 'function') {
+            updateGatewayUrl();
         }
 
+        if (window.electronAPI && window.electronAPI.restartServer) {
+            window.electronAPI.restartServer(ip);
 
-        setTimeout(() => {
-            window.location.reload();
-        }, 1500);
-    } else {
-        console.error("restartServer bridge not available");
-        if (typeof showToast === 'function') {
-            showToast("Failed to restart server.", "error");
+            if (typeof showToast === 'function') {
+                showToast("Server IP updated. Restarting...", "success");
+            }
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            console.error("restartServer bridge not available");
+            if (typeof showToast === 'function') {
+                showToast("Failed to restart server.", "error");
+            }
         }
-    }
-});
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();

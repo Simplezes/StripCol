@@ -57,7 +57,6 @@ function checkServerRunning(port, host) {
 async function startServer(ip) {
     const newIp = ip || '127.0.0.1';
 
-    // If we're already the host, don't restart unless IP changed
     if (isServerHost && serverProcess && newIp === currentServerIp) return;
 
     currentServerIp = newIp;
@@ -122,7 +121,6 @@ function createWindow() {
 
     win.loadFile(path.join(__dirname, 'client/index.html'));
 
-    // win.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
@@ -134,8 +132,43 @@ app.whenReady().then(() => {
 
     createWindow();
 
-    // Check for updates on startup
     autoUpdater.checkForUpdatesAndNotify();
+
+    ipcMain.handle('get-version', () => {
+        return require('../package.json').version;
+    });
+
+    ipcMain.handle('list-user-themes', () => {
+        const themesPath = path.join(__dirname, 'client/css/styles');
+        console.log("IPC: Listing themes from:", themesPath);
+        try {
+            if (!fs.existsSync(themesPath)) {
+                console.log("IPC: Themes path does not exist");
+                return [];
+            }
+            const files = fs.readdirSync(themesPath).filter(file => file.endsWith('.css'));
+            console.log("IPC: Found theme files:", files);
+            return files;
+        } catch (e) {
+            console.error("IPC: Failed to list user themes:", e);
+            return [];
+        }
+    });
+
+    ipcMain.handle('check-for-updates', async () => {
+        try {
+            const result = await autoUpdater.checkForUpdates();
+            return { success: true, result };
+        } catch (error) {
+            console.error('Manual update check failed:', error);
+            return { error: error.message };
+        }
+    });
+
+    ipcMain.handle('start-update', () => {
+        autoUpdater.quitAndInstall();
+        return { success: true };
+    });
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -144,26 +177,11 @@ app.whenReady().then(() => {
     });
 });
 
-ipcMain.handle('get-version', () => {
-    return require('../package.json').version;
-});
-
-ipcMain.on('restart-server', (event, ip) => {
-    console.log(`Forced server restart/refresh requested with IP: ${ip}`);
-    currentServerIp = ip;
-    storedSettings.serverIp = ip;
-    saveStoredSettings(storedSettings);
-    startServer(ip);
-});
-
 ipcMain.on('save-settings', (event, settings) => {
     if (settings) {
         const rpcChanged = settings.discordRpcEnabled !== storedSettings.discordRpcEnabled;
-
-        // Update stored settings object
         storedSettings = { ...storedSettings, ...settings };
         saveStoredSettings(storedSettings);
-
         if (rpcChanged) {
             if (storedSettings.discordRpcEnabled) {
                 rpc.initRPC();
@@ -216,19 +234,12 @@ autoUpdater.on('update-downloaded', (info) => {
     });
 });
 
-ipcMain.handle('check-for-updates', async () => {
-    try {
-        const result = await autoUpdater.checkForUpdates();
-        return { success: true, result };
-    } catch (error) {
-        console.error('Manual update check failed:', error);
-        return { error: error.message };
-    }
-});
-
-ipcMain.handle('start-update', () => {
-    autoUpdater.quitAndInstall();
-    return { success: true };
+ipcMain.on('restart-server', (event, ip) => {
+    console.log(`Forced server restart/refresh requested with IP: ${ip}`);
+    currentServerIp = ip;
+    storedSettings.serverIp = ip;
+    saveStoredSettings(storedSettings);
+    startServer(ip);
 });
 
 ipcMain.on('open-external', (event, url) => {

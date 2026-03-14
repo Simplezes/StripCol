@@ -39,7 +39,6 @@ app.get(['/', '/api'], (req, res) => {
   });
 });
 
-// Logging System
 const logs = [];
 const MAX_LOGS = 1000;
 
@@ -90,7 +89,6 @@ wss.on('connection', (ws, req) => {
       if (msg.type === 'register' && msg.code) {
         const code = msg.code.toUpperCase();
         if (currentCode && currentCode !== code) {
-          // Clean up old session
           const oldSession = sessions.get(currentCode);
           if (oldSession && oldSession.ws === ws) {
             oldSession.ws = null;
@@ -207,7 +205,6 @@ function sendRPCUpdate(code) {
   if (session.rpcManualState) {
     state = session.rpcManualState;
   } else {
-    // localIcao detection: handle 4-letter prefixes (SKBO_TWR) or 3-letter (BAQ_TWR)
     let localIcao = "";
     const icaoMatch = callsign.match(/^([A-Z]{3,4})/);
     if (icaoMatch) localIcao = icaoMatch[1].toUpperCase();
@@ -252,7 +249,6 @@ function broadcastToSession(code, message) {
   if (!session || !session.clients) return;
 
   const type = message.type;
-  // Unwrap data if it was wrapped by plugin
   const data = message.data || message;
 
   const sseData = `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
@@ -268,9 +264,6 @@ function broadcastToSession(code, message) {
 
 
 
-// API Endpoints
-
-// Endpoint to check pairing
 app.get('/api/pair/:code', (req, res) => {
   const code = req.params.code?.toUpperCase();
   const session = sessions.get(code);
@@ -299,14 +292,11 @@ app.get('/api/events', (req, res) => {
   }
 
   const session = sessions.get(code);
-  // Track SSE client
   session.clients.add(res);
 
-  // Send initial status (always allowed)
   const status = session.ws ? 'plugin_connected' : 'plugin_disconnected';
   res.write(`event: gateway_status\ndata: ${JSON.stringify({ status, code, controller: session.controller })}\n\n`);
 
-  // Trigger sync if plugin is connected and not synced recently (5s cooldown)
   const now = Date.now();
   if (session.ws && session.ws.readyState === WebSocket.OPEN) {
     if (now - (session.lastSyncTime || 0) > 5000) {
@@ -321,7 +311,6 @@ app.get('/api/events', (req, res) => {
   });
 });
 
-// Getter for assumed aircraft
 app.get('/api/assumed', (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).json({ error: "Missing code" });
@@ -331,7 +320,6 @@ app.get('/api/assumed', (req, res) => {
   res.json(Array.from(session.aircraft.values()));
 });
 
-// Getter for ATC list
 app.get('/api/ATC-list', (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).json({ error: "Missing code" });
@@ -522,7 +510,6 @@ app.post('/api/:action', (req, res) => {
   }
 });
 
-// Special case for GET point-time since it's used in strips.js
 app.get('/api/point-time', (req, res) => {
   const { code, callsign, points } = req.query;
   if (!code) return res.status(400).send('Missing Link Code');
@@ -530,14 +517,10 @@ app.get('/api/point-time', (req, res) => {
   const session = sessions.get(code.toUpperCase());
   if (!session) return res.json([]);
 
-  // Check if we have aircraft data for this callsign
   const ac = session.aircraft.get(callsign);
   if (ac) {
-    // Return ETAs from the cached aircraft data
-    // Filter by point name if provided (case-insensitive)
     const pts = points ? points.split(',').map(p => p.toUpperCase()) : [];
 
-    // Search both arrival and departure points
     const allPoints = [
       ...(ac.arrivalPoints || []),
       ...(ac.departurePoints || [])

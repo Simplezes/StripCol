@@ -23,7 +23,7 @@
 .card-header input[type="text"] {
    background: transparent !important;
    border: none !important;
-   color: var(--atm-blue) !important;
+   color: var(--atm-blue);
    font-family: var(--font-data) !important;
    font-size: 0.8rem !important;
    font-weight: 800 !important;

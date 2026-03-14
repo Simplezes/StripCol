@@ -1,0 +1,52 @@
+
+:root {
+    --sys-bg-0: #1a1a1a;
+    --sys-bg-1: #252525;
+    --sys-bg-2: #333333;
+    --sys-bg-3: #444444;
+    --sys-bg-4: #555555;
+
+    --sys-border: #444;
+    --sys-text: #eee;
+    --sys-text-dim: #999;
+    --sys-text-header: #fff;
+
+    --custom-departure-color: #b3e5fc;
+    
+    --custom-arrival-color: #fff9c4;
+    
+    --custom-overfly-color: #f3f3f3;
+    
+
+    --strip-bg: #fff;
+    --strip-text: #1a1a1a;
+
+    --font-ui: 'Inter', sans-serif;
+    --radius-ui: 4px;
+}
+
+.strip {
+    border-radius: 4px !important;
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.4) !important;
+    margin-bottom: 8px !important;
+    background: #fff !important;
+    color: #1a1a1a !important;
+}
+
+.strip .box {
+    border-color: #0000004b !important;
+    color: #1a1a1a !important;
+}
+
+.strip input {
+    color: #1a1a1a !important;
+    font-weight: 700 !important;
+}
+
+.card-header {
+    background: #252525 !important;
+}
+
+.system-bar {
+    background: #1a1a1a !important;
+}

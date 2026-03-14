@@ -1,0 +1,86 @@
+
+:root {
+    --sys-bg-0: #c0c0c0;
+    --sys-bg-1: #ffffff;
+    --sys-bg-2: #c0c0c0;
+    --sys-bg-3: #808080;
+    --sys-bg-4: #000080;
+    --sys-border: #dfdfdf;
+    --sys-border-active: #000000;
+    --sys-text: #000000;
+    --sys-text-dim: #444444;
+    --sys-text-header: #ffffff;
+    --sys-highlight: #000080;
+    --sys-highlight-text: #ffffff;
+    --atm-amber: #000000;
+    --atm-blue: #0000ff;
+    --atm-green: #008000;
+    --atm-red: #ff0000;
+    --strip-bg: #ffffff;
+    --strip-text: #000000;
+    --strip-focus-bg: rgba(0, 0, 128, 0.1);
+    --font-ui: 'Tahoma', 'Segoe UI', sans-serif;
+    --font-data: 'Courier New', monospace;
+    --radius-ui: 0px;
+    --shadow-technical: none;
+}
+
+.system-bar {
+    background: var(--sys-bg-0);
+    border-bottom: 2px solid #808080;
+}
+
+.card-header {
+    background: #000080 !important;
+    color: #ffffff !important;
+    padding: 2px 4px !important;
+}
+
+.card-header .header-title {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.panel-strip-count:not(:empty):not([data-count="0"]) {
+    color: var(--sys-text-header) !important;
+}
+
+.btn-atm-mini {
+    background: #c0c0c0;
+    border: 2px outset #ffffff;
+    color: #000000;
+    border-radius: 0;
+    font-size: 11px;
+}
+
+.btn-atm-mini:active {
+    border: 2px inset #ffffff;
+}
+
+.strip {
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.strip-context-menu {
+    background: #c0c0c0;
+    border: 2px outset #ffffff;
+}
+
+.menu-item:hover {
+    background: #000080;
+    color: #ffffff;
+}
+
+.modal-content {
+    background: #c0c0c0;
+    border: 2px outset #ffffff;
+    border-radius: 0;
+}
+
+.form-control-dark,
+.form-select {
+    background: #ffffff !important;
+    border: 2px inset #ffffff !important;
+    color: #000000 !important;
+    border-radius: 0;
+}

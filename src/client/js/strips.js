@@ -399,11 +399,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
 
             const deleteOption = createGlobalMenuItem("Delete strip", "delete", () => {
                 if (!fromEuroscope) {
-                    let panels = JSON.parse(localStorage.getItem("panels")) || [];
-                    panels.forEach(panel => {
-                        if (panel.strips) panel.strips = panel.strips.filter(s => s.id !== strip.dataset.stripId);
-                    });
-                    localStorage.setItem("panels", JSON.stringify(panels));
+                    stateManager.removeStrip(strip.dataset.stripId);
                     strip.remove();
                 } else {
                     deleteStripFromPanels(flight.callsign);
@@ -454,11 +450,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
 
             const deleteOption = createGlobalMenuItem("Delete strip", "delete", () => {
                 if (!fromEuroscope) {
-                    let panels = JSON.parse(localStorage.getItem("panels")) || [];
-                    panels.forEach(panel => {
-                        if (panel.strips) panel.strips = panel.strips.filter(s => s.id !== strip.dataset.stripId);
-                    });
-                    localStorage.setItem("panels", JSON.stringify(panels));
+                    stateManager.removeStrip(strip.dataset.stripId);
                     strip.remove();
                 } else {
                     deleteStripFromPanels(flight.callsign);

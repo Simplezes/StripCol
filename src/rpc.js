@@ -5,7 +5,7 @@ let rpc = null;
 let startTimestamp = null;
 let lastUpdateData = null;
 let lastUpdateTime = 0;
-const THROTTLE_INTERVAL = 15000; // 15 seconds
+const THROTTLE_INTERVAL = 15000; 
 
 function initRPC() {
     if (rpc) return;
@@ -31,7 +31,7 @@ function initRPC() {
         console.error('[RPC] Failed to connect to Discord:', err.message);
         rpc = null;
     }).then(() => {
-        // Double check if we were destroyed during login
+        
         if (rpc && !rpc.transport) rpc = null;
     });
 }
