@@ -170,6 +170,24 @@
 .btn-atm-mini .material-icons {
    font-size: 1rem;
 }
+ 
+.btn-atm-mini.has-update {
+    position: relative;
+}
+ 
+.btn-atm-mini.has-update::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: var(--atm-red);
+    border: 2px solid var(--sys-bg-0);
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 0 5px rgba(255, 61, 0, 0.4);
+}
 
 .main-layout {
    flex: 1;

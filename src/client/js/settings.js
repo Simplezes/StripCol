@@ -31,9 +31,9 @@ function loadSettings() {
 function saveSettings() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(currentSettings));
     if (window.electronAPI && window.electronAPI.saveSettings) {
-        window.electronAPI.saveSettings({ 
+        window.electronAPI.saveSettings({
             serverIp: currentSettings.serverIp,
-            discordRpcEnabled: currentSettings.discordRpcEnabled 
+            discordRpcEnabled: currentSettings.discordRpcEnabled
         });
     }
     applySettings();
@@ -100,6 +100,14 @@ function initSettingsEvents() {
         });
     });
 
+    // Clear update dot when opening settings
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            settingsBtn.classList.remove('has-update');
+        });
+    }
+
     const toggleBindings = {
         'audioToggle': 'audioEnabled',
         'cleanupToggle': 'cleanupEnabled',
@@ -140,7 +148,7 @@ function initSettingsEvents() {
     if (linkCodeStatus) {
         linkCodeStatus.addEventListener('dblclick', () => {
             const displayEl = document.getElementById('currentLinkCodeDisplay');
-            if (displayEl.querySelector('input')) return; 
+            if (displayEl.querySelector('input')) return;
 
             const currentCode = displayEl.textContent.trim() === '-----' ? '' : displayEl.textContent.trim();
 
@@ -206,8 +214,8 @@ function renderUpdateResult(result) {
     if (result && result.error) {
         updateStatus.innerHTML = `<span class="text-danger">Failed: ${result.error}</span>`;
     } else {
-        
-        
+
+
         updateStatus.innerHTML = '<span class="text-info">Checking...</span>';
         if (versionDisplay && result && result.currentVersion) versionDisplay.textContent = result.currentVersion;
     }
@@ -229,8 +237,12 @@ function initUpdateCheck() {
 
     if (!checkBtn || !window.electronAPI) return;
 
-    
+
     window.electronAPI.onUpdateAvailable((info) => {
+        // Show notification dot on settings button
+        const settingsBtn = document.getElementById('settingsBtn');
+        if (settingsBtn) settingsBtn.classList.add('has-update');
+
         updateStatus.innerHTML = `
             <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
                 <div class="fw-bold">Update Available: V${info.version}</div>
@@ -293,20 +305,12 @@ function initUpdateCheck() {
 }
 
 async function autoCheckForUpdates() {
+    if (!window.electronAPI || !window.electronAPI.checkForUpdates) return;
+
     try {
-        const result = await window.electronAPI.checkForUpdates();
-        if (result && result.updateAvailable) {
-            
-            const settingsBtn = document.getElementById('settingsBtn');
-            if (settingsBtn) settingsBtn.click();
-
-            
-            const aboutTab = document.querySelector('.settings-tab[data-tab="about"]');
-            if (aboutTab) aboutTab.click();
-
-            
-            renderUpdateResult(result);
-        }
+        // Just trigger the check. The listeners in initUpdateCheck will handle the 'update-available' event
+        // and show the notification dot.
+        await window.electronAPI.checkForUpdates();
     } catch (e) {
         console.error("Auto update check failed", e);
     }
@@ -397,7 +401,7 @@ window.playNotification = function () {
         const gainNode = audioCtx.createGain();
 
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
 
         gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -445,11 +449,11 @@ function cleanupStrips() {
 document.getElementById('restartServerBtn').addEventListener('click', () => {
     const ip = document.getElementById('serverIpInput').value.trim() || '127.0.0.1';
 
-    
+
     currentSettings.serverIp = ip;
     saveSettings();
 
-    
+
     if (typeof updateGatewayUrl === 'function') {
         updateGatewayUrl();
     }
@@ -462,7 +466,7 @@ document.getElementById('restartServerBtn').addEventListener('click', () => {
             showToast("Server IP updated. Restarting...", "success");
         }
 
-        
+
         setTimeout(() => {
             window.location.reload();
         }, 1500);
@@ -479,5 +483,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initSettingsEvents();
     initAppVersion();
     autoCheckForUpdates();
-    setInterval(cleanupStrips, 60000); 
+    setInterval(cleanupStrips, 60000);
 });

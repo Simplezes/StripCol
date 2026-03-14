@@ -134,6 +134,9 @@ app.whenReady().then(() => {
 
     createWindow();
 
+    // Check for updates on startup
+    autoUpdater.checkForUpdatesAndNotify();
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
