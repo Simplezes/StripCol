@@ -1,0 +1,84 @@
+/* --- SEAMLESS PANE DESIGN --- */
+.card {
+   background: var(--sys-bg-1) !important;
+   border: none !important;
+   border-radius: 0 !important;
+   display: flex;
+   flex-direction: column;
+   height: 100%;
+   min-height: 0;
+   transition: background 0.2s ease;
+}
+
+.card-header {
+   background: var(--sys-bg-2) !important;
+   border-bottom: 1px solid var(--sys-border) !important;
+   padding: 4px 12px !important;
+   display: flex;
+   align-items: center;
+   min-height: 28px;
+   flex-shrink: 0;
+   border-radius: 0 !important;
+}
+
+.card-header input[type="text"] {
+   background: transparent !important;
+   border: none !important;
+   color: var(--atm-blue) !important;
+   font-family: var(--font-data) !important;
+   font-size: 0.8rem !important;
+   font-weight: 800 !important;
+   text-transform: uppercase;
+   width: 100%;
+   outline: none;
+}
+
+/* Strip count badge in panel header */
+.panel-strip-count {
+   font-family: var(--font-data);
+   font-size: 0.7rem;
+   font-weight: 800;
+   color: var(--sys-text-dim);
+   background: var(--sys-bg-3);
+   border: 1px solid var(--sys-border);
+   border-radius: 2px;
+   padding: 1px 6px;
+   min-width: 20px;
+   text-align: center;
+   flex-shrink: 0;
+   transition: color 0.2s ease, background 0.2s ease;
+}
+
+.panel-strip-count:not(:empty):not([data-count="0"]) {
+   color: var(--atm-blue);
+   border-color: rgba(33, 150, 243, 0.3);
+   background: rgba(33, 150, 243, 0.08);
+}
+
+.strip-container {
+   background: var(--sys-bg-1);
+   flex: 1;
+   overflow-y: auto;
+   padding: 8px;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 4px;
+}
+
+/* TECHNICAL SCROLLBARS */
+.strip-container::-webkit-scrollbar {
+   width: 4px;
+}
+
+.strip-container::-webkit-scrollbar-track {
+   background: transparent;
+}
+
+.strip-container::-webkit-scrollbar-thumb {
+   background: var(--sys-border);
+}
+
+.strip-container::-webkit-scrollbar-thumb:hover {
+   background: var(--atm-blue);
+}

@@ -1,0 +1,316 @@
+/* --- SYSTEM BAR (TOP) --- */
+.system-bar {
+   background: var(--sys-bg-0);
+   border-bottom: 1px solid var(--sys-border);
+   height: 38px;
+   display: flex;
+   align-items: center;
+   padding: 0 16px;
+   z-index: 1000;
+}
+
+.system-inner {
+   width: 100%;
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+}
+
+.sys-left,
+.sys-right {
+   display: flex;
+   align-items: center;
+   gap: 16px;
+}
+
+/* --- SYSTEM INPUT FIELDS --- */
+.sys-input-minimal {
+   width: 65px;
+   background: rgba(255, 255, 255, 0.05);
+   border: 1px solid var(--sys-border);
+   border-radius: 3px;
+   color: #fff;
+   padding: 2px 6px;
+   font-family: var(--font-data);
+   font-size: 0.75rem;
+   font-weight: 700;
+   text-transform: uppercase;
+   outline: none;
+   transition: all 0.2s ease;
+   text-align: center;
+}
+
+.sys-input-minimal:focus {
+   border-color: var(--atm-blue);
+   background: rgba(33, 150, 243, 0.1);
+   box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+}
+
+.sys-status-group {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+}
+
+.sys-badge {
+   font-family: var(--font-data);
+   font-size: 0.65rem;
+   font-weight: 800;
+   text-transform: uppercase;
+   letter-spacing: 0.5px;
+   color: var(--sys-text-dim);
+   background: rgba(255, 255, 255, 0.05);
+   padding: 2px 8px;
+   border-radius: 3px;
+   border: 1px solid var(--sys-border);
+   line-height: 1;
+}
+
+.sys-badge.success {
+   color: var(--atm-green);
+   background: rgba(0, 230, 118, 0.1);
+   border-color: rgba(0, 230, 118, 0.2);
+}
+
+.sys-badge.warning {
+   color: var(--atm-amber);
+   background: rgba(255, 171, 0, 0.1);
+   border-color: rgba(255, 171, 0, 0.2);
+}
+
+.sys-badge.info {
+   color: var(--atm-blue);
+   background: rgba(33, 150, 243, 0.1);
+   border-color: rgba(33, 150, 243, 0.2);
+}
+
+.sys-divider {
+   width: 1px;
+   height: 16px;
+   background: var(--sys-border);
+}
+
+.sys-search-group {
+   display: flex;
+   align-items: center;
+   background: rgba(255, 255, 255, 0.03);
+   border: 1px solid var(--sys-border);
+   border-radius: 4px;
+   padding: 0 8px;
+   height: 28px;
+   gap: 4px;
+   transition: all 0.2s ease;
+   border-radius: 50px;
+}
+
+.sys-search-group:focus-within {
+   border-color: var(--atm-blue);
+   background: rgba(33, 150, 243, 0.05);
+   box-shadow: 0 0 10px rgba(33, 150, 243, 0.2);
+}
+
+.sys-search-group .material-icons {
+   font-size: 14px;
+   color: var(--sys-text-dim);
+}
+
+.sys-search-group input {
+   background: transparent;
+   border: none;
+   color: var(--sys-text);
+   font-family: var(--font-ui);
+   font-size: 0.75rem;
+   font-weight: 500;
+   width: 150px;
+   outline: none;
+}
+
+.sys-search-group input::placeholder {
+   color: var(--sys-text-dim);
+}
+
+.sys-right {
+   display: flex;
+   align-items: center;
+   gap: 12px;
+}
+
+.sys-actions {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+}
+
+#zuluTime {
+   font-family: var(--font-data);
+   font-size: 0.9rem;
+   font-weight: 700;
+   color: var(--atm-amber);
+   letter-spacing: 1px;
+}
+
+.btn-atm-mini {
+   background: var(--sys-bg-3);
+   border: 1px solid var(--sys-border);
+   color: var(--sys-text);
+   padding: 2px 6px;
+   font-size: 0.7rem;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   cursor: pointer;
+   transition: all 0.15s ease;
+   border-radius: 2px;
+}
+
+.btn-atm-mini:hover {
+   background: var(--sys-bg-4);
+   border-color: var(--atm-blue);
+   color: var(--atm-blue);
+}
+
+.btn-atm-mini .material-icons {
+   font-size: 1rem;
+}
+
+/* --- MAIN WORKSPACE: FIXED ATC GRID --- */
+.main-layout {
+   flex: 1;
+   display: grid;
+   /* Only Columns defined globally! */
+   grid-template-columns: var(--c1, 1fr) var(--c2, 1fr) var(--c3, 1fr);
+   gap: 2px;
+   background: var(--sys-border);
+   padding: 2px;
+   overflow: hidden;
+}
+
+/* --- TOWER DEFAULTS --- */
+.main-layout[data-layout="tower"] {
+   --c1: 35fr;
+   --c2: 35fr;
+   --c3: 30fr;
+   --h1: 70%;
+   --h2: 50%;
+   --h3: 60%;
+}
+
+/* --- RADAR DEFAULTS --- */
+.main-layout[data-layout="radar"] {
+   --c1: 35fr;
+   --c2: 35fr;
+   --c3: 30fr;
+   --h1: 100%;
+   --h2: 100%;
+   --h3: 35%;
+}
+
+/* --- INDEPENDENT COLUMNS --- */
+.panel-col {
+   display: flex;
+   flex-direction: column;
+   gap: 2px;
+   height: 100%;
+   min-height: 0;
+   position: relative;
+   overflow: hidden;
+}
+
+.panel-col[data-col="1"]>.card:first-child {
+   height: var(--h1, 50%);
+   flex-shrink: 0;
+   flex-grow: 0;
+}
+
+.panel-col[data-col="2"]>.card:first-child {
+   height: var(--h2, 50%);
+   flex-shrink: 0;
+   flex-grow: 0;
+}
+
+.panel-col[data-col="3"]>.card:first-child {
+   height: var(--h3, 50%);
+   flex-shrink: 0;
+   flex-grow: 0;
+}
+
+.panel-col>.card:nth-child(2) {
+   flex: 1;
+   min-height: 0;
+}
+
+.panel-col>.card:last-child {
+   flex: 1;
+   min-height: 0;
+}
+
+.panel-col[data-col]>.card:only-child {
+   height: 100% !important;
+   flex: 1 !important;
+}
+
+.panel-col.handover-collapsed>.card:last-child {
+   flex: none !important;
+   height: 32px !important;
+}
+
+.panel-col.handover-collapsed>.card:last-child .strip-container {
+   display: none;
+}
+
+.handover-toggle-icon {
+   font-size: 1.1rem !important;
+   margin-right: 2px;
+   color: var(--atm-blue);
+   user-select: none;
+   pointer-events: none;
+}
+
+.panel-col.handover-collapsed>.card:last-child .resize-handle {
+   display: none !important;
+}
+
+/* --- RESIZE HANDLES --- */
+.resize-handle {
+   position: absolute;
+   top: -3px;
+   left: 0;
+   right: 0;
+   height: 8px;
+   cursor: ns-resize;
+   z-index: 100;
+   background: transparent;
+   transition: background 0.1s;
+}
+
+.resize-handle:hover,
+.resize-handle.active {
+   background: rgba(33, 150, 243, 0.4);
+}
+
+.resize-handle:hover div,
+.resize-handle.active div {
+   background: var(--atm-blue) !important;
+}
+
+.resize-handle-v {
+   position: absolute;
+   top: 0;
+   bottom: 0;
+   left: -3px;
+   width: 8px;
+   cursor: ew-resize;
+   z-index: 100;
+   background: transparent;
+   transition: background 0.1s;
+}
+
+.resize-handle-v:hover,
+.resize-handle-v.active {
+   background: rgba(33, 150, 243, 0.4);
+}
+
+.resize-handle-v:hover div,
+.resize-handle-v.active div {
+   background: var(--atm-blue) !important;
+}

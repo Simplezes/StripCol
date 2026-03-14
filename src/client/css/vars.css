@@ -1,0 +1,51 @@
+:root {
+   /* --- ATM WORKSTATION: DEEP SPACE PALETTE --- */
+   --sys-bg-0: #050607;
+   /* Deepest Space */
+   --sys-bg-1: #0a0c0e;
+   /* Primary Base */
+   --sys-bg-2: #14181c;
+   /* Pane Background */
+   --sys-bg-3: #1c2229;
+   /* Header/Interaction Base */
+   --sys-bg-4: #2d3641;
+   /* Hover/Highlight */
+
+   --sys-border: #232a31;
+   /* Technical Border */
+   --sys-border-active: #3498db;
+
+   --sys-text: #e0e6ed;
+   --sys-text-dim: #7f8c8d;
+   --sys-text-header: #95a5a6;
+
+   --atm-green: #00e676;
+
+   --atm-amber: #ffab00;
+   /* Caution/Zulu */
+   --atm-red: #ff3d00;
+   /* Warning */
+   --atm-blue: #2196f3;
+   /* System Main */
+   --atm-steel: #455a64;
+   /* Structural */
+
+   --font-ui: 'Inter', system-ui, sans-serif;
+   --font-data: 'JetBrains Mono', monospace;
+   --font-strip: 'Inconsolata', monospace;
+
+   --radius-pane: 0px;
+   /* Sharp industrial edges */
+   --radius-ui: 4px;
+   --shadow-technical: 0 0 15px rgba(0, 0, 0, 0.6);
+
+   /* --- DYNAMIC STRIP COLORS (Linked to Settings) --- */
+   --custom-departure-color: #6ee7b7;
+   --custom-arrival-color: #f87171;
+   --custom-overfly-color: #fde68a;
+
+   --strip-departure: var(--custom-departure-color);
+   --strip-arrival: var(--custom-arrival-color);
+   --strip-overfly: var(--custom-overfly-color);
+
+}

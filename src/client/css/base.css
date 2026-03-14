@@ -1,0 +1,138 @@
+/* --- WORKSTATION GLOBAL --- */
+body {
+   background: var(--sys-bg-0);
+   color: var(--sys-text);
+   margin: 0;
+   padding: 0;
+   font-family: var(--font-ui);
+   height: 100vh;
+   width: 100vw;
+   overflow: hidden;
+   display: flex;
+   flex-direction: column;
+   user-select: none;
+   /* Globally disable selection */
+}
+
+/* AUTHENTICATION */
+#authOverlay {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100vw;
+   height: 100vh;
+   background: rgba(10, 10, 15, 0.95);
+   backdrop-filter: blur(10px);
+   z-index: 10000;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.auth-card {
+   background: rgba(255, 255, 255, 0.05);
+   border: 1px solid rgba(255, 255, 255, 0.1);
+   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+   border-radius: 12px;
+   padding: 2rem;
+   max-width: 400px;
+   width: 90%;
+   text-align: center;
+}
+
+.auth-logo {
+   width: 40%;
+   margin-bottom: 1rem;
+}
+
+.auth-header h2 {
+   font-weight: 800;
+   font-size: 1.5rem;
+   margin-bottom: 1rem;
+   color: var(--text-primary);
+}
+
+.auth-body p {
+   color: var(--text-secondary);
+   margin-bottom: 1rem;
+}
+
+.auth-footer .btn-atm-primary {
+   display: inline-block;
+   padding: 0.75rem 1.5rem;
+   background: linear-gradient(135deg, #3b82f6, #6366f1);
+   color: white;
+   text-decoration: none;
+   border-radius: 8px;
+   font-weight: 600;
+   transition: all 0.2s;
+   border: none;
+   cursor: pointer;
+}
+
+.auth-footer .btn-atm-primary:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.user-display {
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+   padding: 0 0.75rem;
+   color: var(--text-secondary);
+   font-size: 0.8rem;
+   font-weight: 600;
+}
+
+.user-display .material-icons {
+   font-size: 1.2rem;
+   color: #3b82f6;
+}
+
+/* --- CUSTOM SCROLLBARS (ATM WORKSTATION STYLE) --- */
+::-webkit-scrollbar {
+   width: 6px;
+   height: 6px;
+}
+
+::-webkit-scrollbar-track {
+   background: var(--sys-bg-1);
+}
+
+::-webkit-scrollbar-thumb {
+   background: var(--sys-bg-4);
+   border-radius: 3px;
+   transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+   background: var(--atm-blue);
+}
+
+::-webkit-scrollbar-corner {
+   background: var(--sys-bg-0);
+}
+
+/* Technical Selection Highlight: Invisible by default to prevent dragging mess */
+::selection {
+   background: rgba(33, 150, 243, 0.3);
+   color: inherit;
+}
+
+input::selection {
+   background: transparent;
+   /* Prevent ugly blue block on inputs during drag */
+}
+
+input:focus::selection {
+   background: rgba(33, 150, 243, 0.5);
+   /* Re-enable for focused text editing */
+}
+
+#appWorkstation {
+   display: flex;
+   flex-direction: column;
+   height: 100%;
+   width: 100%;
+}
