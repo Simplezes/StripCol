@@ -356,7 +356,6 @@ function showGhostMoveMode(strip) {
 
 function OptionsMenu(strip, flight, fromEuroscope = false) {
 
-
     strip.addEventListener("contextmenu", e => {
         e.preventDefault();
         e.stopPropagation();
@@ -418,7 +417,6 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
         } else {
             if (fromEuroscope) {
 
-
                 const routeOption = createGlobalMenuItem("Show Route", "route", () => showRouteMenu(menu, flight, strip));
                 const transferOption = createGlobalMenuItem("Transfer", "compare_arrows", () => showTransferMenu(menu, flight, strip));
                 const typeOption = createGlobalMenuItem("Change Type", "flight", () => showTypeMenu(menu, strip, flight));
@@ -452,11 +450,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.appendChild(freeOption);
             }
 
-            /*const moveOption = createMenuItem("Move strip", "open_with", () => {
-                highlightStrip(strip, true);
-                showGhostMoveMode(strip);
-                menu.remove();
-            });*/
+            
 
             const deleteOption = createGlobalMenuItem("Delete strip", "delete", () => {
                 if (!fromEuroscope) {
@@ -472,7 +466,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.remove();
             });
 
-            //menu.appendChild(moveOption);
+            
             menu.appendChild(deleteOption);
         }
 
@@ -539,19 +533,19 @@ function showRouteMenu(parentMenu, flight, strip) {
 function getColorForAviationPoint(word) {
     const w = word.toUpperCase();
     if (w === "DCT") {
-        return "#8b949e"; // Soft Gray
+        return "#8b949e"; 
     } else if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) {
-        return "#ff7b72"; // Soft Red
+        return "#ff7b72"; 
     } else if (/^[A-Z]{3}$/i.test(w)) {
-        return "#7ee787"; // Soft Green
+        return "#7ee787"; 
     } else if (/^[A-Z]{5}$/i.test(w)) {
-        return "#79c0ff"; // Soft Blue
+        return "#79c0ff"; 
     } else if (/^[A-Z]+\d+$/i.test(w) && w.length <= 6) {
-        return "#d2a8ff"; // Soft Purple
+        return "#d2a8ff"; 
     } else if (/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{3,}$/i.test(w)) {
-        return "#ffb564"; // Soft Orange
+        return "#ffb564"; 
     } else {
-        return "#c9d1d9"; // Light Gray
+        return "#c9d1d9"; 
     }
 }
 
@@ -906,7 +900,6 @@ function showTransitionsMenu(parentMenu, airport, procedureType, runway, baseNam
     });
 }
 
-
 function updateStripWithProcedure(strip, procedureType, procedureName, procedureRunway, route) {
     const procedureField = strip.querySelector('.procedure');
     if (procedureField) {
@@ -985,23 +978,23 @@ function moveStripToHandover(callsign) {
 
     if (!stripEl) return;
 
-    // Determine the handoff panel based on the layout
+    
     let targetPanelName = "Handover";
     const targetPanel = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
     
-    if (!targetPanel) return; // if Handover doesn't exist, fallback to delete
+    if (!targetPanel) return; 
     
     const targetContainer = targetPanel.querySelector(".strip-container");
     if (!targetContainer) return;
 
-    // Move in DOM
+    
     targetContainer.appendChild(stripEl);
 
-    // Stop it from tracking if it was from euroscope (so it becomes a ghost strip)
-    // but we keep the visual data intact
+    
+    
     stripEl.dataset.euroscope = "false";
     
-    // Move in state
+    
     let movedStripData = null;
     const panels = stateManager.getPanels();
     
@@ -1010,7 +1003,7 @@ function moveStripToHandover(callsign) {
             const index = panel.strips.findIndex(s => s.id === stripId || s.id === callsign || (s.flightPlan && s.flightPlan.callsign === callsign));
             if (index !== -1) {
                 movedStripData = panel.strips[index];
-                // Remove from old panel implicitly by letting stateManager handle it
+                
                 stateManager.removeStrip(movedStripData.id);
             }
         }
@@ -1106,12 +1099,12 @@ async function UpdateStrip(flight, type = null) {
     const stripType = type ? type : strip.dataset.type;
     const boxes = strip.querySelectorAll("input.box");
 
-    // Check if procedure (SID/STAR) has changed
+    
     const currentProc = (boxes[7]?.value || "").trim().toUpperCase();
     const newProc = (stripType === "departure" ? flight.sid : stripType === "arrival" ? flight.star : "").trim().toUpperCase();
 
     if (currentProc !== "" && newProc !== "" && currentProc !== newProc) {
-        // Procedure changed, clear notification points and ETAs to allow re-fill from new flight data
+        
         for (let i = 18; i <= 27; i++) {
             if (boxes[i]) boxes[i].value = "";
         }
@@ -1233,7 +1226,7 @@ function applyTooltipsToStrip(strip, type) {
     const mode = window.controllerMode || "tower";
     const isDep = type === "departure";
 
-    // Common/Neutral mappings
+    
     const tooltips = {
         0: "Callsign",
         1: "Aircraft Type",
@@ -1256,7 +1249,7 @@ function applyTooltipsToStrip(strip, type) {
         tooltips[17] = isDep ? "Departure Runway" : "Arrival Runway";
         tooltips[31] = "Estimated Arrival Time";
     } else {
-        // Tower Mode
+        
         tooltips[6] = "Departure Time";
         tooltips[7] = isDep ? "Assigned SID" : "Assigned STAR";
         tooltips[10] = "Status / Remarks";
@@ -1286,7 +1279,7 @@ function applyTooltipsToStrip(strip, type) {
                     if (tooltipTimeout) clearTimeout(tooltipTimeout);
                     tooltipTimeout = setTimeout(() => {
                         showTooltip(tip, e.clientX, e.clientY);
-                    }, 500); // 2 second delay
+                    }, 500); 
                 }
             });
 
@@ -1302,8 +1295,6 @@ function applyTooltipsToStrip(strip, type) {
     });
 }
 
-// Handlers
-// Tower
 function handleAerodromeMode(boxes, flight, type) {
     const setValue = (index, value) => {
         if (CUSTOM_STRIP_BOXES.includes(index) && boxes[index].value.trim() !== "") return;
@@ -1340,7 +1331,6 @@ async function handleArrivalAerodrome(boxes, flight) {
     });
 }
 
-// Approach / Center
 function handleApproachCenterMode(boxes, flight, type) {
     const setValue = (index, value) => {
         if (CUSTOM_STRIP_BOXES.includes(index) && boxes[index].value.trim() !== "") return;
@@ -1875,7 +1865,7 @@ function addStripEditListeners(strip, flight, type) {
                     return { display: "", type: "empty", send: 0 };
                 }
 
-                // Mach detection
+                
                 if (val.includes(".")) {
                     if (val.startsWith(".")) val = "0" + val;
                     let floatVal = parseFloat(val);
@@ -1890,7 +1880,7 @@ function addStripEditListeners(strip, flight, type) {
                     return { display, type: "mach", send: floatVal };
                 }
 
-                // Speed
+                
                 let intVal = parseInt(val.replace(/[^0-9]/g, ""), 10);
                 if (isNaN(intVal) || intVal <= 0) {
                     return { display: "", type: "empty", send: 0 };

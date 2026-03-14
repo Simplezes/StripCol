@@ -1,4 +1,3 @@
-/* --- REAL-WORLD STRIPS --- */
 .strip {
    display: grid;
    grid-template-columns: repeat(13, 1fr);
@@ -11,52 +10,45 @@
    background: var(--sys-bg-2);
    border: 1px solid var(--sys-border);
    border-left: 10px solid var(--atm-steel);
-   /* Default Indicator */
+   
    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
    margin-bottom: 2px;
    padding: 0;
    overflow: hidden;
    user-select: none;
    flex-shrink: 0;
-   /* Prevent selection while dragging */
+   
 }
 
-/* --- TYPE-SPECIFIC STRIP THEMES --- */
 .strip[data-type="departure"] {
    border-left-color: var(--strip-departure);
    background: color-mix(in srgb, var(--strip-departure), transparent 95%) !important;
 }
-
 
 .strip[data-type="departure"]:hover {
    border-left-color: var(--strip-departure);
    background: color-mix(in srgb, var(--strip-departure), transparent 85%) !important;
 }
 
-
 .strip[data-type="arrival"] {
    border-left-color: var(--strip-arrival);
    background: color-mix(in srgb, var(--strip-arrival), transparent 95%) !important;
 }
-
 
 .strip[data-type="arrival"]:hover {
    border-left-color: var(--strip-arrival);
    background: color-mix(in srgb, var(--strip-arrival), transparent 85%) !important;
 }
 
-
 .strip[data-type="overfly"] {
    border-left-color: var(--strip-overfly);
    background: color-mix(in srgb, var(--strip-overfly), transparent 95%) !important;
 }
 
-
 .strip[data-type="overfly"]:hover {
    border-left-color: var(--strip-overfly);
    background: color-mix(in srgb, var(--strip-overfly), transparent 85%) !important;
 }
-
 
 .strip:hover {
    cursor: pointer;
@@ -68,9 +60,6 @@
    pointer-events: none;
 }
 
-/* --- ADAPTIVE STRIP MODES --- */
-
-/* All compact modes: Switch to 1 row, hide most boxes, force full width */
 .panel-col[data-width-mode^="compact-"] .strip:not(.transfer-request) {
    grid-template-rows: 28px !important;
    height: auto !important;
@@ -87,7 +76,6 @@
    display: none !important;
 }
 
-/* Compact-3: Callsign, Type, Squawk */
 .panel-col[data-width-mode="compact-3"] .strip:not(.transfer-request) {
    grid-template-columns: 90px 1fr 60px !important;
 }
@@ -110,7 +98,6 @@
    display: block !important;
 }
 
-/* Compact-2: Callsign, Type */
 .panel-col[data-width-mode="compact-2"] .strip:not(.transfer-request) {
    grid-template-columns: 90px 1fr !important;
 }
@@ -131,7 +118,6 @@
    display: none !important;
 }
 
-/* Compact-1: Callsign only */
 .panel-col[data-width-mode="compact-1"] .strip:not(.transfer-request) {
    grid-template-columns: 1fr !important;
 }
@@ -147,7 +133,6 @@
    display: none !important;
 }
 
-/* Ensure drag ghosts and active drag elements revert to full size and look correct */
 .sortable-ghost,
 .sortable-fallback,
 .sortable-drag {
@@ -186,7 +171,6 @@
    color: #000000 !important;
 }
 
-/* --- BOX MAPPING --- */
 .c1 { grid-column: 1 / 3; grid-row: 1; font-weight: bolder; }
 .c2 { grid-column: 1; grid-row: 2; }
 .c3 { grid-column: 2; grid-row: 2; }
@@ -229,7 +213,6 @@
 .le_ot { border-left: 1px solid #4a4f56 !important; }
 .ri_ot { border-right: 1px solid #4a4f56 !important; }
 
-/* --- TRANSFER REQUEST STRIP --- */
 .strip.transfer-request {
    display: flex;
    justify-content: space-between;
@@ -278,7 +261,6 @@
 .transfer-btn.accept:hover { background: rgba(0, 230, 118, 0.2); border-color: var(--atm-green); color: var(--atm-green); box-shadow: 0 0 15px rgba(0, 230, 118, 0.2); }
 .transfer-btn.refuse:hover { background: rgba(255, 61, 0, 0.2); border-color: var(--atm-red); color: var(--atm-red); box-shadow: 0 0 15px rgba(255, 61, 0, 0.2); }
 
-/* Handle Transfer Requests in compact modes */
 .panel-col[data-width-mode^="compact-"] .transfer-request {
    flex-direction: column !important;
    gap: 6px !important;

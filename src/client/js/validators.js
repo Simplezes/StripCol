@@ -1,8 +1,3 @@
-/**
- * Data Validation Utilities
- * Provides schema validation and sanitization for panel and strip data
- */
-
 const PanelSchema = {
     name: 'string',
     strips: 'array'
@@ -17,11 +12,6 @@ const StripSchema = {
     lastUpdate: 'number'
 };
 
-/**
- * Validate a panel object against the schema
- * @param {Object} panel - Panel object to validate
- * @returns {Object} { valid: boolean, errors: string[] }
- */
 function validatePanel(panel) {
     const errors = [];
 
@@ -47,11 +37,6 @@ function validatePanel(panel) {
     return { valid: errors.length === 0, errors };
 }
 
-/**
- * Validate a strip object against the schema
- * @param {Object} strip - Strip object to validate
- * @returns {Object} { valid: boolean, errors: string[] }
- */
 function validateStrip(strip) {
     const errors = [];
 
@@ -83,11 +68,6 @@ function validateStrip(strip) {
     return { valid: errors.length === 0, errors };
 }
 
-/**
- * Sanitize panel data, fixing common issues
- * @param {Object} panel - Panel object to sanitize
- * @returns {Object} Sanitized panel object
- */
 function sanitizePanel(panel) {
     if (!panel || typeof panel !== 'object') {
         return { name: 'Panel', strips: [] };
@@ -101,11 +81,6 @@ function sanitizePanel(panel) {
     };
 }
 
-/**
- * Sanitize strip data, fixing common issues
- * @param {Object} strip - Strip object to sanitize
- * @returns {Object|null} Sanitized strip object or null if invalid
- */
 function sanitizeStrip(strip) {
     if (!strip || typeof strip !== 'object') {
         return null;
@@ -124,11 +99,6 @@ function sanitizeStrip(strip) {
     };
 }
 
-/**
- * Validate an array of panels
- * @param {Array} panels - Array of panel objects
- * @returns {Object} { valid: boolean, errors: string[] }
- */
 function validatePanels(panels) {
     const errors = [];
 
@@ -146,11 +116,6 @@ function validatePanels(panels) {
     return { valid: errors.length === 0, errors };
 }
 
-/**
- * Sanitize an array of panels
- * @param {Array} panels - Array of panel objects
- * @returns {Array} Sanitized array of panels
- */
 function sanitizePanels(panels) {
     if (!Array.isArray(panels)) {
         return [];

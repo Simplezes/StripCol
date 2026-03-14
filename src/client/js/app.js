@@ -19,7 +19,7 @@ function updateGatewayUrl() {
 async function apiFetch(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${GATEWAY_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
-    // Default headers if not provided
+    
     if (options.method && options.method !== 'GET' && !options.headers) {
         options.headers = { 'Content-Type': 'application/json' };
     }
@@ -62,7 +62,7 @@ function updateZuluTime() {
     const utc = now.toUTCString().match(/(\d{2}:\d{2}:\d{2})/)[0];
     const parts = utc.split(':');
 
-    // Check global settings (defined in settings.js)
+    
     const showSeconds = (typeof currentSettings !== 'undefined') ? currentSettings.showSeconds : true;
     const timeString = showSeconds ? utc : `${parts[0]}:${parts[1]}`;
 
@@ -163,7 +163,6 @@ function filterStrips(query) {
     });
 }
 
-// Handle external links to open in browser
 document.addEventListener('click', (event) => {
     const externalLink = event.target.closest('.external-link');
     if (externalLink) {

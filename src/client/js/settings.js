@@ -45,14 +45,11 @@ function applySettings() {
     root.style.setProperty('--custom-arrival-color', currentSettings.arrivalColor);
     root.style.setProperty('--custom-overfly-color', currentSettings.overflyColor);
 
-
-
     const cleanupTimer = document.getElementById('cleanupTimerContainer');
     if (cleanupTimer) cleanupTimer.style.display = currentSettings.cleanupEnabled ? 'flex' : 'none';
 
     const codeDisplay = document.getElementById('currentLinkCodeDisplay');
     if (codeDisplay) codeDisplay.textContent = currentSettings.linkCode || '-----';
-
 
 }
 
@@ -88,7 +85,6 @@ function updateUIFromSettings() {
 
     const serverIpInput = document.getElementById('serverIpInput');
     if (serverIpInput) serverIpInput.value = currentSettings.serverIp;
-
 
 }
 
@@ -130,8 +126,6 @@ function initSettingsEvents() {
         });
     });
 
-
-
     document.getElementById('resetColors').addEventListener('click', () => {
         currentSettings.departureColor = DEFAULT_SETTINGS.departureColor;
         currentSettings.arrivalColor = DEFAULT_SETTINGS.arrivalColor;
@@ -146,7 +140,7 @@ function initSettingsEvents() {
     if (linkCodeStatus) {
         linkCodeStatus.addEventListener('dblclick', () => {
             const displayEl = document.getElementById('currentLinkCodeDisplay');
-            if (displayEl.querySelector('input')) return; // Already editing
+            if (displayEl.querySelector('input')) return; 
 
             const currentCode = displayEl.textContent.trim() === '-----' ? '' : displayEl.textContent.trim();
 
@@ -212,8 +206,8 @@ function renderUpdateResult(result) {
     if (result && result.error) {
         updateStatus.innerHTML = `<span class="text-danger">Failed: ${result.error}</span>`;
     } else {
-        // With electron-updater, checking-for-updates is the first step.
-        // The actual update availability is handled via events.
+        
+        
         updateStatus.innerHTML = '<span class="text-info">Checking...</span>';
         if (versionDisplay && result && result.currentVersion) versionDisplay.textContent = result.currentVersion;
     }
@@ -235,7 +229,7 @@ function initUpdateCheck() {
 
     if (!checkBtn || !window.electronAPI) return;
 
-    // Register event listeners
+    
     window.electronAPI.onUpdateAvailable((info) => {
         updateStatus.innerHTML = `
             <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
@@ -302,15 +296,15 @@ async function autoCheckForUpdates() {
     try {
         const result = await window.electronAPI.checkForUpdates();
         if (result && result.updateAvailable) {
-            // Open Settings Modal
+            
             const settingsBtn = document.getElementById('settingsBtn');
             if (settingsBtn) settingsBtn.click();
 
-            // Switch to About Tab
+            
             const aboutTab = document.querySelector('.settings-tab[data-tab="about"]');
             if (aboutTab) aboutTab.click();
 
-            // Populate the UI directly
+            
             renderUpdateResult(result);
         }
     } catch (e) {
@@ -403,7 +397,7 @@ window.playNotification = function () {
         const gainNode = audioCtx.createGain();
 
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
         oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
 
         gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -451,11 +445,11 @@ function cleanupStrips() {
 document.getElementById('restartServerBtn').addEventListener('click', () => {
     const ip = document.getElementById('serverIpInput').value.trim() || '127.0.0.1';
 
-    // Save the new IP to settings first
+    
     currentSettings.serverIp = ip;
     saveSettings();
 
-    // Ensure the global GATEWAY_URL is updated immediately in this session
+    
     if (typeof updateGatewayUrl === 'function') {
         updateGatewayUrl();
     }
@@ -468,7 +462,7 @@ document.getElementById('restartServerBtn').addEventListener('click', () => {
             showToast("Server IP updated. Restarting...", "success");
         }
 
-        // Increased delay to allow the server to bind the new IP
+        
         setTimeout(() => {
             window.location.reload();
         }, 1500);
@@ -485,5 +479,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initSettingsEvents();
     initAppVersion();
     autoCheckForUpdates();
-    setInterval(cleanupStrips, 60000); // Check every minute
+    setInterval(cleanupStrips, 60000); 
 });

@@ -1,4 +1,3 @@
-/* --- SEAMLESS PANE DESIGN --- */
 .card {
    background: var(--sys-bg-1) !important;
    border: none !important;
@@ -33,7 +32,6 @@
    outline: none;
 }
 
-/* Strip count badge in panel header */
 .panel-strip-count {
    font-family: var(--font-data);
    font-size: 0.7rem;
@@ -66,7 +64,6 @@
    gap: 4px;
 }
 
-/* TECHNICAL SCROLLBARS */
 .strip-container::-webkit-scrollbar {
    width: 4px;
 }

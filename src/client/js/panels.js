@@ -1,23 +1,10 @@
-// ─────────────────────────────────────────────────────────────────────────────
-//  FIXED ATC STRIP BOARD — 3 columns × 2 rows
-//
-//  Col 1: Clearance (top)   | Pushback (bottom)
-//  Col 2: Ground (top)      | HP RWY   (bottom)
-//  Col 3: Sequence (top)    | Handover (bottom)
-//
-//  Panels are FIXED — they cannot be added or removed, only renamed.
-// ─────────────────────────────────────────────────────────────────────────────
-
 const mainLayout = document.getElementById("mainLayout");
 
-// We still keep this element reference so existing code doesn't break, but
-// it will be hidden via CSS / HTML now.
 const addPanelBtn = document.getElementById("addPanelBtn");
 
 let panelUnderMouse = null;
 let stripUnderMouse = null;
 
-// ── Fixed panel definitions ──────────────────────────────────────────────────
 const TOWER_PANELS = [
     { key: "clearance", defaultName: "Clearance", cssClass: "panel-clearance", badgeCount: true, col: 1 },
     { key: "pushback", defaultName: "Pushback", cssClass: "panel-pushback", badgeCount: true, col: 1 },
@@ -35,9 +22,8 @@ const RADAR_PANELS = [
     { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
 ];
 
-let currentLayoutMode = null; // "tower" or "radar"
+let currentLayoutMode = null; 
 
-// ── State helpers (delegate to stateManager) ─────────────────────────────────
 function savePanel(panel) {
     const existing = stateManager.getPanel(panel.name);
     if (existing) {
@@ -51,14 +37,12 @@ function loadPanels() {
     return stateManager.getPanels().map(p => ({ ...p }));
 }
 
-// ── Strip count badge ─────────────────────────────────────────────────────────
 function updatePanelBadge(panelElement) {
     const badge = panelElement.querySelector(".panel-strip-count");
     const count = panelElement.querySelectorAll(".strip").length;
     if (badge) badge.textContent = count;
 }
 
-// ── Panel header (editable name + strip count badge) ─────────────────────────
 function createPanelHeader(panelName) {
     const header = document.createElement("div");
     header.className = "card-header d-flex align-items-center gap-2";
@@ -108,7 +92,7 @@ function createPanelHeader(panelName) {
                     toggleIcon.textContent = "expand_more";
                 }
 
-                // Track state in preferences
+                
                 const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
                 settings[currentLayoutMode] = isCollapsed;
                 localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
@@ -126,7 +110,7 @@ function createPanelHeader(panelName) {
                 if (panelElement) panelElement.dataset.panelName = newName;
                 panelName = newName;
             } else {
-                this.value = panelName; // revert on empty
+                this.value = panelName; 
             }
         });
     }
@@ -134,7 +118,6 @@ function createPanelHeader(panelName) {
     return header;
 }
 
-// ── Create a single panel DOM element ────────────────────────────────────────
 function createPanelElement(panel, cssClass, colIndex) {
     const panelElement = document.createElement("div");
     panelElement.className = `card ${cssClass}`;
@@ -155,7 +138,7 @@ function createPanelElement(panel, cssClass, colIndex) {
         showPanelContextMenu(e, panelElement, stripContainer);
     });
 
-    // Strip count observer — update badge whenever strips change
+    
     const observer = new MutationObserver(() => updatePanelBadge(panelElement));
     observer.observe(stripContainer, { childList: true, subtree: false });
 
@@ -172,11 +155,11 @@ window.expandHandover = function () {
         const colIndex = colElement.dataset.col;
         mainLayout.style.setProperty(`--h${colIndex}`, '65%');
 
-        // Update icon
+        
         const icon = handoverPanel.querySelector('.handover-toggle-icon');
         if (icon) icon.textContent = "expand_more";
 
-        // Track state in preferences
+        
         const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
         settings[currentLayoutMode] = false;
         localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
@@ -189,12 +172,12 @@ window.collapseHandoverIfEmpty = function (expectedCount = 0) {
     const handoverPanel = document.querySelector('.panel-handover');
     if (!handoverPanel) return;
 
-    // Use a small timeout to ensure the DOM has actually updated
+    
     setTimeout(() => {
         const stripContainer = handoverPanel.querySelector('.strip-container');
         if (!stripContainer) return;
 
-        // Check if there are any remaining transfer request strips
+        
         const remainingTransfers = stripContainer.querySelectorAll('.transfer-request').length;
 
         if (remainingTransfers <= expectedCount) {
@@ -204,11 +187,11 @@ window.collapseHandoverIfEmpty = function (expectedCount = 0) {
                 const colIndex = colElement.dataset.col;
                 mainLayout.style.setProperty(`--h${colIndex}`, '95%');
 
-                // Update icon
+                
                 const icon = handoverPanel.querySelector('.handover-toggle-icon');
                 if (icon) icon.textContent = "expand_less";
 
-                // Track state in preferences
+                
                 const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
                 settings[currentLayoutMode] = true;
                 localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
@@ -219,7 +202,6 @@ window.collapseHandoverIfEmpty = function (expectedCount = 0) {
     }, 100);
 };
 
-// ── Context menu ─────────────────────────────────────────────────────────────
 function showPanelContextMenu(event, panelElement, stripContainer) {
     event.preventDefault();
     document.querySelectorAll(".strip-context-menu").forEach(m => m.remove());
@@ -411,7 +393,6 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
     };
 }
 
-// ── Panel rename ──────────────────────────────────────────────────────────────
 function updatePanelName(oldName, newName) {
     if (stateManager.renamePanel(oldName, newName)) {
         const panelElement = document.querySelector(`[data-panel-name="${oldName}"]`);
@@ -419,7 +400,6 @@ function updatePanelName(oldName, newName) {
     }
 }
 
-// ── addStripToPanel / renderStrips ────────────────────────────────────────────
 function addStripToPanel(panelName, stripEl, flightPlan = null) {
     const stripId = stripEl.dataset.stripId || ("strip-" + Date.now());
     stripEl.dataset.stripId = stripId;
@@ -481,18 +461,16 @@ function renderStrips() {
     enableSortableForAllPanels();
 }
 
-// ── Facility Switcher ─────────────────────────────────────────────────────────
-
 window.applyFacilityLayout = function () {
     const isRadar = window.controllerMode === "approach" || window.controllerMode === "center";
     const targetLayout = isRadar ? "radar" : "tower";
 
-    // Don't re-render if the mode hasn't changed
+    
     if (currentLayoutMode === targetLayout && mainLayout.children.length > 0) return;
 
     currentLayoutMode = targetLayout;
 
-    // Update main container attributes for CSS
+    
     mainLayout.dataset.layout = targetLayout;
     mainLayout.innerHTML = `
         <div class="panel-col" data-col="1"></div>
@@ -500,7 +478,7 @@ window.applyFacilityLayout = function () {
         <div class="panel-col" data-col="3"></div>
     `;
 
-    // Restore saved height preferences for this layout
+    
     const settings = JSON.parse(localStorage.getItem('layoutGridHeights') || '{}');
     if (settings[targetLayout]) {
         if (settings[targetLayout].h1 !== undefined) mainLayout.style.setProperty('--h1', `${settings[targetLayout].h1}%`);
@@ -513,7 +491,7 @@ window.applyFacilityLayout = function () {
             mainLayout.style.setProperty('--c3', `${settings[targetLayout].c3}fr`);
         }
     } else {
-        // Apply strict defaults if no settings exist to prevent layout bleed
+        
         if (isRadar) {
             mainLayout.style.setProperty('--h1', '100%');
             mainLayout.style.setProperty('--h2', '100%');
@@ -531,11 +509,11 @@ window.applyFacilityLayout = function () {
     const TARGET_DEF = isRadar ? RADAR_PANELS : TOWER_PANELS;
     const targetNames = new Set(TARGET_DEF.map(d => d.defaultName));
 
-    // Safety check against old or mismatched data
+    
     const savedPanels = loadPanels();
     const saveNames = new Set(savedPanels.map(p => p.name));
 
-    // Does the current local storage align with the layout we want?
+    
     const hasMatchingLayout = [...targetNames].some(tn => saveNames.has(tn));
     if (!hasMatchingLayout || savedPanels.length !== 6) {
         console.info(`[panels] Switching layout to ${targetLayout}. Wiping old layout data.`);
@@ -543,12 +521,12 @@ window.applyFacilityLayout = function () {
         stateManager.panels = [];
     }
 
-    // Render the panels
+    
     TARGET_DEF.forEach(def => {
         const saved = loadPanels().find(p => p.name === def.defaultName);
         let panelName = (saved && saved.name) ? saved.name : def.defaultName;
 
-        // Force Handover to remain Handover even if someone renamed it prior to the patch
+        
         if (def.key === "handover") panelName = "Handover";
 
         if (!stateManager.getPanel(panelName)) {
@@ -558,7 +536,7 @@ window.applyFacilityLayout = function () {
         createPanelElement({ name: panelName }, def.cssClass, def.col);
     });
 
-    // Default Handover to closed unless user previously expanded it
+    
     const collSettings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
     if (collSettings[targetLayout] !== false) {
         document.querySelectorAll(".panel-col").forEach(col => {
@@ -577,26 +555,25 @@ window.applyFacilityLayout = function () {
         });
     }
 
-    renderStrips(); // Redraw any strips if loaded
+    renderStrips(); 
 
-    // Add Resizers
+    
     setTimeout(addResizeHandles, 0);
 
-    // Setup adaptive widths
+    
     setTimeout(setupAdaptiveWidths, 0);
 };
 
-// ── Adaptive Width Management ────────────────────────────────────────────────
 function setupAdaptiveWidths() {
     const observer = new ResizeObserver(entries => {
         for (let entry of entries) {
             const width = entry.contentRect.width;
             let mode = "full";
 
-            // Breakpoints for the column width
-            if (width < 220) mode = "compact-1";      // Callsign only
-            else if (width < 320) mode = "compact-2"; // Callsign, Type
-            else if (width < 450) mode = "compact-3"; // Callsign, Type, Squawk
+            
+            if (width < 220) mode = "compact-1";      
+            else if (width < 320) mode = "compact-2"; 
+            else if (width < 450) mode = "compact-3"; 
 
             if (entry.target.dataset.widthMode !== mode) {
                 entry.target.dataset.widthMode = mode;
@@ -609,19 +586,18 @@ function setupAdaptiveWidths() {
     });
 }
 
-// ── Heights / Grid Resizing ──────────────────────────────────────────────────
 function addResizeHandles() {
     document.querySelectorAll(".resize-handle, .resize-handle-v").forEach(h => h.remove());
 
-    // --- HORIZONTAL (HEIGHT) RESIZERS FOR EACH COLUMN ---
+    
     [1, 2, 3].forEach(colIndex => {
-        // Skip adding a vertical height resizer for columns where Handover handles the split
-        // or where there is only one panel taking all height.
+        
+        
         if (currentLayoutMode === 'radar') {
-            if (colIndex === 1 || colIndex === 2) return; // 100% height panels
-            if (colIndex === 3) return; // Overfly/Holding/Handover split
+            if (colIndex === 1 || colIndex === 2) return; 
+            if (colIndex === 3) return; 
         } else if (currentLayoutMode === 'tower') {
-            if (colIndex === 3) return; // Sequence/Handover split
+            if (colIndex === 3) return; 
         }
 
         const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
@@ -691,7 +667,7 @@ function addResizeHandles() {
         });
     });
 
-    // --- VERTICAL (WIDTH) RESIZERS BETWEEN COLUMNS ---
+    
     [2, 3].forEach(colIndex => {
         const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
         if (!colDiv) return;
@@ -767,13 +743,13 @@ function addResizeHandles() {
             const curC3 = parseFloat(mainLayout.style.getPropertyValue('--c3')) || defaults.c3;
 
             if (colIndex === 2) {
-                // Reset boundary between Col 1 and 2 (35% mark)
+                
                 const combined = curC1 + curC2;
                 mainLayout.style.setProperty('--c1', `${defaults.c1}fr`);
                 mainLayout.style.setProperty('--c2', `${combined - defaults.c1}fr`);
             } else if (colIndex === 3) {
-                // Reset boundary between Col 2 and 3 (70% mark)
-                // C1 stays same, C2/C3 snap to the 70/30 split point
+                
+                
                 const total = curC1 + curC2 + curC3;
                 mainLayout.style.setProperty('--c2', `${70 - curC1}fr`);
                 mainLayout.style.setProperty('--c3', `${total - 70}fr`);
@@ -799,15 +775,12 @@ function saveGridDimensions() {
     localStorage.setItem('layoutGridHeights', JSON.stringify(settings));
 }
 
-// ── Boot — initialise layout ─────────────────────────────────────────────────
 function initFixedPanels() {
     applyFacilityLayout();
 }
 
-// Hide the "Add Panel" button — layout is now fixed
 if (addPanelBtn) addPanelBtn.style.display = "none";
 
-// ── DOMContentLoaded ──────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", function () {
     initFixedPanels();
     waitForControllerModeAndRender();
@@ -822,7 +795,6 @@ function waitForControllerModeAndRender() {
     }, 100);
 }
 
-// ── Stub — kept so any external callers don't throw ──────────────────────────
-function updatePanels() { /* no-op: layout is fixed */ }
-function createPanel() { /* no-op: panels are fixed */ }
-function removePanel() { /* no-op: panels are fixed */ }
+function updatePanels() {  }
+function createPanel() {  }
+function removePanel() {  }
