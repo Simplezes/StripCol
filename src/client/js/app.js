@@ -165,3 +165,27 @@ document.addEventListener('click', (event) => {
         }
     }
 });
+
+// Prevent default drag and drop behaviors to avoid accidental application resets/reloads
+document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+document.addEventListener('drop', (e) => {
+    e.preventDefault();
+});
+
+// Prevent default reload shortcuts and backspace navigation
+document.addEventListener('keydown', (e) => {
+    // Prevent F5 and Ctrl+R
+    if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R'))) {
+        e.preventDefault();
+    }
+    // Prevent Backspace navigating back (if not in an input/textarea)
+    if (e.key === 'Backspace') {
+        const activeNode = document.activeElement ? document.activeElement.nodeName : '';
+        if (activeNode !== 'INPUT' && activeNode !== 'TEXTAREA') {
+            e.preventDefault();
+        }
+    }
+});
