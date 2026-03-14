@@ -163,10 +163,15 @@
                                         <div class="settings-label">Interface Theme</div>
                                         <div class="settings-description">Choose the overall look and feel.</div>
                                     </div>
-                                    <div class="settings-control">
-                                        <select id="themeSelect" class="form-select form-select-sm form-control-dark">
-                                            <option value="dark">Dark</option>
-                                        </select>
+                                    <div class="settings-control" style="width: 140px;">
+                                        <div class="dropdown theme-dropdown">
+                                            <button class="btn form-control form-control-dark dropdown-toggle w-100 d-flex justify-content-between align-items-center" type="button" id="themeDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <span id="themeDropdownText">Dark</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark w-100 shadow-sm custom-theme-menu" aria-labelledby="themeDropdownBtn" id="themeSelect">
+                                                <!-- Populated by JS -->
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="settings-item">

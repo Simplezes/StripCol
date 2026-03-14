@@ -148,28 +148,49 @@ function updateUIFromSettings() {
 
     const themeSelect = document.getElementById('themeSelect');
     if (themeSelect) {
+        themeSelect.innerHTML = '';
 
-        const staticOptionsCount = 1;
-        while (themeSelect.options.length > staticOptionsCount) {
-            themeSelect.remove(staticOptionsCount);
-        }
+        const appendThemeOption = (val, label) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'dropdown-item d-flex align-items-center gap-2 py-2 theme-dropdown-item';
+            a.href = '#';
+
+            if (currentSettings.theme === val) {
+                a.classList.add('active');
+                const btnText = document.getElementById('themeDropdownText');
+                if (btnText) btnText.textContent = label;
+            }
+            
+            const icon = val === 'dark' ? 'dark_mode' : 'palette';
+            let innerHtml = `<span class="material-icons" style="font-size: 16px;">${icon}</span><span style="flex:1">${label}</span>`;
+            
+            if (currentSettings.theme === val) {
+                innerHtml += '<span class="material-icons" style="font-size: 16px;">check</span>';
+            }
+            a.innerHTML = innerHtml;
+            
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentSettings.theme = val;
+                saveSettings();
+                updateUIFromSettings();
+            });
+            li.appendChild(a);
+            themeSelect.appendChild(li);
+        };
+
+        appendThemeOption('dark', 'Dark');
 
         if (window.electronAPI && window.electronAPI.listUserThemes) {
-            console.log("Requesting themes from main process...");
             window.electronAPI.listUserThemes().then(themes => {
-                console.log("Themes received:", themes);
                 themes.forEach(theme => {
                     const themeName = theme.replace('.css', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    const option = new Option(themeName, theme);
-                    themeSelect.add(option);
+                    appendThemeOption(theme, themeName);
                 });
-                themeSelect.value = currentSettings.theme;
             }).catch(err => {
                 console.error("Error loading themes:", err);
             });
-        } else {
-            console.warn("electronAPI.listUserThemes not available");
-            themeSelect.value = currentSettings.theme;
         }
     }
 }
@@ -240,13 +261,7 @@ function initSettingsEvents() {
         });
     }
 
-    const themeSelect = document.getElementById('themeSelect');
-    if (themeSelect) {
-        themeSelect.addEventListener('change', (e) => {
-            currentSettings.theme = e.target.value;
-            saveSettings();
-        });
-    }
+    /* themeSelect event handling is now managed in updateUIFromSettings per item */
 
     initPairingLogic();
 
