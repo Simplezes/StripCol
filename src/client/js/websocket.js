@@ -96,6 +96,7 @@ function startEvent() {
         } else {
             window.isPluginLinked = false;
             updateWsStatus(false);
+            aircraftMap = {}; // Clear aircraft map on disconnect
             stateManager.clearEuroscopeStrips();
         }
     });
@@ -165,6 +166,7 @@ function startEvent() {
         updateWsStatus(false);
         closeEventSource();
 
+        aircraftMap = {}; // Clear aircraft map on error
         stateManager.clearEuroscopeStrips();
 
         sseReconnectTimeout = setTimeout(() => {

@@ -549,6 +549,11 @@ window.applyFacilityLayout = function () {
 
     renderStrips();
 
+    document.querySelectorAll(".panel-col").forEach(col => {
+        if (col.children.length === 1) {
+            mainLayout.style.setProperty(`--h${col.dataset.col}`, '100%');
+        }
+    });
 
     setTimeout(addResizeHandles, 0);
 
@@ -594,6 +599,9 @@ function addResizeHandles() {
 
         const colDiv = document.querySelector(`.panel-col[data-col="${colIndex}"]`);
         if (!colDiv) return;
+
+        // Only add vertical resize handles if there are at least two cards in the column
+        if (colDiv.children.length < 2) return;
 
         const secondCard = colDiv.querySelector('.card:last-child');
         if (!secondCard) return;
@@ -783,6 +791,14 @@ function waitForControllerModeAndRender() {
             renderStrips();
         }
     }, 100);
+}
+
+if (window.stateManager) {
+    stateManager.subscribe((event) => {
+        if (event === 'euroscope-strips-cleared') {
+            renderStrips();
+        }
+    });
 }
 
 

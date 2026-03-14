@@ -432,6 +432,11 @@ function showGhostMoveMode(strip) {
 function OptionsMenu(strip, flight, fromEuroscope = false) {
 
     strip.addEventListener("contextmenu", e => {
+        const updatedStrip = stateManager.getStrip(strip.dataset.stripId);
+        if (updatedStrip && updatedStrip.flightPlan) {
+            flight = updatedStrip.flightPlan;
+        }
+
         e.preventDefault();
         e.stopPropagation();
         document.querySelectorAll(".strip-context-menu").forEach(m => {
@@ -492,6 +497,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 const transferOption = createGlobalMenuItem("Transfer", "compare_arrows", () => showTransferMenu(menu, flight, strip));
                 const typeOption = createGlobalMenuItem("Change Type", "flight", () => showTypeMenu(menu, strip, flight));
                 let procedureOption
+                let clearanceOption
 
                 if (strip.dataset.type === "departure" || strip.dataset.type === "arrival") {
                     procedureOption = createGlobalMenuItem("Change Procedure", "flight_takeoff", (e) => {
@@ -499,6 +505,39 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                         const airport = strip.dataset.type === "departure" ? flight.departure : flight.arrival;
                         const acProc = strip.dataset.type === "departure" ? "SID" : "STAR";
                         showProcedureMenu(menu, airport, acProc, strip);
+                    });
+                }
+
+                if (fromEuroscope && flight && strip.dataset.type === "departure") {
+                    const isCleared = flight.clearedFlag == 1;
+                    clearanceOption = createGlobalMenuItem(isCleared ? "Reset Clearance" : "Set Clearance", isCleared ? "restart_alt" : "check_circle", async () => {
+                        try {
+                            const response = await apiFetch(`/api/set-clearance`, {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    code: getLinkCode(),
+                                    callsign: flight.callsign,
+                                    cleared: isCleared ? "false" : "true"
+                                })
+                            });
+                            if (!response.ok) throw new Error("Failed to update clearance");
+
+                            // Optimistic local update
+                            flight.clearedFlag = isCleared ? 0 : 1;
+                            const c12Input = strip.querySelector(".c12");
+                            if (c12Input) {
+                                c12Input.value = isCleared ? "" : "Ⓑ";
+                                // Trigger auto-move if enabled
+                                if (typeof autoMoveStripOnC12 === "function") {
+                                    autoMoveStripOnC12(strip, c12Input.value);
+                                }
+                            }
+                            stateManager.updateStrip(strip.dataset.stripId, { flightPlan: flight });
+                        } catch (err) {
+                            console.error("Clearance toggle failed:", err);
+                            showToast("Failed to update clearance flag", "error");
+                        }
+                        menu.remove();
                     });
                 }
 
@@ -516,6 +555,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
 
                 menu.appendChild(routeOption);
                 if (procedureOption) menu.appendChild(procedureOption);
+                if (clearanceOption) menu.appendChild(clearanceOption);
                 menu.appendChild(typeOption);
                 menu.appendChild(transferOption);
                 menu.appendChild(freeOption);
