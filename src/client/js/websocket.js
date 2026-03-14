@@ -8,9 +8,7 @@ let lastFetchTime = 0;
 let aircraftMap = {};
 let jsonData = {};
 let jsonDataSector = {};
-let lastResponseTime = Date.now();
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 3;
+
 let currentSessionCode = null;
 let evtSource = null;
 
@@ -33,14 +31,7 @@ function stopConnectionMonitoring() {
     }
 }
 
-function closeConnection() {
-    stopConnectionMonitoring();
-    closeEventSource();
-    isConnected = false;
-    updateWsStatus(false);
 
-    stateManager.clearEuroscopeStrips();
-}
 
 function updateWsStatus(connected) {
     const wsStatusEl = document.getElementById('wsStatus');
@@ -124,9 +115,9 @@ function startEvent() {
         const { callsign } = JSON.parse(e.data);
         delete aircraftMap[callsign];
 
-        
-        
-        
+
+
+
         if (typeof moveStripToHandover === 'function') {
             moveStripToHandover(callsign);
         } else {
@@ -254,7 +245,7 @@ function renderAircraft(flight) {
     const existingStrip = stateManager.getStrip(stripId);
     if (existingStrip) return;
 
-    let targetPanelName = "Overfly"; 
+    let targetPanelName = "Overfly";
     if (flight.transfer) {
         targetPanelName = "Handover";
     } else if (type === "departure") {
@@ -267,7 +258,7 @@ function renderAircraft(flight) {
 
     let panel = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
 
-    
+
     if (!panel) {
         panel = document.querySelector("[data-panel-name]");
         if (!panel) return;
@@ -280,7 +271,7 @@ function renderAircraft(flight) {
     strip.dataset.callsign = flight.callsign;
     if (!flight.callsign) strip.dataset.euroscope = "false";
 
-    
+
     if (flight.transfer) {
         stripContainer.prepend(strip);
         if (typeof window.expandHandover === 'function') window.expandHandover();
@@ -355,8 +346,8 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 
     (async () => {
-        const REMOTE_PROCEDURES = "https://raw.githubusercontent.com/Vatsim-Scandinavia/sector-data/main/procedures.json";
-        const REMOTE_SECTORS = "https://raw.githubusercontent.com/Vatsim-Scandinavia/sector-data/main/sectors.json";
+        const REMOTE_PROCEDURES = "https://raw.githubusercontent.com/Simplezes/StripCol/refs/heads/main/src/client/assets/procedures.json";
+        const REMOTE_SECTORS = "https://raw.githubusercontent.com/Simplezes/StripCol/refs/heads/main/src/client/assets/sectors.json";
         const LOCAL_PROCEDURES = "./assets/procedures.json";
         const LOCAL_SECTORS = "./assets/sectors.json";
 

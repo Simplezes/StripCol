@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS = {
     discordRpcEnabled: true
 };
 
-let originalServerIp = '127.0.0.1';
+
 
 let currentSettings = { ...DEFAULT_SETTINGS };
 
@@ -22,7 +22,7 @@ function loadSettings() {
     const settings = getSettings();
     if (settings) {
         currentSettings = { ...DEFAULT_SETTINGS, ...settings };
-        originalServerIp = currentSettings.serverIp;
+
     }
     applySettings();
     updateUIFromSettings();
@@ -456,7 +456,7 @@ document.getElementById('restartServerBtn').addEventListener('click', () => {
 
     if (window.electronAPI && window.electronAPI.restartServer) {
         window.electronAPI.restartServer(ip);
-        originalServerIp = ip;
+
 
         if (typeof showToast === 'function') {
             showToast("Server IP updated. Restarting...", "success");

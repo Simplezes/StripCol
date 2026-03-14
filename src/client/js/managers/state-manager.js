@@ -107,20 +107,7 @@ class PanelStateManager {
     }
 
 
-    removePanel(name) {
-        if (!this.loaded) this.load();
 
-        const index = this.panels.findIndex(p => p.name === name);
-        if (index === -1) {
-            console.warn(`Panel "${name}" not found`);
-            return false;
-        }
-
-        const removed = this.panels.splice(index, 1)[0];
-        this.save();
-        this.notifyObservers('panel-removed', removed);
-        return true;
-    }
 
     updatePanel(name, updates) {
         if (!this.loaded) this.load();
@@ -233,43 +220,7 @@ class PanelStateManager {
         return false;
     }
 
-    moveStrip(stripId, targetPanelName) {
-        if (!this.loaded) this.load();
 
-        const targetPanel = this.panels.find(p => p.name === targetPanelName);
-        if (!targetPanel) {
-            console.warn(`Target panel "${targetPanelName}" not found`);
-            return false;
-        }
-
-        let strip = null;
-        let sourcePanelName = null;
-
-        for (const panel of this.panels) {
-            if (panel.strips) {
-                const index = panel.strips.findIndex(s => s.id === stripId);
-                if (index >= 0) {
-                    strip = panel.strips.splice(index, 1)[0];
-                    sourcePanelName = panel.name;
-                    break;
-                }
-            }
-        }
-
-        if (!strip) {
-            console.warn(`Strip "${stripId}" not found`);
-            return false;
-        }
-
-        if (!targetPanel.strips) {
-            targetPanel.strips = [];
-        }
-        targetPanel.strips.push(strip);
-
-        this.save();
-        this.notifyObservers('strip-moved', { stripId, sourcePanelName, targetPanelName, strip });
-        return true;
-    }
 
     getStrip(stripId) {
         if (!this.loaded) this.load();

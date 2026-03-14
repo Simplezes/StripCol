@@ -19,7 +19,7 @@ function updateGatewayUrl() {
 async function apiFetch(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${GATEWAY_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
-    
+
     if (options.method && options.method !== 'GET' && !options.headers) {
         options.headers = { 'Content-Type': 'application/json' };
     }
@@ -34,16 +34,6 @@ async function apiFetch(endpoint, options = {}) {
 }
 
 updateGatewayUrl();
-
-const DEFAULT_COLORS = {
-    departure: '#6ee7b7',
-    arrival: '#f87171',
-    overfly: '#fde68a'
-};
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 function getLinkCode() {
     return getSettings().linkCode || null;
@@ -62,7 +52,7 @@ function updateZuluTime() {
     const utc = now.toUTCString().match(/(\d{2}:\d{2}:\d{2})/)[0];
     const parts = utc.split(':');
 
-    
+
     const showSeconds = (typeof currentSettings !== 'undefined') ? currentSettings.showSeconds : true;
     const timeString = showSeconds ? utc : `${parts[0]}:${parts[1]}`;
 

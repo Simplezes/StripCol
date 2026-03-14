@@ -1,16 +1,6 @@
-const PanelSchema = {
-    name: 'string',
-    strips: 'array'
-};
 
-const StripSchema = {
-    id: 'string',
-    type: 'string',
-    values: 'object',
-    euroscope: 'boolean',
-    flightPlan: 'object|null',
-    lastUpdate: 'number'
-};
+
+
 
 function validatePanel(panel) {
     const errors = [];

@@ -2,8 +2,7 @@ const mainLayout = document.getElementById("mainLayout");
 
 const addPanelBtn = document.getElementById("addPanelBtn");
 
-let panelUnderMouse = null;
-let stripUnderMouse = null;
+
 
 const TOWER_PANELS = [
     { key: "clearance", defaultName: "Clearance", cssClass: "panel-clearance", badgeCount: true, col: 1 },
@@ -24,14 +23,7 @@ const RADAR_PANELS = [
 
 let currentLayoutMode = null; 
 
-function savePanel(panel) {
-    const existing = stateManager.getPanel(panel.name);
-    if (existing) {
-        stateManager.updatePanel(panel.name, { name: panel.name, strips: [] });
-    } else {
-        stateManager.addPanel({ name: panel.name, strips: [] });
-    }
-}
+
 
 function loadPanels() {
     return stateManager.getPanels().map(p => ({ ...p }));
@@ -795,6 +787,4 @@ function waitForControllerModeAndRender() {
     }, 100);
 }
 
-function updatePanels() {  }
-function createPanel() {  }
-function removePanel() {  }
+
