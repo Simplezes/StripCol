@@ -124,25 +124,6 @@ class PanelStateManager {
         return true;
     }
 
-    renamePanel(oldName, newName) {
-        if (!this.loaded) this.load();
-
-        const panel = this.panels.find(p => p.name === oldName);
-        if (!panel) {
-            console.warn(`Panel "${oldName}" not found`);
-            return false;
-        }
-
-        if (this.panels.some(p => p.name === newName && p !== panel)) {
-            console.warn(`Panel with name "${newName}" already exists`);
-            return false;
-        }
-
-        panel.name = newName;
-        this.save();
-        this.notifyObservers('panel-renamed', { oldName, newName, panel });
-        return true;
-    }
 
     addStrip(panelName, strip) {
         if (!this.loaded) this.load();

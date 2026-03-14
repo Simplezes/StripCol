@@ -1020,8 +1020,8 @@ function saveStripValues(stripEl) {
     const panelElement = stripEl.closest("[data-panel-name]");
     if (!panelElement) return;
 
-    const panelNameInput = panelElement.querySelector(".panel-name-input");
-    const panelName = panelElement.dataset.panelName || panelNameInput?.value.trim();
+    const panelNameText = panelElement.querySelector(".panel-name-text");
+    const panelName = panelElement.dataset.panelName || panelNameText?.textContent.trim();
     if (!panelName) return;
 
     const stripId = stripEl.dataset.stripId;
@@ -1185,6 +1185,12 @@ async function UpdateStrip(flight, type = null) {
     });
 
     await fillStripFromFlightData(strip, flight, stripType);
+
+    // Trigger auto-move after filling data for existing strips (from WebSocket updates)
+    const c12Input = strip.querySelector(".c12");
+    if (c12Input) {
+        autoMoveStripOnC12(strip, c12Input.value.trim());
+    }
 
     Object.entries(customValues).forEach(([index, value]) => {
         const input = strip.querySelectorAll("input.box")[parseInt(index)];

@@ -1,6 +1,5 @@
 const mainLayout = document.getElementById("mainLayout");
 
-const addPanelBtn = document.getElementById("addPanelBtn");
 
 
 
@@ -63,17 +62,15 @@ function createPanelHeader(panelName, noCollapse = false) {
     const header = document.createElement("div");
     header.className = "card-header d-flex align-items-center gap-2";
 
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.value = panelName;
-    nameInput.className = "form-control form-control-sm flex-grow-1 bg-transparent border-0 text-white panel-name-input";
-    nameInput.style.fontWeight = "bold";
+    const nameText = document.createElement("span");
+    nameText.textContent = panelName;
+    nameText.className = "panel-name-text";
 
     const badge = document.createElement("span");
     badge.className = "panel-strip-count";
     badge.textContent = "0";
 
-    header.appendChild(nameInput);
+    header.appendChild(nameText);
     header.appendChild(badge);
 
     if (!noCollapse && (panelName === "Handover" || panelName.toUpperCase() === "HANDOVER")) {
@@ -83,10 +80,8 @@ function createPanelHeader(panelName, noCollapse = false) {
         const toggleIcon = document.createElement("span");
         toggleIcon.className = "material-icons handover-toggle-icon";
         toggleIcon.textContent = isCollapsedInitial ? "expand_less" : "expand_more";
-        header.insertBefore(toggleIcon, nameInput);
+        header.insertBefore(toggleIcon, nameText);
 
-        nameInput.readOnly = true;
-        nameInput.style.pointerEvents = "none";
         header.style.cursor = "pointer";
         header.title = "Click to expand/collapse Handover";
         header.addEventListener("click", () => {
@@ -96,9 +91,7 @@ function createPanelHeader(panelName, noCollapse = false) {
                 const isCollapsed = colElement.classList.contains("handover-collapsed");
 
                 const colIndex = colElement.dataset.col;
-                const numCards = colElement.querySelectorAll('.card').length;
                 const isRadar = currentLayoutMode === "radar";
-                const defaultH = isRadar ? (colIndex == 3 ? 35 : 100) : (colIndex == 3 ? 60 : 70);
 
                 if (isCollapsed) {
                     mainLayout.style.setProperty(`--h${colIndex}`, '95%');
@@ -108,25 +101,11 @@ function createPanelHeader(panelName, noCollapse = false) {
                     toggleIcon.textContent = "expand_more";
                 }
 
-
                 const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
                 settings[currentLayoutMode] = isCollapsed;
                 localStorage.setItem('handoverCollapsed', JSON.stringify(settings));
 
                 if (typeof saveGridDimensions === 'function') saveGridDimensions();
-            }
-        });
-    } else {
-        nameInput.addEventListener("blur", function () {
-            const oldName = panelName;
-            const newName = this.value.trim();
-            if (oldName !== newName && newName.length > 0) {
-                updatePanelName(oldName, newName);
-                const panelElement = header.closest("[data-panel-name]");
-                if (panelElement) panelElement.dataset.panelName = newName;
-                panelName = newName;
-            } else {
-                this.value = panelName;
             }
         });
     }
@@ -409,12 +388,6 @@ function showAssumeAircraftMenu(menu, panelElement, stripContainer) {
     };
 }
 
-function updatePanelName(oldName, newName) {
-    if (stateManager.renamePanel(oldName, newName)) {
-        const panelElement = document.querySelector(`[data-panel-name="${oldName}"]`);
-        if (panelElement) panelElement.dataset.panelName = newName;
-    }
-}
 
 function addStripToPanel(panelName, stripEl, flightPlan = null) {
     const stripId = stripEl.dataset.stripId || ("strip-" + Date.now());
@@ -797,8 +770,6 @@ function saveGridDimensions() {
 function initFixedPanels() {
     applyFacilityLayout();
 }
-
-if (addPanelBtn) addPanelBtn.style.display = "none";
 
 document.addEventListener("DOMContentLoaded", function () {
     initFixedPanels();

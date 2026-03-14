@@ -20,16 +20,18 @@
    border-radius: 0 !important;
 }
 
-.card-header input[type="text"] {
-   background: transparent !important;
-   border: none !important;
+.panel-name-text {
    color: var(--atm-blue);
    font-family: var(--font-data) !important;
    font-size: 0.8rem !important;
    font-weight: 800 !important;
    text-transform: uppercase;
-   width: 100%;
-   outline: none;
+   flex-grow: 1;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+   pointer-events: none;
+   user-select: none;
 }
 
 .panel-strip-count {

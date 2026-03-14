@@ -251,26 +251,34 @@ function renderAircraft(flight) {
         targetPanelName = "Handover";
     } else {
         // Facility-aware spawn routing
-        // Each position routes strip types to the correct panel
-        const ft = window.facilityType || "tower";
-        const cm = window.controllerMode;
+        const settings = (typeof currentSettings !== 'undefined' && currentSettings) ? currentSettings : {};
+        const autoMove = settings.autoMoveClearance;
+        const aerodromeFacilities = new Set(['del', 'ground', 'tower']);
 
-        if (cm === "approach" || cm === "center") {
-            // Radar positions
-            if (type === "departure")    targetPanelName = "Departures";
-            else if (type === "arrival") targetPanelName = "Arrivals";
-            else                         targetPanelName = "Overfly";
-        } else if (ft === "ground") {
-            // Ground: arrivals go to Ground Movement, everything else to Pending
-            if (type === "arrival")      targetPanelName = "Ground Movement";
-            else                         targetPanelName = "Pending"; // departure + overfly/unknown
-        } else if (ft === "tower") {
-            // Tower: arrivals from Approach go to Sequence, departures/unknown to Pending
-            if (type === "arrival")      targetPanelName = "Sequence";
-            else                         targetPanelName = "Pending";
+        if (autoMove && aerodromeFacilities.has(window.facilityType) && flight.clearedFlag == 1) {
+            targetPanelName = "Clearance";
         } else {
-            // DEL and TWR: everything starts in Pending
-            targetPanelName = "Pending";
+            // Each position routes strip types to the correct panel
+            const ft = window.facilityType || "tower";
+            const cm = window.controllerMode;
+
+            if (cm === "approach" || cm === "center") {
+                // Radar positions
+                if (type === "departure")    targetPanelName = "Departures";
+                else if (type === "arrival") targetPanelName = "Arrivals";
+                else                         targetPanelName = "Overfly";
+            } else if (ft === "ground") {
+                // Ground: arrivals go to Ground Movement, everything else to Pending
+                if (type === "arrival")      targetPanelName = "Ground Movement";
+                else                         targetPanelName = "Pending"; // departure + overfly/unknown
+            } else if (ft === "tower") {
+                // Tower: arrivals from Approach go to Sequence, departures/unknown to Pending
+                if (type === "arrival")      targetPanelName = "Sequence";
+                else                         targetPanelName = "Pending";
+            } else {
+                // DEL and TWR: everything starts in Pending
+                targetPanelName = "Pending";
+            }
         }
     }
 
@@ -297,8 +305,7 @@ function renderAircraft(flight) {
         stripContainer.appendChild(strip);
     }
 
-    const panelNameInput = panel.querySelector("input");
-    const panelName = panelNameInput ? panelNameInput.value.trim() : panel.dataset.panelName;
+    const panelName = panel.dataset.panelName;
 
     if (panelName) addStripToPanel(panelName, strip, flight);
 }

@@ -1,4 +1,3 @@
-
 :root {
     --sys-bg-0: #c0c0c0;
     --sys-bg-1: #ffffff;
@@ -83,4 +82,9 @@
     border: 2px inset #ffffff !important;
     color: #000000 !important;
     border-radius: 0;
+}
+
+.panel-name-text {
+    color: #000000 !important;
+    font-weight: 700 !important;
 }
