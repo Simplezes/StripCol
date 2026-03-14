@@ -2,7 +2,7 @@
     <img src="src\client\img\icon_name.png" alt="StripCol Icon" style="width:45%">
 </div>
 
-**StripCol** is a high-performance, electronic flight strip management ecosystem custom-built for **[VATSIM Colombia (VATCOL)](https://vatcol.org/)**. It bridges the gap between traditional EuroScope operations and modern web-based interfaces, providing Air Traffic Controllers with a sleek, responsive, and highly functional workspace.
+**StripCol** is an electronic flight strip management ecosystem custom-built for **[VATSIM Colombia (VATCOL)](https://vatcol.org/)**. It bridges the gap between traditional EuroScope operations and modern web-based interfaces, providing Air Traffic Controllers with a sleek, responsive, and highly functional workspace.
 
 ![StripCol Interface](screenshot.png)
 
