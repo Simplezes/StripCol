@@ -14,6 +14,7 @@ let evtSource = null;
 
 window.controllerMode = "aerodrome";
 window.positionId = "";
+window.facilityType = "tower"; // del | ground | tower | approach | center
 
 function startConnectionMonitoring() {
     stopConnectionMonitoring();
@@ -245,15 +246,32 @@ function renderAircraft(flight) {
     const existingStrip = stateManager.getStrip(stripId);
     if (existingStrip) return;
 
-    let targetPanelName = "Overfly";
+    let targetPanelName;
     if (flight.transfer) {
         targetPanelName = "Handover";
-    } else if (type === "departure") {
-        targetPanelName = window.controllerMode === "aerodrome" ? "Clearance" : "Departures";
-    } else if (type === "arrival") {
-        targetPanelName = window.controllerMode === "aerodrome" ? "Sequence RWY" : "Arrivals";
-    } else if (type === "overfly") {
-        targetPanelName = window.controllerMode === "aerodrome" ? "Handover" : "Overfly";
+    } else {
+        // Facility-aware spawn routing
+        // Each position routes strip types to the correct panel
+        const ft = window.facilityType || "tower";
+        const cm = window.controllerMode;
+
+        if (cm === "approach" || cm === "center") {
+            // Radar positions
+            if (type === "departure")    targetPanelName = "Departures";
+            else if (type === "arrival") targetPanelName = "Arrivals";
+            else                         targetPanelName = "Overfly";
+        } else if (ft === "ground") {
+            // Ground: arrivals go to Ground Movement, everything else to Pending
+            if (type === "arrival")      targetPanelName = "Ground Movement";
+            else                         targetPanelName = "Pending"; // departure + overfly/unknown
+        } else if (ft === "tower") {
+            // Tower: arrivals from Approach go to Sequence, departures/unknown to Pending
+            if (type === "arrival")      targetPanelName = "Sequence";
+            else                         targetPanelName = "Pending";
+        } else {
+            // DEL and TWR: everything starts in Pending
+            targetPanelName = "Pending";
+        }
     }
 
     let panel = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
@@ -287,12 +305,12 @@ function renderAircraft(flight) {
 
 function setControllerInfo(data, returnPositionName = false) {
     const facilityMap = {
-        1: ["aerodrome", "Flight Service Station"],
-        2: ["aerodrome", "Clearance Delivery"],
-        3: ["aerodrome", "Ground"],
-        4: ["aerodrome", "Tower"],
-        5: ["approach", "Approach / Departure"],
-        6: ["center", "Area Control Center"]
+        1: ["aerodrome", "Flight Service Station", "tower"],
+        2: ["aerodrome", "Clearance Delivery", "del"],
+        3: ["aerodrome", "Ground", "ground"],
+        4: ["aerodrome", "Tower", "tower"],
+        5: ["approach", "Approach / Departure", "approach"],
+        6: ["center", "Area Control Center", "center"]
     };
 
     if (returnPositionName) {
@@ -305,9 +323,11 @@ function setControllerInfo(data, returnPositionName = false) {
 
     const facilityInfo = facilityMap[data.facility] || facilityMap[parseInt(data.facility)];
     const newMode = (facilityInfo && facilityInfo[0]) || "";
-    const modeChanged = window.controllerMode !== newMode;
+    const newFacilityType = (facilityInfo && facilityInfo[2]) || "tower";
+    const modeChanged = window.controllerMode !== newMode || window.facilityType !== newFacilityType;
 
     window.controllerMode = newMode;
+    window.facilityType = newFacilityType;
     window.positionId = data.positionId || "";
     window.controllerCallsign = data.callsign || "";
 

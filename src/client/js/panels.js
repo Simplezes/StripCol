@@ -4,12 +4,27 @@ const addPanelBtn = document.getElementById("addPanelBtn");
 
 
 
+const DELIVERY_PANELS = [
+    { key: "del-pending", defaultName: "Pending", cssClass: "panel-pending", badgeCount: true, col: 1 },
+    { key: "del-clearance", defaultName: "Clearance", cssClass: "panel-clearance", badgeCount: true, col: 2 },
+    { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3, noCollapse: true },
+];
+
+const GROUND_PANELS = [
+    { key: "gnd-pending", defaultName: "Pending", cssClass: "panel-pending", badgeCount: true, col: 1 },
+    { key: "gnd-clearance", defaultName: "Clearance", cssClass: "panel-clearance", badgeCount: true, col: 2 },
+    { key: "gnd-pushback", defaultName: "Pushback", cssClass: "panel-pushback", badgeCount: true, col: 2 },
+    { key: "gnd-movement", defaultName: "Ground Movement", cssClass: "panel-ground", badgeCount: true, col: 3 },
+    { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
+];
+
 const TOWER_PANELS = [
-    { key: "clearance", defaultName: "Clearance", cssClass: "panel-clearance", badgeCount: true, col: 1 },
-    { key: "pushback", defaultName: "Pushback", cssClass: "panel-pushback", badgeCount: true, col: 1 },
-    { key: "ground", defaultName: "Ground Movement", cssClass: "panel-ground", badgeCount: true, col: 2 },
-    { key: "hp-rwy", defaultName: "Holding Point RWY", cssClass: "panel-hp-rwy", badgeCount: true, col: 2 },
-    { key: "sequence", defaultName: "Sequence RWY", cssClass: "panel-sequence", badgeCount: true, col: 3 },
+    { key: "twr-pending", defaultName: "Pending", cssClass: "panel-pending", badgeCount: true, col: 1 },
+    { key: "twr-clearance", defaultName: "Clearance", cssClass: "panel-clearance", badgeCount: true, col: 1 },
+    { key: "twr-pushback", defaultName: "Pushback", cssClass: "panel-pushback", badgeCount: true, col: 2 },
+    { key: "twr-movement", defaultName: "Ground Movement", cssClass: "panel-ground", badgeCount: true, col: 2 },
+    { key: "twr-holding", defaultName: "Holding Point", cssClass: "panel-hp-rwy", badgeCount: true, col: 2 },
+    { key: "twr-sequence", defaultName: "Sequence", cssClass: "panel-sequence", badgeCount: true, col: 3 },
     { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
 ];
 
@@ -20,6 +35,15 @@ const RADAR_PANELS = [
     { key: "holding", defaultName: "Holding", cssClass: "panel-holding", badgeCount: true, col: 3 },
     { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
 ];
+
+// Map facilityType → panel definition
+const FACILITY_PANEL_MAP = {
+    del: DELIVERY_PANELS,
+    ground: GROUND_PANELS,
+    tower: TOWER_PANELS,
+    approach: RADAR_PANELS,
+    center: RADAR_PANELS,
+};
 
 let currentLayoutMode = null;
 
@@ -35,7 +59,7 @@ function updatePanelBadge(panelElement) {
     if (badge) badge.textContent = count;
 }
 
-function createPanelHeader(panelName) {
+function createPanelHeader(panelName, noCollapse = false) {
     const header = document.createElement("div");
     header.className = "card-header d-flex align-items-center gap-2";
 
@@ -52,7 +76,7 @@ function createPanelHeader(panelName) {
     header.appendChild(nameInput);
     header.appendChild(badge);
 
-    if (panelName === "Handover" || panelName.toUpperCase() === "HANDOVER") {
+    if (!noCollapse && (panelName === "Handover" || panelName.toUpperCase() === "HANDOVER")) {
         const settings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
         const isCollapsedInitial = settings[currentLayoutMode] !== false;
 
@@ -110,7 +134,7 @@ function createPanelHeader(panelName) {
     return header;
 }
 
-function createPanelElement(panel, cssClass, colIndex) {
+function createPanelElement(panel, cssClass, colIndex, noCollapse = false) {
     const panelElement = document.createElement("div");
     panelElement.className = `card ${cssClass}`;
     panelElement.dataset.panelName = panel.name;
@@ -118,7 +142,7 @@ function createPanelElement(panel, cssClass, colIndex) {
     const stripContainer = document.createElement("div");
     stripContainer.className = "strip-container";
 
-    const header = createPanelHeader(panel.name);
+    const header = createPanelHeader(panel.name, noCollapse);
 
     panelElement.appendChild(header);
     panelElement.appendChild(stripContainer);
@@ -454,14 +478,13 @@ function renderStrips() {
 }
 
 window.applyFacilityLayout = function () {
-    const isRadar = window.controllerMode === "approach" || window.controllerMode === "center";
-    const targetLayout = isRadar ? "radar" : "tower";
-
+    const ft = window.facilityType || "tower";
+    const isRadar = ft === "approach" || ft === "center";
+    const targetLayout = isRadar ? "radar" : ft; // 'del' | 'ground' | 'tower' | 'radar'
 
     if (currentLayoutMode === targetLayout && mainLayout.children.length > 0) return;
 
     currentLayoutMode = targetLayout;
-
 
     mainLayout.dataset.layout = targetLayout;
     mainLayout.innerHTML = `
@@ -469,7 +492,6 @@ window.applyFacilityLayout = function () {
         <div class="panel-col" data-col="2"></div>
         <div class="panel-col" data-col="3"></div>
     `;
-
 
     const settings = JSON.parse(localStorage.getItem('layoutGridHeights') || '{}');
     if (settings[targetLayout]) {
@@ -483,7 +505,6 @@ window.applyFacilityLayout = function () {
             mainLayout.style.setProperty('--c3', `${settings[targetLayout].c3}fr`);
         }
     } else {
-
         if (isRadar) {
             mainLayout.style.setProperty('--h1', '100%');
             mainLayout.style.setProperty('--h2', '100%');
@@ -498,16 +519,14 @@ window.applyFacilityLayout = function () {
         mainLayout.style.setProperty('--c3', '30fr');
     }
 
-    const TARGET_DEF = isRadar ? RADAR_PANELS : TOWER_PANELS;
+    const TARGET_DEF = FACILITY_PANEL_MAP[ft] || TOWER_PANELS;
     const targetNames = new Set(TARGET_DEF.map(d => d.defaultName));
-
 
     const savedPanels = loadPanels();
     const saveNames = new Set(savedPanels.map(p => p.name));
 
-
     const hasMatchingLayout = [...targetNames].some(tn => saveNames.has(tn));
-    if (!hasMatchingLayout || savedPanels.length !== 6) {
+    if (!hasMatchingLayout || savedPanels.length !== TARGET_DEF.length) {
         console.info(`[panels] Switching layout to ${targetLayout}. Wiping old layout data.`);
         localStorage.removeItem("panels");
         stateManager.panels = [];
@@ -525,27 +544,35 @@ window.applyFacilityLayout = function () {
             stateManager.addPanel({ name: panelName, key: def.key, strips: [] });
         }
 
-        createPanelElement({ name: panelName }, def.cssClass, def.col);
+        createPanelElement({ name: panelName }, def.cssClass, def.col, def.noCollapse || false);
     });
 
 
+    // For noCollapse Handover panels (DEL), force them to always be 100% height
+    const noCollapseDefs = (FACILITY_PANEL_MAP[window.facilityType || 'tower'] || []).filter(d => d.noCollapse);
+    noCollapseDefs.forEach(def => {
+        const colDiv = document.querySelector(`.panel-col[data-col="${def.col}"]`);
+        if (colDiv) {
+            colDiv.classList.remove("handover-collapsed");
+            mainLayout.style.setProperty(`--h${def.col}`, '100%');
+        }
+    });
+
+    // For collapsible Handover panels, apply saved state (skip cols that have noCollapse)
+    const noCollapseCols = new Set(noCollapseDefs.map(d => String(d.col)));
     const collSettings = JSON.parse(localStorage.getItem('handoverCollapsed') || '{}');
-    if (collSettings[targetLayout] !== false) {
-        document.querySelectorAll(".panel-col").forEach(col => {
-            const lastCard = col.querySelector(".card:last-child");
-            if (lastCard && (lastCard.dataset.panelName === "Handover" || lastCard.classList.contains("panel-handover"))) {
-                col.classList.add("handover-collapsed");
-                mainLayout.style.setProperty(`--h${col.dataset.col}`, '95%');
-            }
-        });
-    } else {
-        document.querySelectorAll(".panel-col").forEach(col => {
-            const lastCard = col.querySelector(".card:last-child");
-            if (lastCard && (lastCard.dataset.panelName === "Handover" || lastCard.classList.contains("panel-handover"))) {
-                mainLayout.style.setProperty(`--h${col.dataset.col}`, '65%');
-            }
-        });
-    }
+    document.querySelectorAll(".panel-col").forEach(col => {
+        if (noCollapseCols.has(col.dataset.col)) return; // already handled above
+        const lastCard = col.querySelector(".card:last-child");
+        if (!lastCard || (!lastCard.classList.contains("panel-handover") && lastCard.dataset.panelName !== "Handover")) return;
+
+        if (collSettings[targetLayout] !== false) {
+            col.classList.add("handover-collapsed");
+            mainLayout.style.setProperty(`--h${col.dataset.col}`, '95%');
+        } else {
+            mainLayout.style.setProperty(`--h${col.dataset.col}`, '65%');
+        }
+    });
 
     renderStrips();
 

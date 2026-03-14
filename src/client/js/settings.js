@@ -14,7 +14,9 @@ const DEFAULT_SETTINGS = {
     discordRpcEnabled: true,
     theme: 'dark',
     darkStrips: false,
-    autohideHeader: false
+    autohideHeader: false,
+    autoMoveClearance: false,
+    autoMoveRevert: false
 };
 
 let currentSettings = { ...DEFAULT_SETTINGS };
@@ -118,8 +120,14 @@ function updateUIFromSettings() {
         'showSecondsToggle': currentSettings.showSeconds,
         'discordRpcToggle': currentSettings.discordRpcEnabled,
         'darkStripsToggle': currentSettings.darkStrips,
-        'autohideHeaderToggle': currentSettings.autohideHeader
+        'autohideHeaderToggle': currentSettings.autohideHeader,
+        'autoMoveClearanceToggle': currentSettings.autoMoveClearance,
+        'autoMoveRevertToggle': currentSettings.autoMoveRevert
     };
+
+    // Keep revert sub-toggle visually enabled only if parent is on
+    const revertContainer = document.getElementById('autoMoveRevertContainer');
+    if (revertContainer) revertContainer.style.opacity = currentSettings.autoMoveClearance ? '1' : '0.4';
 
     for (const [id, val] of Object.entries(toggles)) {
         const el = document.getElementById(id);
@@ -222,7 +230,9 @@ function initSettingsEvents() {
         'showSecondsToggle': 'showSeconds',
         'discordRpcToggle': 'discordRpcEnabled',
         'darkStripsToggle': 'darkStrips',
-        'autohideHeaderToggle': 'autohideHeader'
+        'autohideHeaderToggle': 'autohideHeader',
+        'autoMoveClearanceToggle': 'autoMoveClearance',
+        'autoMoveRevertToggle': 'autoMoveRevert'
     };
 
     for (const [id, key] of Object.entries(toggleBindings)) {

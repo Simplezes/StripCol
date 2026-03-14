@@ -131,6 +131,34 @@
                                     </div>
                                 </div>
 
+                                <h6 class="settings-section-title">Strip Automation</h6>
+                                <div class="settings-item">
+                                    <div class="settings-info">
+                                        <div class="settings-label">Auto-move to Clearance</div>
+                                        <div class="settings-description">Automatically move a strip to the Clearance
+                                            bay when the flightplan has been cleared.</div>
+                                    </div>
+                                    <div class="settings-control">
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" id="autoMoveClearanceToggle"
+                                                role="switch">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="settings-item" id="autoMoveRevertContainer">
+                                    <div class="settings-info">
+                                        <div class="settings-label">Revert to Pending on clear</div>
+                                        <div class="settings-description">Move strip back to Pending if cleared flag is
+                                            cleared.</div>
+                                    </div>
+                                    <div class="settings-control">
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" id="autoMoveRevertToggle"
+                                                role="switch">
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <h6 class="settings-section-title">Maintenance</h6>
                                 <div class="settings-item">
                                     <div class="settings-info">
@@ -165,10 +193,14 @@
                                     </div>
                                     <div class="settings-control" style="width: 140px;">
                                         <div class="dropdown theme-dropdown">
-                                            <button class="btn form-control form-control-dark dropdown-toggle w-100 d-flex justify-content-between align-items-center" type="button" id="themeDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button
+                                                class="btn form-control form-control-dark dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+                                                type="button" id="themeDropdownBtn" data-bs-toggle="dropdown"
+                                                aria-expanded="false">
                                                 <span id="themeDropdownText">Dark</span>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-dark w-100 shadow-sm custom-theme-menu" aria-labelledby="themeDropdownBtn" id="themeSelect">
+                                            <ul class="dropdown-menu dropdown-menu-dark w-100 shadow-sm custom-theme-menu"
+                                                aria-labelledby="themeDropdownBtn" id="themeSelect">
                                                 <!-- Populated by JS -->
                                             </ul>
                                         </div>
@@ -177,7 +209,8 @@
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Dark Strips</div>
-                                        <div class="settings-description">Force flight strips to have a dark background.</div>
+                                        <div class="settings-description">Force flight strips to have a dark background.
+                                        </div>
                                     </div>
                                     <div class="settings-control">
                                         <div class="form-check form-switch m-0">

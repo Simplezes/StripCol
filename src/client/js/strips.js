@@ -134,6 +134,17 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
         }
     });
 
+    // After fragment is built, hook auto-move on the c12 input for aerodrome positions
+    // We do this after the loop so the input is fully constructed
+    setTimeout(() => {
+        const c12Input = div.querySelector(".c12");
+        if (c12Input) {
+            c12Input.addEventListener("blur", () => {
+                autoMoveStripOnC12(div, c12Input.value.trim());
+            });
+        }
+    }, 0);
+
     const dtDiv = document.createElement("div");
     dtDiv.className = "box c33 ri_ot bt_ot";
     dtDiv.style.cssText = "display:flex;flex-direction:column;text-align:center;font-size:60%;color:var(--sys-text);";
@@ -186,6 +197,70 @@ function attachInputEventHandlers(strip) {
             if (stripDiv) stripDiv.draggable = true;
         });
     });
+}
+
+/**
+ * Auto-move strip between Pending <-> Clearance based on c12 value.
+ * c12 is the clearance flag Ⓑ — only meaningful for DEL, GND, and TWR positions.
+ * Respects user settings: autoMoveClearance and autoMoveRevert.
+ */
+function autoMoveStripOnC12(strip, c12Value) {
+    // c12 as clearance flag is ONLY valid for aerodrome positions (DEL/GND/TWR)
+    // On approach/center, c12 is the "Direct To" field — do NOT interfere
+    const aerodromeFacilities = new Set(['del', 'ground', 'tower']);
+    if (!aerodromeFacilities.has(window.facilityType)) return;
+
+    // Safe accessor for settings regardless of script load order
+    const settings = (typeof currentSettings !== 'undefined' && currentSettings) ? currentSettings : {};
+    const autoMove = settings.autoMoveClearance;
+    const autoRevert = settings.autoMoveRevert;
+
+    if (!autoMove) return;
+
+    const isFilled = c12Value !== "";
+
+    // Find which panel the strip currently belongs to
+    const currentCard = strip.closest("[data-panel-name]");
+    if (!currentCard) return;
+    const currentPanelName = currentCard.dataset.panelName;
+
+    let targetPanelName = null;
+
+    if (isFilled && currentPanelName === "Pending") {
+        targetPanelName = "Clearance";
+    } else if (!isFilled && autoRevert && currentPanelName === "Clearance") {
+        targetPanelName = "Pending";
+    }
+
+    if (!targetPanelName) return;
+
+    const targetCard = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
+    if (!targetCard) return;
+
+    const targetContainer = targetCard.querySelector(".strip-container");
+    if (!targetContainer) return;
+
+    // Move the DOM element
+    targetContainer.appendChild(strip);
+
+    // Update stateManager: remove from old panel, add to new one
+    const stripId = strip.dataset.stripId;
+    let movedStripData = null;
+
+    stateManager.getPanels().forEach(panel => {
+        const idx = panel.strips?.findIndex(s => s.id === stripId);
+        if (idx !== undefined && idx !== -1) {
+            movedStripData = panel.strips[idx];
+            stateManager.removeStrip(stripId);
+        }
+    });
+
+    if (movedStripData) {
+        stateManager.addStrip(targetPanelName, movedStripData);
+    }
+
+    enableSortableForAllPanels();
+    syncRPC();
 }
 
 function enableSortableForAllPanels() {
