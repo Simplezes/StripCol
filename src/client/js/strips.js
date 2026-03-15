@@ -596,39 +596,48 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
 
 function showRouteMenu(parentMenu, flight, strip) {
     parentMenu.innerHTML = '';
-
     addBackButton(parentMenu, strip);
 
+    const routeContainer = document.createElement("div");
+    routeContainer.className = "route-modern-container";
+
+    const header = document.createElement("div");
+    header.className = "route-header";
+    header.innerHTML = `
+        <div class="route-endpoints">
+            <span class="route-dep">${flight.departure || '???'}</span>
+            <span class="material-icons">flight_takeoff</span>
+            <span class="route-arr">${flight.arrival || '???'}</span>
+        </div>
+    `;
+    routeContainer.appendChild(header);
+
     const routeDiv = document.createElement("div");
-    routeDiv.className = "route-display";
+    routeDiv.className = "route-text-flow";
 
-    const words = flight.route.split(/\s+/);
+    const words = (flight.route || '').trim().split(/\s+/);
 
-    words.forEach((word, index) => {
+    words.forEach((word) => {
+        if (!word) return;
+        
         let span = document.createElement("span");
-
+        const typeClass = getRoutePointClass(word);
+        
         if (word.includes("/")) {
             const [point, extra] = word.split("/", 2);
-            span.innerHTML = `<span class="badge-text">${point}</span><span class="badge-extra">/${extra}</span>`;
-            span.style.color = getColorForAviationPoint(point);
-            span.className = "route-badge";
-            routeDiv.appendChild(span);
+            span.innerHTML = `<span class="${typeClass}">${point}</span><span class="word-extra">/${extra}</span>`;
+            span.className = "route-word"; 
         } else {
-            span.innerHTML = `<span class="badge-text">${word}</span>`;
-            span.style.color = getColorForAviationPoint(word);
-            span.className = "route-badge";
-            routeDiv.appendChild(span);
+            span.innerHTML = word;
+            span.className = `route-word ${typeClass}`;
         }
 
-        if (index < words.length - 1) {
-            let connector = document.createElement("span");
-            connector.className = "route-connector";
-            connector.innerHTML = "›";
-            routeDiv.appendChild(connector);
-        }
+        span.title = getPointType(word);
+        routeDiv.appendChild(span);
     });
 
-    parentMenu.appendChild(routeDiv);
+    routeContainer.appendChild(routeDiv);
+    parentMenu.appendChild(routeContainer);
 
     positionMenuSafely(
         parentMenu,
@@ -637,23 +646,26 @@ function showRouteMenu(parentMenu, flight, strip) {
     );
 }
 
-function getColorForAviationPoint(word) {
+function getRoutePointClass(word) {
     const w = word.toUpperCase();
-    if (w === "DCT") {
-        return "#8b949e"; 
-    } else if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) {
-        return "#ff7b72"; 
-    } else if (/^[A-Z]{3}$/i.test(w)) {
-        return "#7ee787"; 
-    } else if (/^[A-Z]{5}$/i.test(w)) {
-        return "#79c0ff"; 
-    } else if (/^[A-Z]+\d+$/i.test(w) && w.length <= 6) {
-        return "#d2a8ff"; 
-    } else if (/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{3,}$/i.test(w)) {
-        return "#ffb564"; 
-    } else {
-        return "#c9d1d9"; 
-    }
+    if (w === "DCT") return "point-dct";
+    if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) return "point-rwy";
+    if (/^[A-Z]{3}$/i.test(w)) return "point-vor";
+    if (/^[A-Z]{5}$/i.test(w)) return "point-fix";
+    if (/^[A-Z]+\d+$/i.test(w) && w.length <= 6) return "point-awy";
+    if (/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{3,}$/i.test(w)) return "point-proc";
+    return "point-unk";
+}
+
+function getPointType(word) {
+    const w = word.toUpperCase();
+    if (w === "DCT") return "Direct";
+    if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) return "Runway";
+    if (/^[A-Z]{3}$/i.test(w)) return "VOR / NDB Range";
+    if (/^[A-Z]{5}$/i.test(w)) return "Intersection";
+    if (/^[A-Z]+\d+$/i.test(w) && w.length <= 6) return "Airway";
+    if (/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{3,}$/i.test(w)) return "Procedure (SID/STAR)";
+    return "Unknown Phase";
 }
 
 async function showTransferMenu(menu, ac, strip) {
