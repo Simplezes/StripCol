@@ -69,21 +69,17 @@
         </div>
     </main>
 
-    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel"
-        aria-modal="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="modal-title d-flex align-items-center gap-2">
-                        <span class="material-icons">settings</span>
-                        <span>Settings</span>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <div class="settings-container">
-
-                        <div class="settings-sidebar">
+    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content custom-settings-modal">
+                <div class="settings-container">
+                    
+                    <div class="settings-sidebar">
+                        <div class="sidebar-header">
+                            <span class="material-icons">tune</span>
+                            <h2>Settings</h2>
+                        </div>
+                        <div class="sidebar-nav">
                             <button class="settings-tab active" data-tab="general">
                                 <span class="material-icons">settings</span>
                                 <span>General</span>
@@ -93,7 +89,7 @@
                                 <span>Appearance</span>
                             </button>
                             <button class="settings-tab" data-tab="network">
-                                <span class="material-icons">dns</span>
+                                <span class="material-icons">sensors</span>
                                 <span>Network</span>
                             </button>
                             <button class="settings-tab" data-tab="about">
@@ -101,151 +97,171 @@
                                 <span>About</span>
                             </button>
                         </div>
+                    </div>
 
-                        <div class="settings-content">
+                    <div class="settings-content">
+                        <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+                            <span class="material-icons">close</span>
+                        </button>
 
-                            <div class="settings-pane active" id="tab-general">
-                                <h6 class="settings-section-title">System</h6>
+                        <div class="settings-pane active" id="tab-general">
+                            <div class="pane-header">
+                                <h3>General</h3>
+                                <p>System and automation preferences</p>
+                            </div>
+
+                            <div class="settings-card">
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Audio Notifications</div>
                                         <div class="settings-description">Play a sound on new aircraft arrival.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="audioToggle"
-                                                role="switch">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="audioToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
-
+                                <div class="settings-divider"></div>
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Discord Rich Presence</div>
                                         <div class="settings-description">Show your current status on Discord.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="discordRpcToggle"
-                                                role="switch">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="discordRpcToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
+                            </div>
 
-                                <h6 class="settings-section-title">Strip Automation</h6>
+                            <h6 class="settings-section-title mt-4">Strip Automation</h6>
+                            <div class="settings-card">
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Auto-move to Clearance</div>
-                                        <div class="settings-description">Automatically move a strip to the Clearance
-                                            bay when the flightplan has been cleared.</div>
+                                        <div class="settings-description">Automatically move a strip when flightplan is cleared.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="autoMoveClearanceToggle"
-                                                role="switch">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="autoMoveClearanceToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
+                                <div class="settings-divider"></div>
                                 <div class="settings-item" id="autoMoveRevertContainer">
                                     <div class="settings-info">
                                         <div class="settings-label">Revert to Pending on clear</div>
-                                        <div class="settings-description">Move strip back to Pending if cleared flag is
-                                            cleared.</div>
+                                        <div class="settings-description">Move strip back to Pending if cleared flag is removed.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="autoMoveRevertToggle"
-                                                role="switch">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="autoMoveRevertToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
+                            </div>
 
-                                <h6 class="settings-section-title">Maintenance</h6>
+                            <h6 class="settings-section-title mt-4">Maintenance</h6>
+                            <div class="settings-card">
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Auto-Cleanup</div>
                                         <div class="settings-description">Remove inactive strips automatically.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="cleanupToggle"
-                                                role="switch">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="cleanupToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
+                                <div class="settings-divider"></div>
                                 <div class="settings-item" id="cleanupTimerContainer">
                                     <div class="settings-info">
                                         <div class="settings-label">Cleanup Timeout</div>
-                                        <div class="settings-description">Time (minutes) before removal.</div>
+                                        <div class="settings-description">Minutes before removal.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <input type="number" id="cleanupMinutes" class="form-control form-control-dark"
-                                            style="width: 80px;" min="1" max="60" value="15">
+                                        <input type="number" id="cleanupMinutes" class="sys-input-text" min="1" max="60" value="15">
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="settings-pane" id="tab-appearance">
-                                <h6 class="settings-section-title">Theme</h6>
+                        <div class="settings-pane" id="tab-appearance">
+                            <div class="pane-header">
+                                <h3>Appearance</h3>
+                                <p>Customize the look and feel of your layout</p>
+                            </div>
+
+                            <div class="settings-card">
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Interface Theme</div>
-                                        <div class="settings-description">Choose the overall look and feel.</div>
+                                        <div class="settings-description">Choose the overall workspace theme.</div>
                                     </div>
                                     <div class="settings-control">
                                         <div class="custom-dropdown" id="themeDropdown">
                                             <button class="custom-dropdown-trigger" id="themeDropdownBtn">
-                                                <div class="d-flex align-items-center gap-2">
+                                                <div class="dropdown-trigger-content">
                                                     <span class="material-icons" id="currentThemeIcon">palette</span>
                                                     <span id="themeDropdownText">Dark</span>
                                                 </div>
-                                                <span class="material-icons arrow">expand_more</span>
+                                                <span class="material-icons arrow">unfold_more</span>
                                             </button>
-                                            <div class="custom-dropdown-menu" id="themeSelect">
-                                                <!-- Populated by JS -->
-                                            </div>
+                                            <div class="custom-dropdown-menu" id="themeSelect"></div>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="settings-divider"></div>
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Dark Strips</div>
-                                        <div class="settings-description">Force flight strips to have a dark background.
-                                        </div>
+                                        <div class="settings-description">Force flight strips to have a dark background.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="darkStripsToggle">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="darkStripsToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
+                                <div class="settings-divider"></div>
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Show Seconds</div>
                                         <div class="settings-description">Toggle seconds on the Zulu clock.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="showSecondsToggle"
-                                                role="switch">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="showSecondsToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
-
+                                <div class="settings-divider"></div>
                                 <div class="settings-item">
                                     <div class="settings-info">
                                         <div class="settings-label">Autohide Header</div>
                                         <div class="settings-description">Hide the system bar when not in use.</div>
                                     </div>
                                     <div class="settings-control">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="autohideHeaderToggle"
-                                                role="switch">
-                                        </div>
+                                        <label class="custom-switch">
+                                            <input type="checkbox" id="autohideHeaderToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </div>
+                            </div>
 
-                                <h6 class="settings-section-title">Strip Colors</h6>
+                            <h6 class="settings-section-title mt-4">Strip Colors</h6>
+                            <div class="settings-card">
                                 <div class="color-grid">
                                     <div class="color-picker-group">
                                         <div class="color-label">Departure</div>
@@ -266,79 +282,84 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button id="resetColors" class="btn-atm-mini mt-3 w-100 py-2">
-                                    <span class="material-icons me-2" style="font-size: 14px;">restart_alt</span>
-                                    Reset Defaults
-                                </button>
-                            </div>
-
-                            <div class="settings-pane" id="tab-network">
-                                <h6 class="settings-section-title">Connection</h6>
-
-                                <div class="settings-item d-block mt-3">
-                                    <div class="settings-info mb-2">
-                                        <div class="settings-label">Server IP</div>
-                                        <div class="settings-description">The IP address your local StripCol server
-                                            listens on. (Default: <code>127.0.0.1</code>)</div>
-                                    </div>
-                                    <input type="text" id="serverIpInput" class="form-control form-control-dark"
-                                        placeholder="127.0.0.1">
-                                    <div class="settings-item d-block mt-2">
-                                        <button id="restartServerBtn" class="btn btn-primary w-100">
-                                            Restart & Connect
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="settings-item d-block mt-3">
-                                    <div class="settings-info mb-2">
-                                        <div class="settings-label">Link Code</div>
-                                        <div class="settings-description">Enter the 5-digit code generated by Euroscope
-                                            (type .stripcode).
-                                        </div>
-                                    </div>
-                                    <div class="input-group">
-                                        <input type="text" id="linkCodeInput"
-                                            class="form-control form-control-dark text-uppercase" placeholder="ABC12"
-                                            maxlength="5">
-                                        <button class="btn btn-primary" type="button" id="pairBtn">Pair Now</button>
-                                    </div>
-                                    <div id="pairingStatus" class="mt-2" style="font-size: 11px;"></div>
-                                </div>
-                            </div>
-
-                            <div class="settings-pane" id="tab-about">
-                                <div class="about-header">
-                                    <img src="img/icon_name.png" alt="Logo" class="about-logo">
-                                    <div class="about-version">V<span id="appVersionDisplay">...</span></div>
-                                </div>
-
-                                <div class="update-check-container mt-4 mb-4 text-center">
-                                    <button id="checkUpdatesBtn" class="btn btn-atm-mini w-100 py-2">
-                                        <span class="material-icons me-2" style="font-size: 16px;">update</span>
-                                        Check for Updates
+                                <div class="mt-3">
+                                    <button id="resetColors" class="custom-btn secondary w-100">
+                                        <span class="material-icons">restart_alt</span> Reset Defaults
                                     </button>
-                                    <div id="updateStatus" class="mt-2" style="font-size: 12px; min-height: 18px;">
-                                    </div>
-                                </div>
-
-                                <div class="about-info-grid">
-                                    <div class="about-info-label">Developer</div>
-                                    <a href="https://github.com/simplezes" class="external-link">Simplezes</a>
-
-                                    <div class="about-info-label">License</div>
-                                    <a href="https://github.com/Simplezes/StripCol/blob/main/LICENSE"
-                                        class="external-link">MIT License</a>
-                                </div>
-
-                                <div class="mt-4 text-center">
-                                    <p class="text-dim" style="font-size: 0.8rem;">
-                                        &copy; 2026 StripCol Project. <br>
-                                        Designed for Vatsim Colombia.
-                                    </p>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="settings-pane" id="tab-network">
+                            <div class="pane-header">
+                                <h3>Network & Connectivity</h3>
+                                <p>Manage your connection to the gateway</p>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-item d-block">
+                                    <div class="settings-info mb-3">
+                                        <div class="settings-label">Server IP</div>
+                                        <div class="settings-description">The IP address your local StripCol gateway listens on.</div>
+                                    </div>
+                                    <div class="input-with-button">
+                                        <span class="material-icons input-icon">lan</span>
+                                        <input type="text" id="serverIpInput" class="sys-input-text w-100" placeholder="127.0.0.1">
+                                    </div>
+                                    <button id="restartServerBtn" class="custom-btn primary w-100 mt-3">
+                                        <span class="material-icons">refresh</span> Restart & Connect
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="settings-card mt-3">
+                                <div class="settings-item d-block">
+                                    <div class="settings-info mb-3">
+                                        <div class="settings-label">Link Code</div>
+                                        <div class="settings-description">Enter the 5-digit code generated by Euroscope.</div>
+                                    </div>
+                                    <div class="input-with-button combo">
+                                        <span class="material-icons input-icon">vpn_key</span>
+                                        <input type="text" id="linkCodeInput" class="sys-input-text flex-grow-1" placeholder="ABC12" maxlength="5">
+                                        <button class="custom-btn primary no-radius-left" id="pairBtn">Pair</button>
+                                    </div>
+                                    <div id="pairingStatus" class="status-msg text-center mt-3"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-pane" id="tab-about">
+                            <div class="about-hero">
+                                <img src="img/icon_name.png" alt="StripCol Logo" class="hero-logo">
+                                <div class="hero-version">Version <span id="appVersionDisplay">...</span></div>
+                            </div>
+
+                            <div class="settings-card mt-4 p-4 text-center">
+                                <button id="checkUpdatesBtn" class="custom-btn primary w-100 justify-content-center">
+                                    <span class="material-icons">system_update</span> Check for Updates
+                                </button>
+                                <div id="updateStatus" class="mt-3 status-msg"></div>
+                            </div>
+
+                            <div class="settings-card mt-3 p-0">
+                                <div class="about-grid">
+                                    <div class="about-row">
+                                        <span class="about-label">Developer</span>
+                                        <a href="https://github.com/simplezes" class="about-value link external-link">Simplezes</a>
+                                    </div>
+                                    <div class="settings-divider"></div>
+                                    <div class="about-row">
+                                        <span class="about-label">License</span>
+                                        <a href="https://github.com/Simplezes/StripCol/blob/main/LICENSE" class="about-value link external-link">MIT License</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="about-footer">
+                                &copy; 2026 StripCol Project.<br>Designed for Vatsim Colombia.
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
