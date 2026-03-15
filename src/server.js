@@ -33,7 +33,7 @@ app.get(['/', '/api'], (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.0.7',
+    version: '1.1.0',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -116,11 +116,13 @@ wss.on('connection', (ws, req) => {
             atcList: [],
             controller: controllerData,
             lastSyncTime: 0,
-            rpcManualState: null
+            rpcManualState: null,
+            lastActivity: Date.now()
           });
         } else {
           session.ws = ws;
           session.controller = controllerData;
+          session.lastActivity = Date.now();
         }
 
         if (!wasConnected) {
@@ -151,6 +153,7 @@ wss.on('connection', (ws, req) => {
           session.atcList = msg.data || msg.atclist || msg.atcList || (Array.isArray(msg) ? msg : []);
         }
 
+        session.lastActivity = Date.now();
         broadcastToSession(currentCode, msg);
         sendRPCUpdate(currentCode);
       }
@@ -250,10 +253,9 @@ function broadcastToSession(code, message) {
 
   const type = message.type;
   const data = message.data || message;
-
   const sseData = `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
 
-  session.clients.forEach((clientInfo, clientRes) => {
+  session.clients.forEach(clientRes => {
     try {
       clientRes.write(sseData);
     } catch (e) {
@@ -267,8 +269,9 @@ function broadcastToSession(code, message) {
 app.get('/api/pair/:code', (req, res) => {
   const code = req.params.code?.toUpperCase();
   const session = sessions.get(code);
-  if (session && session.ws) {
-    res.json({ success: true, message: "Paired" });
+  if (session) {
+    session.lastActivity = Date.now();
+    res.json({ success: true, message: "Paired", controller: session.controller });
   } else {
     res.json({ success: false, message: "Euroscope plugin not found for this code." });
   }
@@ -460,33 +463,7 @@ app.get('/api/logs.html', (req, res) => {
 app.get('/api/logs', (req, res) => res.json({ logs }));
 app.post('/api/logs/clear', (req, res) => { logs.length = 0; console.log('Logs cleared'); res.json({ success: true }); });
 
-const commands = [
-  'set-final-alt', 'set-cleared-alt', 'set-assigned-heading', 'set-direct-point',
-  'set-assigned-mach', 'set-squawk', 'set-departureTime', 'set-assigned-speed',
-  'set-sid', 'set-star', 'ATC-transfer', 'accept-handoff', 'refuse-handoff',
-  'end-tracking', 'assume-aircraft', 'get-nearby-aircraft'
-];
-
-commands.forEach(cmd => {
-  app.post(`/api/${cmd}`, (req, res) => {
-    const { code, ...payload } = req.body;
-    if (!code) return res.status(400).json({ success: false, message: "Missing Link Code" });
-
-    const session = sessions.get(code.toUpperCase());
-    if (!session || !session.ws) {
-      return res.status(412).json({ success: false, message: "Euroscope plugin not connected for this code" });
-    }
-
-    if (session.ws.readyState === WebSocket.OPEN) {
-      session.ws.send(JSON.stringify({ type: cmd, ...payload }));
-      res.json({ success: true });
-    } else {
-      res.status(503).json({ success: false, message: "Plugin connection not open" });
-    }
-  });
-});
-
-
+// Consolidated API Command Handler
 app.post('/api/:action', (req, res) => {
   const action = req.params.action;
   const { code, ...payload } = req.body;
@@ -500,15 +477,28 @@ app.post('/api/:action', (req, res) => {
     return res.status(412).json({ success: false, message: "Euroscope plugin not connected for this code" });
   }
 
+  session.lastActivity = Date.now();
+
   if (session.ws.readyState === WebSocket.OPEN) {
-    const command = JSON.stringify({ type: action, ...payload });
-    session.ws.send(command);
+    session.ws.send(JSON.stringify({ type: action, ...payload }));
     return res.json({ success: true });
-  }
-  else {
+  } else {
     res.status(503).json({ success: false, message: "Plugin connection not open" });
   }
 });
+
+// Session Cleanup Task (Every 10 minutes)
+setInterval(() => {
+  const now = Date.now();
+  const TTL = 1000 * 60 * 60 * 2; // 2 hour TTL for inactive sessions
+  for (const [code, session] of sessions.entries()) {
+    if (now - session.lastActivity > TTL) {
+      console.log(`[Server] Cleaning up inactive session: ${code}`);
+      if (session.ws) session.ws.close();
+      sessions.delete(code);
+    }
+  }
+}, 1000 * 60 * 10);
 
 app.get('/api/point-time', (req, res) => {
   const { code, callsign, points } = req.query;
@@ -551,5 +541,5 @@ app.post('/api/rpc-update', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Gateway Hub (V1.0.6) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
+  console.log(`Gateway Hub (V1.1.0) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
 });

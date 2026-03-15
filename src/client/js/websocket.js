@@ -17,12 +17,18 @@ window.positionId = "";
 window.facilityType = "tower"; // del | ground | tower | approach | center
 
 function startConnectionMonitoring() {
-    stopConnectionMonitoring();
-    startEvent();
+    if (connectionInterval) return; // Already running
 
+    // Single source of truth for connection attempts
     connectionInterval = setInterval(() => {
-        if (!window.isConnected) startEvent();
-    }, 10000);
+        if (!window.isConnected && !window.isConnecting) {
+            console.log("System: Connection lost. Attempting reconnection...");
+            startEvent();
+        }
+    }, 5000);
+
+    // Initial start
+    startEvent();
 }
 
 function stopConnectionMonitoring() {
@@ -42,138 +48,152 @@ function updateWsStatus(connected) {
 
     if (wsStatusEl) {
         if (connected) {
-            wsStatusEl.textContent = "SYSTEM: ONLINE";
-            wsStatusEl.classList.add('success');
-            wsStatusEl.classList.remove('warning');
+            wsStatusEl.textContent = "ONLINE";
+            wsStatusEl.classList.add('online');
+            wsStatusEl.classList.remove('offline');
         } else {
-            wsStatusEl.textContent = "SYSTEM: OFFLINE";
-            wsStatusEl.classList.remove('success');
-            wsStatusEl.classList.add('warning');
+            wsStatusEl.textContent = "OFFLINE";
+            wsStatusEl.classList.remove('online');
+            wsStatusEl.classList.add('offline');
         }
     }
 }
 
 window.reconnectSSE = function () {
-    closeEventSource();
     startEvent();
 };
 
-function startEvent() {
-    closeEventSource();
-    if (sseReconnectTimeout) clearTimeout(sseReconnectTimeout);
+window.isConnecting = false;
 
-    const checkConnection = (retries = 5) => {
-        apiFetch('/api')
-            .then(response => {
-                if (response.ok) updateWsStatus(true);
-            })
-            .catch(() => {
-                if (retries > 0) {
-                    setTimeout(() => checkConnection(retries - 1), 1000);
+function startEvent() {
+    if (window.isConnecting) return;
+    window.isConnecting = true;
+
+    closeEventSource();
+    if (sseReconnectTimeout) {
+        clearTimeout(sseReconnectTimeout);
+        sseReconnectTimeout = null;
+    }
+
+    // Check Hub availability first
+    apiFetch('/api')
+        .then(response => {
+            if (!response.ok) throw new Error("Hub offline");
+            
+            // Hub is definitely ONLINE
+            window.isConnecting = false;
+            updateWsStatus(true);
+
+            const code = getLinkCode();
+            if (!code) {
+                console.log("System: Hub Online, waiting for Link Code...");
+                return;
+            }
+
+            if (code !== currentSessionCode) {
+                resetSession();
+                currentSessionCode = code;
+            }
+
+            evtSource = new EventSource(`${GATEWAY_URL}/api/events?code=${code}`);
+
+            evtSource.addEventListener('gateway_status', e => {
+                const payload = JSON.parse(e.data);
+                if (payload.status === 'plugin_connected') {
+                    window.isPluginLinked = true;
+                    if (payload.controller) setControllerInfo(payload.controller);
+                    updateWsStatus(true);
+                } else {
+                    window.isPluginLinked = false;
+                    updateWsStatus(true); // Still online (Hub is up), but not linked
+                    aircraftMap = {};
+                    stateManager.clearEuroscopeStrips();
                 }
             });
-    };
-    checkConnection();
 
-    const code = getLinkCode();
-    if (!code) {
-        return;
-    }
+            evtSource.addEventListener('aircraft', e => {
+                const flightplan = JSON.parse(e.data);
+                flightplan.transfer = false;
+                if (aircraftMap[flightplan.callsign]) {
+                    deleteStripFromPanels(flightplan.callsign);
+                } else {
+                    if (window.playNotification) window.playNotification();
+                }
+                aircraftMap[flightplan.callsign] = flightplan;
+                renderAircraft(flightplan);
+            });
 
-    if (code !== currentSessionCode) {
-        resetSession();
-        currentSessionCode = code;
-    }
+            evtSource.addEventListener('release', e => {
+                const { callsign } = JSON.parse(e.data);
+                delete aircraftMap[callsign];
+                if (typeof moveStripToHandover === 'function') {
+                    moveStripToHandover(callsign);
+                } else {
+                    deleteStripFromPanels(callsign);
+                }
+            });
 
-    evtSource = new EventSource(`${GATEWAY_URL}/api/events?code=${code}`);
+            evtSource.addEventListener('transfer', e => {
+                const flightplan = JSON.parse(e.data);
+                flightplan.transfer = true;
+                aircraftMap[flightplan.callsign] = flightplan;
+                renderAircraft(flightplan);
+            });
 
-    evtSource.addEventListener('gateway_status', e => {
-        const payload = JSON.parse(e.data);
-        if (payload.status === 'plugin_connected') {
-            window.isPluginLinked = true;
-            if (payload.controller) setControllerInfo(payload.controller);
-            updateWsStatus(true);
-        } else {
-            window.isPluginLinked = false;
+            evtSource.addEventListener('fpupdate', e => {
+                const flightplan = JSON.parse(e.data);
+                UpdateStrip(flightplan);
+            });
+
+            evtSource.addEventListener('nearby-aircraft', e => {
+                const callsigns = JSON.parse(e.data);
+                if (window.onNearbyAircraftReceived) {
+                    window.onNearbyAircraftReceived(callsigns);
+                }
+            });
+
+            evtSource.onopen = function () {
+                console.log("Gateway Link: Established");
+                window.isConnected = true;
+                window.isConnecting = false;
+                updateWsStatus(true);
+                sseRetryDelay = 2000;
+
+                const now = Date.now();
+                if (now - lastFetchTime > 10000) {
+                    lastFetchTime = now;
+                    fetchAndRenderAircraftList();
+                }
+            };
+
+            evtSource.onerror = function (error) {
+                console.warn(`Gateway Link Error. Retrying in ${sseRetryDelay / 1000}s...`);
+                window.isConnected = false;
+                window.isConnecting = false; // Allow retry
+                window.isPluginLinked = false;
+                updateWsStatus(false);
+                closeEventSource();
+
+                aircraftMap = {};
+                stateManager.clearEuroscopeStrips();
+
+                sseReconnectTimeout = setTimeout(() => {
+                    sseRetryDelay = Math.min(sseRetryDelay * 1.5, MAX_SSE_RETRY_DELAY);
+                    startEvent();
+                }, sseRetryDelay);
+            };
+        })
+        .catch(err => {
+            console.warn("Hub unreachable. Retrying...");
+            window.isConnected = false;
+            window.isConnecting = false;
             updateWsStatus(false);
-            aircraftMap = {}; // Clear aircraft map on disconnect
-            stateManager.clearEuroscopeStrips();
-        }
-    });
-
-    evtSource.addEventListener('aircraft', e => {
-        const flightplan = JSON.parse(e.data);
-        flightplan.transfer = false;
-        if (aircraftMap[flightplan.callsign]) {
-            deleteStripFromPanels(flightplan.callsign);
-        } else {
-            if (window.playNotification) window.playNotification();
-        }
-        aircraftMap[flightplan.callsign] = flightplan;
-        renderAircraft(flightplan);
-    });
-
-    evtSource.addEventListener('release', e => {
-        const { callsign } = JSON.parse(e.data);
-        delete aircraftMap[callsign];
-
-
-
-
-        if (typeof moveStripToHandover === 'function') {
-            moveStripToHandover(callsign);
-        } else {
-            deleteStripFromPanels(callsign);
-        }
-    });
-
-    evtSource.addEventListener('transfer', e => {
-        const flightplan = JSON.parse(e.data);
-        flightplan.transfer = true;
-        aircraftMap[flightplan.callsign] = flightplan;
-        renderAircraft(flightplan);
-    });
-
-    evtSource.addEventListener('fpupdate', e => {
-        const flightplan = JSON.parse(e.data);
-        UpdateStrip(flightplan);
-    });
-
-    evtSource.addEventListener('nearby-aircraft', e => {
-        const callsigns = JSON.parse(e.data);
-        if (window.onNearbyAircraftReceived) {
-            window.onNearbyAircraftReceived(callsigns);
-        }
-    });
-
-    evtSource.onopen = function () {
-        console.log("Gateway Link: Established");
-        window.isConnected = true;
-        updateWsStatus(true);
-        sseRetryDelay = 2000;
-
-        const now = Date.now();
-        if (now - lastFetchTime > 10000) {
-            lastFetchTime = now;
-            fetchAndRenderAircraftList();
-        }
-    };
-
-    evtSource.onerror = function (error) {
-        console.warn(`Gateway Link Error. Retrying in ${sseRetryDelay / 1000}s...`);
-        window.isConnected = false;
-        window.isPluginLinked = false;
-        updateWsStatus(false);
-        closeEventSource();
-
-        aircraftMap = {}; // Clear aircraft map on error
-        stateManager.clearEuroscopeStrips();
-
-        sseReconnectTimeout = setTimeout(() => {
-            sseRetryDelay = Math.min(sseRetryDelay * 1.5, MAX_SSE_RETRY_DELAY);
-            startEvent();
-        }, sseRetryDelay);
-    };
+            
+            sseReconnectTimeout = setTimeout(() => {
+                sseRetryDelay = Math.min(sseRetryDelay * 1.5, MAX_SSE_RETRY_DELAY);
+                startEvent();
+            }, sseRetryDelay);
+        });
 }
 
 function closeEventSource() {
@@ -216,35 +236,25 @@ function fetchAndRenderAircraftList() {
         });
 }
 
-function renderAircraft(flight) {
-    function CheckType(positionId, airportCode) {
-        if (!jsonDataSector[positionId]) return false;
-        return jsonDataSector[positionId].airports.includes(airportCode);
-    }
+function CheckType(positionId, airportCode) {
+    if (!jsonDataSector[positionId]) return false;
+    return jsonDataSector[positionId].airports.includes(airportCode);
+}
 
+function renderAircraft(flight) {
     if (!flight || !flight.callsign) return;
 
     const dep = (flight.departure || "").toUpperCase();
     const arr = (flight.arrival || "").toUpperCase();
     const local = (window.localIcao || "").toUpperCase();
 
-    let type =
-        window.controllerMode === "aerodrome"
-            ? dep === local
-                ? "departure"
-                : arr === local
-                    ? "arrival"
-                    : "overfly"
-            : CheckType(window.positionId, dep)
-                ? "departure"
-                : CheckType(window.positionId, arr)
-                    ? "arrival"
-                    : "overfly";
+    let type = window.controllerMode === "aerodrome"
+        ? (dep === local ? "departure" : (arr === local ? "arrival" : "overfly"))
+        : (CheckType(window.positionId, dep) ? "departure" : (CheckType(window.positionId, arr) ? "arrival" : "overfly"));
 
     if (flight.transfer) type = "transfer";
 
     const stripId = `strip-${flight.callsign}`;
-
     const existingStrip = stateManager.getStrip(stripId);
     if (existingStrip) return;
 
@@ -252,7 +262,6 @@ function renderAircraft(flight) {
     if (flight.transfer) {
         targetPanelName = "Handover";
     } else {
-        // Facility-aware spawn routing
         const settings = (typeof currentSettings !== 'undefined' && currentSettings) ? currentSettings : {};
         const autoMove = settings.autoMoveClearance;
         const aerodromeFacilities = new Set(['del', 'ground', 'tower']);
@@ -260,37 +269,23 @@ function renderAircraft(flight) {
         if (autoMove && aerodromeFacilities.has(window.facilityType) && flight.clearedFlag == 1) {
             targetPanelName = "Clearance";
         } else {
-            // Each position routes strip types to the correct panel
             const ft = window.facilityType || "tower";
             const cm = window.controllerMode;
 
             if (cm === "approach" || cm === "center") {
-                // Radar positions
-                if (type === "departure")    targetPanelName = "Departures";
-                else if (type === "arrival") targetPanelName = "Arrivals";
-                else                         targetPanelName = "Overfly";
+                targetPanelName = type === "departure" ? "Departures" : (type === "arrival" ? "Arrivals" : "Overfly");
             } else if (ft === "ground") {
-                // Ground: arrivals go to Ground Movement, everything else to Pending
-                if (type === "arrival")      targetPanelName = "Ground Movement";
-                else                         targetPanelName = "Pending"; // departure + overfly/unknown
+                targetPanelName = type === "arrival" ? "Ground Movement" : "Pending";
             } else if (ft === "tower") {
-                // Tower: arrivals from Approach go to Sequence, departures/unknown to Pending
-                if (type === "arrival")      targetPanelName = "Sequence";
-                else                         targetPanelName = "Pending";
+                targetPanelName = type === "arrival" ? "Sequence" : "Pending";
             } else {
-                // DEL and TWR: everything starts in Pending
                 targetPanelName = "Pending";
             }
         }
     }
 
-    let panel = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
-
-
-    if (!panel) {
-        panel = document.querySelector("[data-panel-name]");
-        if (!panel) return;
-    }
+    let panel = document.querySelector(`[data-panel-name="${targetPanelName}"]`) || document.querySelector("[data-panel-name]");
+    if (!panel) return;
 
     const stripContainer = panel.querySelector(".strip-container");
     if (!stripContainer) return;
@@ -298,7 +293,6 @@ function renderAircraft(flight) {
     const strip = createStrip(type, flight, true, stripId);
     strip.dataset.callsign = flight.callsign;
     if (!flight.callsign) strip.dataset.euroscope = "false";
-
 
     if (flight.transfer) {
         stripContainer.prepend(strip);
@@ -308,7 +302,6 @@ function renderAircraft(flight) {
     }
 
     const panelName = panel.dataset.panelName;
-
     if (panelName) addStripToPanel(panelName, strip, flight);
 }
 
@@ -354,6 +347,9 @@ function setControllerInfo(data, returnPositionName = false) {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+    // Start monitoring immediately so user doesn't see "OFFLINE" while waiting for assets
+    startConnectionMonitoring();
+
     const fetchJson = async (url, fallbackUrl) => {
         try {
             const response = await fetch(url);
@@ -385,11 +381,9 @@ window.addEventListener("DOMContentLoaded", () => {
                 fetchJson(REMOTE_PROCEDURES, LOCAL_PROCEDURES),
                 fetchJson(REMOTE_SECTORS, LOCAL_SECTORS),
             ]);
-
-            startConnectionMonitoring();
+            console.log("Assets: Procedures & Sectors loaded.");
         } catch (e) {
             console.error("Error loading data", e);
-            startConnectionMonitoring();
         }
     })();
 });

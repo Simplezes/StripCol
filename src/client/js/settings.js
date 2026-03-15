@@ -155,37 +155,68 @@ function updateUIFromSettings() {
     if (serverIpInput) serverIpInput.value = currentSettings.serverIp;
 
     const themeSelect = document.getElementById('themeSelect');
-    if (themeSelect) {
+    const themeDropdown = document.getElementById('themeDropdown');
+    const themeDropdownBtn = document.getElementById('themeDropdownBtn');
+    const currentThemeIcon = document.getElementById('currentThemeIcon');
+    const themeDropdownText = document.getElementById('themeDropdownText');
+
+    if (themeSelect && themeDropdownBtn) {
+        
+        const existingClickListener = themeDropdownBtn._clickListener;
+        if (existingClickListener) themeDropdownBtn.removeEventListener('click', existingClickListener);
+
+        const toggleDropdown = (e) => {
+            e.stopPropagation();
+            themeDropdown.classList.toggle('active');
+        };
+        themeDropdownBtn.addEventListener('click', toggleDropdown);
+        themeDropdownBtn._clickListener = toggleDropdown;
+
+        
+        const closeDropdown = () => themeDropdown.classList.remove('active');
+        document.addEventListener('click', closeDropdown);
+
         themeSelect.innerHTML = '';
 
-        const appendThemeOption = (val, label) => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.className = 'dropdown-item d-flex align-items-center gap-2 py-2 theme-dropdown-item';
-            a.href = '#';
+        const getThemeIcon = (val) => {
+            if (val === 'dark') return 'dark_mode';
+            if (val.includes('light')) return 'light_mode';
+            if (val.includes('windows')) return 'desktop_windows';
+            if (val.includes('radar')) return 'radar';
+            if (val.includes('modern')) return 'auto_awesome';
+            return 'palette';
+        };
 
+        const appendThemeOption = (val, label) => {
+            const item = document.createElement('div');
+            item.className = 'custom-dropdown-item';
             if (currentSettings.theme === val) {
-                a.classList.add('active');
-                const btnText = document.getElementById('themeDropdownText');
-                if (btnText) btnText.textContent = label;
+                item.classList.add('active');
+                if (themeDropdownText) themeDropdownText.textContent = label;
+                if (currentThemeIcon) currentThemeIcon.textContent = getThemeIcon(val);
             }
             
-            const icon = val === 'dark' ? 'dark_mode' : 'palette';
-            let innerHtml = `<span class="material-icons" style="font-size: 16px;">${icon}</span><span style="flex:1">${label}</span>`;
+            item.innerHTML = `
+                <div class="item-content">
+                    <span class="material-icons">${getThemeIcon(val)}</span>
+                    <span>${label}</span>
+                </div>
+                <span class="material-icons check">check</span>
+            `;
             
-            if (currentSettings.theme === val) {
-                innerHtml += '<span class="material-icons" style="font-size: 16px;">check</span>';
-            }
-            a.innerHTML = innerHtml;
-            
-            a.addEventListener('click', (e) => {
-                e.preventDefault();
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentSettings.theme === val) {
+                    closeDropdown();
+                    return;
+                }
                 currentSettings.theme = val;
                 saveSettings();
                 updateUIFromSettings();
+                closeDropdown();
             });
-            li.appendChild(a);
-            themeSelect.appendChild(li);
+            
+            themeSelect.appendChild(item);
         };
 
         appendThemeOption('dark', 'Dark');
