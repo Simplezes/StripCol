@@ -316,9 +316,14 @@ function initSettingsEvents() {
 
             const input = document.createElement('input');
             input.type = 'text';
-            input.className = 'sys-input-minimal';
+            input.classList.add("sys-input-minimal");
             input.value = currentCode;
             input.maxLength = 5;
+
+            // Force uppercase while typing
+            input.addEventListener('input', () => {
+                input.value = input.value.toUpperCase();
+            });
 
             displayEl.innerHTML = '';
             displayEl.appendChild(input);

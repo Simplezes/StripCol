@@ -34,32 +34,33 @@
 
         <header class="system-bar">
             <div class="system-inner">
-                <div class="sys-left">
-                    <div class="sys-status-group">
-
+                <div class="sys-section sys-left">
+                    <div class="sys-status-info">
                         <span id="wsStatus" class="status-badge offline">OFFLINE</span>
-                    </div>
-                    <div class="sys-divider"></div>
-                    <span id="linkCodeStatus" class="sys-badge info">LINK: <span
-                            id="currentLinkCodeDisplay">-----</span></span>
-
-                    <div class="sys-divider"></div>
-
-                    <div class="sys-search-group">
-                        <span class="material-icons">search</span>
-                        <input type="text" id="globalSearchInput" placeholder="Filter Strips..." autocomplete="off">
+                        <div class="sys-link-pill" id="linkCodeStatus">
+                            <span class="pill-label">LINK</span>
+                            <span id="currentLinkCodeDisplay" class="pill-value">-----</span>
+                        </div>
                     </div>
                 </div>
-                <div class="sys-right">
-                    <div class="sys-actions">
 
-                        <button id="settingsBtn" class="btn-atm-mini" data-bs-toggle="modal"
-                            data-bs-target="#settingsModal" title="Settings">
-                            <span class="material-icons">settings</span>
-                        </button>
+                <div class="sys-section sys-center">
+                    <div class="sys-search-wrapper">
+                        <span class="material-icons search-icon">manage_search</span>
+                        <input type="text" id="globalSearchInput" placeholder="SEARCH TRAFFIC..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="sys-section sys-right">
+                    <div class="sys-clock-group">
+                        <span class="clock-label">ZULU</span>
+                        <span id="zuluTime">00:00:00</span>
                     </div>
                     <div class="sys-divider"></div>
-                    <span id="zuluTime">00:00:00</span>
+                    <button id="settingsBtn" class="sys-action-btn" data-bs-toggle="modal"
+                        data-bs-target="#settingsModal" title="Settings">
+                        <span class="material-icons">settings</span>
+                    </button>
                 </div>
             </div>
         </header>
