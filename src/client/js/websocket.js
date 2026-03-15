@@ -16,19 +16,35 @@ window.controllerMode = "aerodrome";
 window.positionId = "";
 window.facilityType = "tower"; // del | ground | tower | approach | center
 
-function startConnectionMonitoring() {
-    if (connectionInterval) return; // Already running
+window.isPaired = false;
 
-    // Single source of truth for connection attempts
+function startConnectionMonitoring() {
+    if (connectionInterval) return;
+
+    // Monitor Hub availability (Only /api checks)
     connectionInterval = setInterval(() => {
-        if (!window.isConnected && !window.isConnecting) {
-            console.log("System: Connection lost. Attempting reconnection...");
-            startEvent();
+        if (!window.isConnecting) {
+            checkHubStatus();
         }
     }, 5000);
 
-    // Initial start
-    startEvent();
+    checkHubStatus();
+}
+
+async function checkHubStatus() {
+    try {
+        const response = await apiFetch('/api');
+        if (response.ok) {
+            window.isConnected = true;
+            updateWsStatus(true);
+        } else {
+            throw new Error("Offline");
+        }
+    } catch (err) {
+        window.isConnected = false;
+        window.isPaired = false;
+        updateWsStatus(false);
+    }
 }
 
 function stopConnectionMonitoring() {
@@ -47,14 +63,17 @@ function updateWsStatus(connected) {
     if (codeDisplay) codeDisplay.textContent = getLinkCode() || '-----';
 
     if (wsStatusEl) {
-        if (connected) {
+        wsStatusEl.classList.remove('online', 'offline', 'paired');
+        
+        if (!connected) {
+            wsStatusEl.textContent = "OFFLINE";
+            wsStatusEl.classList.add('offline');
+        } else if (window.isPaired) {
+            wsStatusEl.textContent = "PAIRED";
+            wsStatusEl.classList.add('paired');
+        } else {
             wsStatusEl.textContent = "ONLINE";
             wsStatusEl.classList.add('online');
-            wsStatusEl.classList.remove('offline');
-        } else {
-            wsStatusEl.textContent = "OFFLINE";
-            wsStatusEl.classList.remove('online');
-            wsStatusEl.classList.add('offline');
         }
     }
 }
@@ -75,21 +94,16 @@ function startEvent() {
         sseReconnectTimeout = null;
     }
 
-    // Check Hub availability first
+    const code = getLinkCode();
+    if (!code) {
+        window.isConnecting = false;
+        return;
+    }
+
     apiFetch('/api')
         .then(response => {
             if (!response.ok) throw new Error("Hub offline");
             
-            // Hub is definitely ONLINE
-            window.isConnecting = false;
-            updateWsStatus(true);
-
-            const code = getLinkCode();
-            if (!code) {
-                console.log("System: Hub Online, waiting for Link Code...");
-                return;
-            }
-
             if (code !== currentSessionCode) {
                 resetSession();
                 currentSessionCode = code;
@@ -101,11 +115,13 @@ function startEvent() {
                 const payload = JSON.parse(e.data);
                 if (payload.status === 'plugin_connected') {
                     window.isPluginLinked = true;
+                    window.isPaired = true;
                     if (payload.controller) setControllerInfo(payload.controller);
                     updateWsStatus(true);
                 } else {
                     window.isPluginLinked = false;
-                    updateWsStatus(true); // Still online (Hub is up), but not linked
+                    window.isPaired = false;
+                    updateWsStatus(true);
                     aircraftMap = {};
                     stateManager.clearEuroscopeStrips();
                 }
@@ -156,6 +172,7 @@ function startEvent() {
                 console.log("Gateway Link: Established");
                 window.isConnected = true;
                 window.isConnecting = false;
+                window.isPaired = true; // Successfully linked via SSE
                 updateWsStatus(true);
                 sseRetryDelay = 2000;
 
@@ -168,10 +185,10 @@ function startEvent() {
 
             evtSource.onerror = function (error) {
                 console.warn(`Gateway Link Error. Retrying in ${sseRetryDelay / 1000}s...`);
-                window.isConnected = false;
-                window.isConnecting = false; // Allow retry
+                window.isConnecting = false; 
                 window.isPluginLinked = false;
-                updateWsStatus(false);
+                window.isPaired = false;
+                updateWsStatus(window.isConnected); // Maintain Hub status, but lose Pairing
                 closeEventSource();
 
                 aircraftMap = {};
@@ -207,6 +224,7 @@ function resetSession() {
     console.log("Resetting session state for new Link Code");
 
     aircraftMap = {};
+    window.isPaired = false;
 
     document.querySelectorAll('.strip-container').forEach(container => {
         container.innerHTML = "";
@@ -214,7 +232,7 @@ function resetSession() {
 
     stateManager.clearEuroscopeStrips();
 
-    updateWsStatus(false);
+    updateWsStatus(window.isConnected);
 }
 
 function fetchAndRenderAircraftList() {

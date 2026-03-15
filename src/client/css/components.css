@@ -882,4 +882,10 @@ body.dark-mode .controller-info select {
     border-color: rgba(255, 61, 0, 0.3);
     background: rgba(255, 61, 0, 0.05);
 }
+
+.status-badge.paired {
+    color: var(--atm-blue);
+    border-color: rgba(33, 150, 243, 0.3);
+    background: rgba(33, 150, 243, 0.05);
+}
 
