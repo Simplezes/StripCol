@@ -1,4 +1,3 @@
-
 :root {
     --sys-bg-0: #f0f2f5;
     --sys-bg-1: #ffffff;
@@ -90,4 +89,16 @@
 .transfer-btn.refuse:hover {
     background: var(--atm-red);
     color: #fff;
+}
+
+.atm-toast {
+    background: var(--sys-bg-2);
+    border: 1px solid var(--sys-border);
+    color: var(--sys-text);
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: var(--radius-ui);
+    box-shadow: var(--shadow-technical);
 }

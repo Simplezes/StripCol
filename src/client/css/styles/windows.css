@@ -210,3 +210,11 @@
     border: 2px solid;
     border-color: #ffffff #404040 #404040 #ffffff;
 }
+
+.theme-windows .atm-toast {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    border-radius: 0;
+}
