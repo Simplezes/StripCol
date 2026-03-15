@@ -69,6 +69,7 @@
 }
 
 .form-control-dark,
+.sys-input-text,
 .form-select {
     background: #ffffff !important;
     border: 1px solid var(--sys-border) !important;

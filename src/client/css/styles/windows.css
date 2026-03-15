@@ -86,7 +86,7 @@
 }
 
 .theme-windows .btn-atm-mini,
-.theme-windows .btn-primary {
+.theme-windows .custom-btn {
     background: #c0c0c0;
     border: 2px solid !important;
     border-color: #ffffff #404040 #404040 #ffffff !important;
@@ -98,23 +98,30 @@
 }
 
 .theme-windows .btn-atm-mini:active,
-.theme-windows .btn-primary:active {
+.theme-windows .custom-btn:active {
     border-color: #808080 #ffffff #ffffff #808080 !important;
     box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
     padding: 5px 9px 3px 11px;
 }
 
-.theme-windows .modal-content {
-    background: #c0c0c0;
-    border: 2px solid;
-    border-color: #ffffff #404040 #404040 #ffffff;
-    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
-    border-radius: 0;
+.theme-windows .custom-settings-modal {
+    background: #c0c0c0 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #404040 #404040 #ffffff !important;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080 !important;
+    border-radius: 0 !important;
 }
 
-.theme-windows .modal-header {
+.theme-windows .sidebar-header {
     background: linear-gradient(90deg, #000080, #1084d0) !important;
     padding: 4px 8px !important;
+    color: #fff !important;
+    border-bottom: none;
+    margin-bottom: 4px;
+}
+
+.theme-windows .sidebar-header h2,
+.theme-windows .sidebar-header .material-icons {
     color: #fff !important;
 }
 
@@ -124,14 +131,34 @@
 }
 
 .theme-windows .settings-tab.active {
+    background: #000080;
+    border: 1px dotted #ffffff !important;
+    color: #ffffff;
+}
+
+.theme-windows .settings-card {
+    background: transparent;
+    border: 2px groove #ffffff;
+    border-radius: 0;
+}
+
+.theme-windows .btn-close-custom {
     background: #c0c0c0;
-    border: 2px solid !important;
-    border-color: #808080 #ffffff #ffffff #808080 !important;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    border-radius: 0;
     color: #000;
+}
+
+.theme-windows .btn-close-custom:active {
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
 }
 
 .theme-windows .form-control-dark,
 .theme-windows .form-select,
+.theme-windows .sys-input-text,
 .theme-windows .sys-search-group input {
     background: #ffffff !important;
     border: 2px solid !important;
@@ -139,6 +166,26 @@
     box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
     color: #000 !important;
     border-radius: 0 !important;
+}
+
+.theme-windows .switch-slider {
+    background: #808080;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    border-radius: 0;
+}
+
+.theme-windows .switch-slider:before {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    border-radius: 0;
+    left: 0; bottom: 0;
+    height: 16px; width: 16px;
+}
+
+.theme-windows .custom-switch input:checked + .switch-slider {
+    background: #ffffff;
 }
 
 /* Custom Dropdown Classic Styling */
