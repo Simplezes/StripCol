@@ -134,8 +134,6 @@ function createStrip(type = "overfly", flightplan = null, fromEuroscope = false,
         }
     });
 
-    // After fragment is built, hook auto-move on the c12 input for aerodrome positions
-    // We do this after the loop so the input is fully constructed
     setTimeout(() => {
         const c12Input = div.querySelector(".c12");
         if (c12Input) {
@@ -199,18 +197,10 @@ function attachInputEventHandlers(strip) {
     });
 }
 
-/**
- * Auto-move strip between Pending <-> Clearance based on c12 value.
- * c12 is the clearance flag Ⓑ — only meaningful for DEL, GND, and TWR positions.
- * Respects user settings: autoMoveClearance and autoMoveRevert.
- */
 function autoMoveStripOnC12(strip, c12Value) {
-    // c12 as clearance flag is ONLY valid for aerodrome positions (DEL/GND/TWR)
-    // On approach/center, c12 is the "Direct To" field — do NOT interfere
     const aerodromeFacilities = new Set(['del', 'ground', 'tower']);
     if (!aerodromeFacilities.has(window.facilityType)) return;
 
-    // Safe accessor for settings regardless of script load order
     const settings = (typeof currentSettings !== 'undefined' && currentSettings) ? currentSettings : {};
     const autoMove = settings.autoMoveClearance;
     const autoRevert = settings.autoMoveRevert;
@@ -219,7 +209,6 @@ function autoMoveStripOnC12(strip, c12Value) {
 
     const isFilled = c12Value !== "";
 
-    // Find which panel the strip currently belongs to
     const currentCard = strip.closest("[data-panel-name]");
     if (!currentCard) return;
     const currentPanelName = currentCard.dataset.panelName;
@@ -240,10 +229,8 @@ function autoMoveStripOnC12(strip, c12Value) {
     const targetContainer = targetCard.querySelector(".strip-container");
     if (!targetContainer) return;
 
-    // Move the DOM element
     targetContainer.appendChild(strip);
 
-    // Update stateManager: remove from old panel, add to new one
     const stripId = strip.dataset.stripId;
     let movedStripData = null;
 
@@ -490,7 +477,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
             menu.appendChild(createMenuSection("Handoff"));
             menu.appendChild(acceptOption);
             menu.appendChild(refuseOption);
-            
+
             menu.appendChild(createMenuSection("Management"));
             menu.appendChild(deleteOption);
         } else {
@@ -524,12 +511,10 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                             });
                             if (!response.ok) throw new Error("Failed to update clearance");
 
-                            // Optimistic local update
                             flight.clearedFlag = isCleared ? 0 : 1;
                             const c12Input = strip.querySelector(".c12");
                             if (c12Input) {
                                 c12Input.value = isCleared ? "" : "Ⓑ";
-                                // Trigger auto-move if enabled
                                 if (typeof autoMoveStripOnC12 === "function") {
                                     autoMoveStripOnC12(strip, c12Input.value);
                                 }
@@ -559,7 +544,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.appendChild(routeOption);
                 if (procedureOption) menu.appendChild(procedureOption);
                 menu.appendChild(typeOption);
-                
+
                 menu.appendChild(createMenuSection("ATC Actions"));
                 if (clearanceOption) menu.appendChild(clearanceOption);
                 menu.appendChild(transferOption);
@@ -670,12 +655,10 @@ function parseSpeedAltitude(extra) {
     let speedStr = "";
     let altStr = "";
 
-    // Parse Speed
     if (spdType === 'N') speedStr = `${parseInt(spdVal)} Knots`;
     else if (spdType === 'M') speedStr = `Mach ${parseInt(spdVal) / 100}`;
     else if (spdType === 'K') speedStr = `${parseInt(spdVal)} km/h`;
 
-    // Parse Altitude
     if (altType === 'F') altStr = `Flight Level ${parseInt(altVal)}`;
     else if (altType === 'A') altStr = `${parseInt(altVal)}00 ft`;
     else if (altType === 'S') altStr = `Standard Metric Level ${parseInt(altVal)}`;
@@ -1067,6 +1050,9 @@ function updateStripWithProcedure(strip, procedureType, procedureName, procedure
         procedureField.value = procedureName;
     }
 
+    const isArrival = procedureType.includes('STAR');
+    const stripType = isArrival ? "arrival" : "departure";
+
     if (procedureRunway) {
         let runwayInputSelector;
 
@@ -1075,22 +1061,23 @@ function updateStripWithProcedure(strip, procedureType, procedureName, procedure
         } else if (procedureType === "SID" && window.controllerMode === "aerodrome") {
             runwayInputSelector = '.c16';
         } else {
+            saveStripValues(strip);
             return;
         }
 
         const runwayInput = strip.querySelector(runwayInputSelector);
-
         if (runwayInput) {
             const callsign = strip.dataset.stripId.replace("strip-", "");
-            const flightData = {
-                callsign: callsign || '',
-            };
-
-            const isArrival = procedureType.includes('STAR');
-            const type = isArrival ? "arrival" : "departure";
-
-            updateRunway(flightData, procedureRunway, runwayInput, type, procedureName);
+            updateRunway({ callsign }, procedureRunway, runwayInput, stripType, procedureName);
         }
+    }
+
+    if (window.controllerMode === "approach" || window.controllerMode === "center") {
+        const boxes = strip.querySelectorAll("input.box");
+        for (let i = 18; i <= 27; i++) {
+            if (boxes[i]) boxes[i].value = "";
+        }
+        strip.dataset.awaitingProcUpdate = "1";
     }
 
     saveStripValues(strip);
@@ -1260,12 +1247,18 @@ async function UpdateStrip(flight, type = null) {
     const stripType = type ? type : strip.dataset.type;
     const boxes = strip.querySelectorAll("input.box");
 
+    const awaitingProcUpdate = strip.dataset.awaitingProcUpdate === "1";
+    if (awaitingProcUpdate) {
+        for (let i = 18; i <= 27; i++) {
+            if (boxes[i]) boxes[i].value = "";
+        }
+        delete strip.dataset.awaitingProcUpdate;
+    }
 
     const currentProc = (boxes[7]?.value || "").trim().toUpperCase();
     const newProc = (stripType === "departure" ? flight.sid : stripType === "arrival" ? flight.star : "").trim().toUpperCase();
 
-    if (currentProc !== "" && newProc !== "" && currentProc !== newProc) {
-
+    if (!awaitingProcUpdate && currentProc !== "" && newProc !== "" && currentProc !== newProc) {
         for (let i = 18; i <= 27; i++) {
             if (boxes[i]) boxes[i].value = "";
         }
@@ -1273,6 +1266,7 @@ async function UpdateStrip(flight, type = null) {
 
     const customValues = {};
     boxes.forEach((input, index) => {
+        if (awaitingProcUpdate && index >= 18 && index <= 27) return;
         if (CUSTOM_STRIP_BOXES.includes(index) && input.value.trim() !== "") {
             customValues[index] = input.value;
         }
@@ -1280,7 +1274,6 @@ async function UpdateStrip(flight, type = null) {
 
     await fillStripFromFlightData(strip, flight, stripType);
 
-    // Trigger auto-move after filling data for existing strips (from WebSocket updates)
     const c12Input = strip.querySelector(".c12");
     if (c12Input) {
         autoMoveStripOnC12(strip, c12Input.value.trim());

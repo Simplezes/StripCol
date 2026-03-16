@@ -33,7 +33,7 @@ app.get(['/', '/api'], (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.1.0',
+    version: '1.1.1',
     connections: sessions.size,
     uptime: process.uptime()
   });
