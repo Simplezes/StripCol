@@ -214,6 +214,7 @@ function showPanelContextMenu(event, panelElement, stripContainer) {
         showAssumeAircraftMenu(menu, panelElement, stripContainer);
     });
 
+    menu.appendChild(createMenuSection("Actions"));
     menu.appendChild(addStripBtn);
     menu.appendChild(assumeBtn);
 

@@ -487,12 +487,14 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.remove();
             });
 
+            menu.appendChild(createMenuSection("Handoff"));
             menu.appendChild(acceptOption);
             menu.appendChild(refuseOption);
+            
+            menu.appendChild(createMenuSection("Management"));
             menu.appendChild(deleteOption);
         } else {
             if (fromEuroscope) {
-
                 const routeOption = createGlobalMenuItem("Show Route", "route", () => showRouteMenu(menu, flight, strip));
                 const transferOption = createGlobalMenuItem("Transfer", "compare_arrows", () => showTransferMenu(menu, flight, strip));
                 const typeOption = createGlobalMenuItem("Change Type", "flight", () => showTypeMenu(menu, strip, flight));
@@ -553,15 +555,16 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 });
                 freeOption.style.cssText = "color: var(--atm-green); background-color: var(--atm-green-hover);";
 
+                menu.appendChild(createMenuSection("Flight Data"));
                 menu.appendChild(routeOption);
                 if (procedureOption) menu.appendChild(procedureOption);
-                if (clearanceOption) menu.appendChild(clearanceOption);
                 menu.appendChild(typeOption);
+                
+                menu.appendChild(createMenuSection("ATC Actions"));
+                if (clearanceOption) menu.appendChild(clearanceOption);
                 menu.appendChild(transferOption);
                 menu.appendChild(freeOption);
             }
-
-
 
             const deleteOption = createGlobalMenuItem("Delete strip", "delete", () => {
                 if (!fromEuroscope) {
@@ -573,7 +576,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.remove();
             });
 
-
+            menu.appendChild(createMenuSection("Management"));
             menu.appendChild(deleteOption);
         }
 

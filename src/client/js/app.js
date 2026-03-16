@@ -47,6 +47,13 @@ function createGlobalMenuItem(text, icon, onClick) {
     return item;
 }
 
+function createMenuSection(text) {
+    const sep = document.createElement('div');
+    sep.textContent = text;
+    sep.classList.add("atc-section");
+    return sep;
+}
+
 function updateZuluTime() {
     const now = new Date();
     const utc = now.toUTCString().match(/(\d{2}:\d{2}:\d{2})/)[0];
