@@ -561,7 +561,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.appendChild(freeOption);
             }
 
-            
+
 
             const deleteOption = createGlobalMenuItem("Delete strip", "delete", () => {
                 if (!fromEuroscope) {
@@ -573,7 +573,7 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 menu.remove();
             });
 
-            
+
             menu.appendChild(deleteOption);
         }
 
@@ -619,14 +619,14 @@ function showRouteMenu(parentMenu, flight, strip) {
 
     words.forEach((word) => {
         if (!word) return;
-        
+
         let span = document.createElement("span");
         const typeClass = getRoutePointClass(word);
-        
+
         if (word.includes("/")) {
             const [point, extra] = word.split("/", 2);
             span.innerHTML = `<span class="${typeClass}">${point}</span><span class="word-extra">/${extra}</span>`;
-            span.className = "route-word"; 
+            span.className = "route-word";
         } else {
             span.innerHTML = word;
             span.className = `route-word ${typeClass}`;
@@ -647,7 +647,7 @@ function showRouteMenu(parentMenu, flight, strip) {
 }
 
 function getRoutePointClass(word) {
-    const w = word.toUpperCase();
+    const w = word.toUpperCase().split('/')[0];
     if (w === "DCT") return "point-dct";
     if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) return "point-rwy";
     if (/^[A-Z]{3}$/i.test(w)) return "point-vor";
@@ -657,15 +657,54 @@ function getRoutePointClass(word) {
     return "point-unk";
 }
 
+function parseSpeedAltitude(extra) {
+    if (!extra) return null;
+
+    const match = extra.toUpperCase().match(/^([K|N|M])(\d{3,4})([F|S|A|M])(\d{3,4})$/);
+    if (!match) return null;
+
+    const [_, spdType, spdVal, altType, altVal] = match;
+    let speedStr = "";
+    let altStr = "";
+
+    // Parse Speed
+    if (spdType === 'N') speedStr = `${parseInt(spdVal)} Knots`;
+    else if (spdType === 'M') speedStr = `Mach ${parseInt(spdVal) / 100}`;
+    else if (spdType === 'K') speedStr = `${parseInt(spdVal)} km/h`;
+
+    // Parse Altitude
+    if (altType === 'F') altStr = `Flight Level ${parseInt(altVal)}`;
+    else if (altType === 'A') altStr = `${parseInt(altVal)}00 ft`;
+    else if (altType === 'S') altStr = `Standard Metric Level ${parseInt(altVal)}`;
+    else if (altType === 'M') altStr = `${parseInt(altVal)}0 Meters`;
+
+    return `${speedStr} at ${altStr}`;
+}
+
 function getPointType(word) {
-    const w = word.toUpperCase();
-    if (w === "DCT") return "Direct";
-    if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) return "Runway";
-    if (/^[A-Z]{3}$/i.test(w)) return "VOR / NDB Range";
-    if (/^[A-Z]{5}$/i.test(w)) return "Intersection";
-    if (/^[A-Z]+\d+$/i.test(w) && w.length <= 6) return "Airway";
-    if (/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{3,}$/i.test(w)) return "Procedure (SID/STAR)";
-    return "Unknown Phase";
+    let w = word.toUpperCase();
+    let speedAltStr = null;
+
+    if (w.includes('/')) {
+        const parts = w.split('/');
+        w = parts[0];
+        speedAltStr = parseSpeedAltitude(parts[1]);
+    }
+
+    let typeStr = "Unknown Phase";
+
+    if (w === "DCT") typeStr = "Direct";
+    else if (/^(RWY|RW|R)\d+[LR]?$/i.test(w) || /^\d+[LR]$/i.test(w)) typeStr = "Runway";
+    else if (/^[A-Z]{3}$/i.test(w)) typeStr = "VOR / NDB Range";
+    else if (/^[A-Z]{5}$/i.test(w)) typeStr = "Intersection";
+    else if (/^[A-Z]+\d+$/i.test(w) && w.length <= 6) typeStr = "Airway";
+    else if (/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{3,}$/i.test(w)) typeStr = "Procedure (SID/STAR)";
+
+    if (speedAltStr) {
+        return `${typeStr} (${speedAltStr})`;
+    }
+
+    return typeStr;
 }
 
 async function showTransferMenu(menu, ac, strip) {
@@ -1097,32 +1136,32 @@ function moveStripToHandover(callsign) {
 
     if (!stripEl) return;
 
-    
+
     let targetPanelName = "Handover";
     const targetPanel = document.querySelector(`[data-panel-name="${targetPanelName}"]`);
-    
-    if (!targetPanel) return; 
-    
+
+    if (!targetPanel) return;
+
     const targetContainer = targetPanel.querySelector(".strip-container");
     if (!targetContainer) return;
 
-    
+
     targetContainer.appendChild(stripEl);
 
-    
-    
+
+
     stripEl.dataset.euroscope = "false";
-    
-    
+
+
     let movedStripData = null;
     const panels = stateManager.getPanels();
-    
+
     panels.forEach(panel => {
         if (panel.strips && panel.name !== targetPanelName) {
             const index = panel.strips.findIndex(s => s.id === stripId || s.id === callsign || (s.flightPlan && s.flightPlan.callsign === callsign));
             if (index !== -1) {
                 movedStripData = panel.strips[index];
-                
+
                 stateManager.removeStrip(movedStripData.id);
             }
         }
@@ -1136,7 +1175,7 @@ function moveStripToHandover(callsign) {
     document.querySelectorAll('.card').forEach(c => {
         if (typeof updatePanelBadge === 'function') updatePanelBadge(c);
     });
-    
+
     syncRPC();
 }
 
@@ -1218,12 +1257,12 @@ async function UpdateStrip(flight, type = null) {
     const stripType = type ? type : strip.dataset.type;
     const boxes = strip.querySelectorAll("input.box");
 
-    
+
     const currentProc = (boxes[7]?.value || "").trim().toUpperCase();
     const newProc = (stripType === "departure" ? flight.sid : stripType === "arrival" ? flight.star : "").trim().toUpperCase();
 
     if (currentProc !== "" && newProc !== "" && currentProc !== newProc) {
-        
+
         for (let i = 18; i <= 27; i++) {
             if (boxes[i]) boxes[i].value = "";
         }
@@ -1351,7 +1390,7 @@ function applyTooltipsToStrip(strip, type) {
     const mode = window.controllerMode || "tower";
     const isDep = type === "departure";
 
-    
+
     const tooltips = {
         0: "Callsign",
         1: "Aircraft Type",
@@ -1374,7 +1413,7 @@ function applyTooltipsToStrip(strip, type) {
         tooltips[17] = isDep ? "Departure Runway" : "Arrival Runway";
         tooltips[31] = "Estimated Arrival Time";
     } else {
-        
+
         tooltips[6] = "Departure Time";
         tooltips[7] = isDep ? "Assigned SID" : "Assigned STAR";
         tooltips[10] = "Status / Remarks";
@@ -1404,7 +1443,7 @@ function applyTooltipsToStrip(strip, type) {
                     if (tooltipTimeout) clearTimeout(tooltipTimeout);
                     tooltipTimeout = setTimeout(() => {
                         showTooltip(tip, e.clientX, e.clientY);
-                    }, 500); 
+                    }, 500);
                 }
             });
 
@@ -1990,7 +2029,7 @@ function addStripEditListeners(strip, flight, type) {
                     return { display: "", type: "empty", send: 0 };
                 }
 
-                
+
                 if (val.includes(".")) {
                     if (val.startsWith(".")) val = "0" + val;
                     let floatVal = parseFloat(val);
@@ -2005,7 +2044,7 @@ function addStripEditListeners(strip, flight, type) {
                     return { display, type: "mach", send: floatVal };
                 }
 
-                
+
                 let intVal = parseInt(val.replace(/[^0-9]/g, ""), 10);
                 if (isNaN(intVal) || intVal <= 0) {
                     return { display: "", type: "empty", send: 0 };
