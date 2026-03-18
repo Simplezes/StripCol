@@ -335,7 +335,9 @@ body.theme-autohide-header .main-layout {
    overflow: hidden;
 }
 
-.main-layout[data-layout="tower"] {
+.main-layout[data-layout="tower"],
+.main-layout[data-layout="ground"],
+.main-layout[data-layout="del"] {
    --c1: 35fr;
    --c2: 35fr;
    --c3: 30fr;

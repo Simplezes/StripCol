@@ -35,7 +35,6 @@ const RADAR_PANELS = [
     { key: "handover", defaultName: "Handover", cssClass: "panel-handover", badgeCount: true, col: 3 },
 ];
 
-// Map facilityType → panel definition
 const FACILITY_PANEL_MAP = {
     del: DELIVERY_PANELS,
     ground: GROUND_PANELS,
@@ -605,7 +604,7 @@ function addResizeHandles() {
         if (colDiv.children.length < 2) return;
 
         const secondCard = colDiv.querySelector('.card:last-child');
-        if (!secondCard) return;
+        if (!secondCard || secondCard.dataset.panelName === "Handover" || secondCard.classList.contains("panel-handover")) return;
 
         secondCard.style.position = "relative";
 
