@@ -93,9 +93,9 @@ function applySettings() {
                 document.body.classList.add(currentThemeClass);
             }
         } else if (currentSettings.theme === 'dark') {
-             themeClasses.forEach(c => {
-                 if (c !== 'theme-dark-strips' && c !== 'theme-autohide-header') document.body.classList.remove(c);
-             });
+            themeClasses.forEach(c => {
+                if (c !== 'theme-dark-strips' && c !== 'theme-autohide-header') document.body.classList.remove(c);
+            });
         }
     }
 
@@ -161,7 +161,7 @@ function updateUIFromSettings() {
     const themeDropdownText = document.getElementById('themeDropdownText');
 
     if (themeSelect && themeDropdownBtn) {
-        
+
         const existingClickListener = themeDropdownBtn._clickListener;
         if (existingClickListener) themeDropdownBtn.removeEventListener('click', existingClickListener);
 
@@ -172,7 +172,7 @@ function updateUIFromSettings() {
         themeDropdownBtn.addEventListener('click', toggleDropdown);
         themeDropdownBtn._clickListener = toggleDropdown;
 
-        
+
         const closeDropdown = () => themeDropdown.classList.remove('active');
         document.addEventListener('click', closeDropdown);
 
@@ -195,7 +195,7 @@ function updateUIFromSettings() {
                 if (themeDropdownText) themeDropdownText.textContent = label;
                 if (currentThemeIcon) currentThemeIcon.textContent = getThemeIcon(val);
             }
-            
+
             item.innerHTML = `
                 <div class="item-content">
                     <span class="material-icons">${getThemeIcon(val)}</span>
@@ -203,7 +203,7 @@ function updateUIFromSettings() {
                 </div>
                 <span class="material-icons check">check</span>
             `;
-            
+
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (currentSettings.theme === val) {
@@ -215,7 +215,7 @@ function updateUIFromSettings() {
                 updateUIFromSettings();
                 closeDropdown();
             });
-            
+
             themeSelect.appendChild(item);
         };
 
@@ -250,7 +250,9 @@ function initSettingsEvents() {
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
-            settingsBtn.classList.remove('has-update');
+            if (settingsBtn.classList.contains('has-update')) {
+                settingsBtn.classList.remove('has-update');
+            }
             updateUIFromSettings();
         });
     }
@@ -406,9 +408,12 @@ function initUpdateCheck() {
 
 
     window.electronAPI.onUpdateAvailable((info) => {
-
         const settingsBtn = document.getElementById('settingsBtn');
         if (settingsBtn) settingsBtn.classList.add('has-update');
+
+        if (typeof showToast === 'function') {
+            showToast(`Update available: V${info.version}`, 'info');
+        }
 
         updateStatus.innerHTML = `
             <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
@@ -440,6 +445,10 @@ function initUpdateCheck() {
     });
 
     window.electronAPI.onUpdateDownloaded((info) => {
+        if (typeof showToast === 'function') {
+            showToast(`Update V${info.version} ready to install.`, 'success');
+        }
+
         updateStatus.innerHTML = `
             <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
                 <div class="fw-bold">Update Downloaded! (V${info.version})</div>
@@ -475,10 +484,41 @@ function initUpdateCheck() {
 }
 
 async function autoCheckForUpdates() {
-    if (!window.electronAPI || !window.electronAPI.checkForUpdates) return;
+    if (!window.electronAPI || !window.electronAPI.getUpdateStatus) return;
 
     try {
-        await window.electronAPI.checkForUpdates();
+        const { updateInfo, updateDownloaded } = await window.electronAPI.getUpdateStatus();
+        if (updateInfo) {
+            const settingsBtn = document.getElementById('settingsBtn');
+            if (settingsBtn) settingsBtn.classList.add('has-update');
+
+            if (updateDownloaded) {
+                // Manually trigger the downloaded UI if it already happened
+                const updateStatus = document.getElementById('updateStatus');
+                if (updateStatus) {
+                    updateStatus.innerHTML = `
+                        <div class="update-available-box text-success p-2 rounded" style="background: rgba(110, 231, 183, 0.1); border: 1px solid rgba(110, 231, 183, 0.2);">
+                            <div class="fw-bold">Update Downloaded! (V${updateInfo.version})</div>
+                            <div class="mt-1" style="font-size: 11px;">Restart to apply the update.</div>
+                            <button id="installUpdateBtn" class="btn btn-sm btn-success mt-2 py-1 px-3" style="font-size: 11px;">
+                                Restart & Install
+                            </button>
+                        </div>
+                    `;
+                    const installUpdateBtn = document.getElementById('installUpdateBtn');
+                    if (installUpdateBtn) {
+                        installUpdateBtn.addEventListener('click', () => {
+                            window.electronAPI.startUpdate();
+                        });
+                    }
+                }
+            }
+        }
+
+        // Also signal we are ready for new events
+        if (window.electronAPI.rendererReady) {
+            window.electronAPI.rendererReady();
+        }
     } catch (e) {
         console.error("Auto update check failed", e);
     }

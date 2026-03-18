@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveSettings: (settings) => ipcRenderer.send('save-settings', settings),
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
     startUpdate: () => ipcRenderer.invoke('start-update'),
+    getUpdateStatus: () => ipcRenderer.invoke('get-update-status'),
+    rendererReady: () => ipcRenderer.send('renderer-ready'),
     openExternal: (url) => ipcRenderer.send('open-external', url),
     listUserThemes: () => ipcRenderer.invoke('list-user-themes'),
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, info) => callback(info)),

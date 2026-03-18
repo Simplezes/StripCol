@@ -306,22 +306,38 @@ body.theme-autohide-header .main-layout {
    font-size: 1rem;
 }
 
-.btn-atm-mini.has-update {
+.has-update {
    position: relative;
 }
 
-.btn-atm-mini.has-update::after {
+.has-update::after {
    content: '';
    position: absolute;
    top: -2px;
    right: -2px;
-   width: 8px;
-   height: 8px;
+   width: 10px;
+   height: 10px;
    background: var(--atm-red);
    border: 2px solid var(--sys-bg-0);
    border-radius: 50%;
-   z-index: 2;
-   box-shadow: 0 0 5px rgba(255, 61, 0, 0.4);
+   z-index: 10;
+   box-shadow: 0 0 8px rgba(255, 61, 0, 0.6);
+   animation: pulse-update 2s infinite;
+}
+
+@keyframes pulse-update {
+   0% {
+       transform: scale(0.95);
+       box-shadow: 0 0 0 0 rgba(255, 61, 0, 0.7);
+   }
+   70% {
+       transform: scale(1);
+       box-shadow: 0 0 0 6px rgba(255, 61, 0, 0);
+   }
+   100% {
+       transform: scale(0.95);
+       box-shadow: 0 0 0 0 rgba(255, 61, 0, 0);
+   }
 }
 
 .main-layout {

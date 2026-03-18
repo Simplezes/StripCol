@@ -8,6 +8,8 @@ const rpc = require('./rpc');
 const net = require('net');
 
 let serverProcess;
+let updateInfo = null;
+let updateDownloaded = false;
 const SETTINGS_PATH = path.join(app.getPath('userData'), 'settings.json');
 
 function getStoredSettings() {
@@ -170,6 +172,19 @@ app.whenReady().then(() => {
         return { success: true };
     });
 
+    ipcMain.handle('get-update-status', () => {
+        return { updateInfo, updateDownloaded };
+    });
+
+    ipcMain.on('renderer-ready', (event) => {
+        if (updateInfo) {
+            event.reply('update-available', updateInfo);
+            if (updateDownloaded) {
+                event.reply('update-downloaded', updateInfo);
+            }
+        }
+    });
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
@@ -197,6 +212,7 @@ autoUpdater.on('checking-for-update', () => {
 });
 
 autoUpdater.on('update-available', (info) => {
+    updateInfo = info;
     console.log('Update available:', info.version);
     BrowserWindow.getAllWindows().forEach(win => {
         win.webContents.send('update-available', info);
@@ -228,6 +244,8 @@ autoUpdater.on('download-progress', (progressObj) => {
 });
 
 autoUpdater.on('update-downloaded', (info) => {
+    updateDownloaded = true;
+    updateInfo = info;
     console.log('Update downloaded');
     BrowserWindow.getAllWindows().forEach(win => {
         win.webContents.send('update-downloaded', info);
