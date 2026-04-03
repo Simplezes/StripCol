@@ -168,6 +168,16 @@ function startEvent() {
                 }
             });
 
+            evtSource.addEventListener('squawk-assigned', e => {
+                const { callsign, code } = JSON.parse(e.data);
+                if (!callsign || !code) return;
+                const strip = document.querySelector(`.strip[data-strip-id="strip-${callsign}"]`);
+                if (!strip) return;
+                const boxes = strip.querySelectorAll('input.box');
+                if (boxes[5]) boxes[5].value = 'A' + code;
+                if (aircraftMap[callsign]) aircraftMap[callsign].squawk = code;
+            });
+
             evtSource.onopen = function () {
                 console.log("Gateway Link: Established");
                 window.isConnected = true;

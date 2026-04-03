@@ -545,8 +545,22 @@ function OptionsMenu(strip, flight, fromEuroscope = false) {
                 if (procedureOption) menu.appendChild(procedureOption);
                 menu.appendChild(typeOption);
 
+                const generateSquawkOption = createGlobalMenuItem("Generate Squawk", "dialpad", async () => {
+                    try {
+                        await apiFetch(`/api/generate-squawk`, {
+                            method: 'POST',
+                            body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign })
+                        });
+                    } catch (err) {
+                        console.error("Failed to request squawk generation:", err);
+                        showToast("Failed to generate squawk", "error");
+                    }
+                    menu.remove();
+                });
+
                 menu.appendChild(createMenuSection("ATC Actions"));
                 if (clearanceOption) menu.appendChild(clearanceOption);
+                menu.appendChild(generateSquawkOption);
                 menu.appendChild(transferOption);
                 menu.appendChild(freeOption);
             }
