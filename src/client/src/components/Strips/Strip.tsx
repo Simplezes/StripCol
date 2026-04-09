@@ -243,21 +243,26 @@ export function Strip({ stripId, panelName }: StripProps) {
     saveTimer.current = setTimeout(() => syncToStore(updated), 200)
   }
 
-  const handleBlur = async (key: string) => {
+  const handleBlur = async (key: string, domValue?: string) => {
     clearTimeout(saveTimer.current)
     syncToStore(localValues)
 
+    const effectiveValue = domValue !== undefined ? domValue.trim().toUpperCase() : (localValues[key] ?? '')
+
     if (strip?.euroscope && strip.flightPlan?.callsign) {
-      if (key === 'c12' && (localValues['c12'] ?? '') === '') {
+      if (key === 'c12' && effectiveValue === '') {
         markFieldCleared(stripId, 'c12')
+        syncFieldToGateway('c16', '0', strip.flightPlan.callsign).catch((err) => {
+          console.error('Failed resetting heading on c12 clear:', err)
+        })
       }
-      syncFieldToGateway(key, localValues[key] ?? '', strip.flightPlan.callsign).catch((err) => {
+      syncFieldToGateway(key, effectiveValue, strip.flightPlan.callsign).catch((err) => {
         console.error(`Failed syncing ${key} to gateway:`, err)
       })
     }
 
     if (key === 'c12') {
-      autoMoveOnC12(stripId, panelName, localValues.c12 ?? '')
+      autoMoveOnC12(stripId, panelName, effectiveValue)
     }
 
     if (key === 'c18' && strip?.euroscope && strip.flightPlan) {
@@ -404,7 +409,7 @@ export function Strip({ stripId, panelName }: StripProps) {
           className={`box ${CELL_CLASSES[i]}`}
           value={localValues[key] ?? ''}
           onChange={(e) => handleChange(key, e.target.value)}
-          onBlur={() => handleBlur(key)}
+          onBlur={(e) => handleBlur(key, e.currentTarget.value)}
           onMouseDown={(e) => e.stopPropagation()}
           style={{ fontSize: 'clamp(8px, 1cqw, 16px)' }}
           data-cell={key}

@@ -4,12 +4,13 @@
   "description": "Flight strip manager for Vatsim Colombia",
   "main": "src/main.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=development electron .",
-    "dev": "concurrently \"pnpm dev:vite\" \"pnpm start\"",
+    "start": "concurrently \"pnpm dev:vite\" \"cross-env NODE_ENV=development electron .\"",
+    "dev": "pnpm start",
     "dev:vite": "vite",
     "build:vite": "vite build",
-    "build": "pnpm run build:vite && electron-builder build",
-    "publish": "pnpm run build:vite && electron-builder build --publish always"
+    "build:server": "esbuild src/server.js --bundle --platform=node --target=node18 --outfile=src/server.bundle.js",
+    "build": "pnpm run build:vite && pnpm run build:server && electron-builder build",
+    "publish": "pnpm run build:vite && pnpm run build:server && electron-builder build --publish always"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -56,11 +57,14 @@
     "files": [
       "src/main.js",
       "src/preload.js",
-      "src/server.js",
+      "src/server.bundle.js",
       "src/rpc.js",
       "src/client/dist/**/*",
       "src/client/img/**/*",
       "package.json"
+    ],
+    "asarUnpack": [
+      "src/server.bundle.js"
     ]
   },
   "repository": {

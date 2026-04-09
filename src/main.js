@@ -84,7 +84,16 @@ async function startServer(ip) {
             serverProcess.kill();
         }
 
-        serverProcess = fork(path.join(__dirname, 'server.js'), [currentServerIp]);
+        const serverScript = app.isPackaged
+            ? path.join(process.resourcesPath, 'app.asar.unpacked', 'src', 'server.bundle.js')
+            : path.join(__dirname, 'server.js');
+
+        const logPath = path.join(app.getPath('userData'), 'server.log');
+        fs.appendFileSync(logPath, `[${new Date().toISOString()}] Forking server: ${serverScript} (exists: ${fs.existsSync(serverScript)})\n`);
+
+        serverProcess = fork(serverScript, [currentServerIp], {
+            env: { ...process.env, NODE_ENV: isDev ? 'development' : 'production' }
+        });
 
         serverProcess.on('message', (msg) => {
             if (msg.type === 'rpc_update' && storedSettings.discordRpcEnabled) {
@@ -94,8 +103,20 @@ async function startServer(ip) {
             }
         });
 
+        serverProcess.on('error', (err) => {
+            fs.appendFileSync(logPath, `[${new Date().toISOString()}] Server process ERROR: ${err.message}\n`);
+            console.error('Server process error:', err);
+        });
+
+        serverProcess.on('exit', (code, signal) => {
+            fs.appendFileSync(logPath, `[${new Date().toISOString()}] Server process exited (code=${code}, signal=${signal})\n`);
+            console.log(`Server process exited with code ${code}, signal ${signal}`);
+            if (isServerHost) isServerHost = false;
+        });
+
         isServerHost = true;
         console.log(`Server started on IP: ${currentServerIp} (PID: ${serverProcess.pid})`);
+        fs.appendFileSync(logPath, `[${new Date().toISOString()}] Server PID: ${serverProcess.pid}\n`);
     }
 
     startFailoverWatchdog();

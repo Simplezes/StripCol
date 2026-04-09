@@ -14,11 +14,6 @@ const LOCAL_SECTORS = './assets/sectors.json'
 
 async function fetchProcedures(): Promise<unknown> {
   try {
-    const r = await fetch('/api/assets/procedures')
-    if (r.ok) return await r.json()
-  } catch { }
-
-  try {
     const r = await fetch(LOCAL_PROCEDURES)
     if (r.ok) return await r.json()
   } catch { }
