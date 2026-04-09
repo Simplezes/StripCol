@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import heroLogo from '../../../img/icon_name.png'
 import { useUIStore } from '../../stores/uiStore'
 import { showToast } from '../../utils/toast'
 import { Divider } from '../ui/Divider'
@@ -67,7 +68,7 @@ export function AboutTab() {
   return (
     <>
       <div className="about-hero">
-        <img src="img/icon_name.png" alt="StripCol Logo" className="hero-logo" />
+        <img src={heroLogo} alt="StripCol Logo" className="hero-logo" />
         <div className="hero-version">
           Version <span id="appVersionDisplay">{version}</span>
         </div>
