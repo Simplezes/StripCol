@@ -433,7 +433,6 @@ body.theme-autohide-header .main-layout {
    margin-right: 2px;
    color: var(--atm-blue);
    user-select: none;
-   pointer-events: none;
 }
 
 .panel-col.handover-collapsed>.card:last-child .resize-handle {

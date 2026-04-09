@@ -1,0 +1,267 @@
+:root {
+    --sys-bg-0: #008080;
+    /* Classic Teal Desktop */
+    --sys-bg-1: #ffffff;
+    /* Window Workspace */
+    --sys-bg-2: #c0c0c0;
+    /* Standard Surface */
+    --sys-bg-3: #808080;
+    /* Shadow */
+    --sys-bg-4: #000080;
+    /* Title Bar Blue */
+    --sys-border: #808080;
+    --sys-border-active: #000000;
+    --sys-text: #000000;
+    --sys-text-dim: #444444;
+    --sys-text-header: #ffffff;
+    --sys-highlight: #000080;
+    --sys-highlight-text: #ffffff;
+    --atm-amber: #000000;
+    --atm-blue: #0000a0;
+    --atm-green: #008000;
+    --atm-red: #ff0000;
+    --strip-bg: #ffffff;
+    --strip-text: #000000;
+    --strip-focus-bg: rgba(0, 0, 128, 0.1);
+    --font-ui: 'Tahoma', 'MS Sans Serif', sans-serif;
+    --font-data: 'Fixedsys', 'Courier New', monospace;
+    --radius-ui: 0px;
+    --shadow-technical: none;
+}
+
+/* Classic Bevel helper */
+.theme-windows .classic-bevel-out {
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+}
+
+.theme-windows .classic-bevel-in {
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+}
+
+.theme-windows {
+    background-color: var(--sys-bg-0) !important;
+}
+
+.theme-windows .system-bar {
+    background: var(--sys-bg-2);
+    border-bottom: 2px solid;
+    border-color: #ffffff #404040 #808080 #ffffff;
+    padding: 2px;
+}
+
+.theme-windows .sys-badge {
+    background: #c0c0c0;
+    border: 1px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    border-radius: 0;
+    color: #000;
+    font-weight: normal;
+}
+
+.theme-windows .card-header {
+    background: linear-gradient(90deg, #000080, #1084d0) !important;
+    color: #ffffff !important;
+    padding: 3px 5px !important;
+    border-bottom: 1px solid #c0c0c0;
+    display: flex;
+    align-items: center;
+}
+
+.theme-windows .panel {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    border-radius: 0;
+}
+
+.theme-windows .strip {
+    border: 1px solid #000;
+    box-shadow: 1px 1px 0 #000;
+    border-radius: 0;
+}
+
+.theme-windows .btn-atm-mini,
+.theme-windows .custom-btn {
+    background: #c0c0c0;
+    border: 2px solid !important;
+    border-color: #ffffff #404040 #404040 #ffffff !important;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    color: #000 !important;
+    border-radius: 0 !important;
+    font-family: var(--font-ui);
+    padding: 4px 10px;
+}
+
+.theme-windows .btn-atm-mini:active,
+.theme-windows .custom-btn:active {
+    border-color: #808080 #ffffff #ffffff #808080 !important;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+    padding: 5px 9px 3px 11px;
+}
+
+.theme-windows .custom-settings-modal {
+    background: #c0c0c0 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #404040 #404040 #ffffff !important;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080 !important;
+    border-radius: 0 !important;
+}
+
+.theme-windows .sidebar-header {
+    background: linear-gradient(90deg, #000080, #1084d0) !important;
+    padding: 4px 8px !important;
+    color: #fff !important;
+    border-bottom: none;
+    margin-bottom: 4px;
+}
+
+.theme-windows .sidebar-header h2,
+.theme-windows .sidebar-header .material-icons {
+    color: #fff !important;
+}
+
+.theme-windows .settings-sidebar {
+    background: #c0c0c0;
+    border-right: 2px solid #808080;
+}
+
+.theme-windows .settings-tab.active {
+    background: #000080;
+    border: 1px dotted #ffffff !important;
+    color: #ffffff;
+}
+
+.theme-windows .settings-card {
+    background: transparent;
+    border: 2px groove #ffffff;
+    border-radius: 0;
+}
+
+.theme-windows .btn-close-custom {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    border-radius: 0;
+    color: #000;
+}
+
+.theme-windows .btn-close-custom:active {
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+}
+
+.theme-windows .form-control-dark,
+.theme-windows .form-select,
+.theme-windows .sys-input-text,
+.theme-windows .sys-search-group input {
+    background: #ffffff !important;
+    border: 2px solid !important;
+    border-color: #808080 #ffffff #ffffff #808080 !important;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+    color: #000 !important;
+    border-radius: 0 !important;
+}
+
+.theme-windows .switch-slider {
+    background: #808080;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    border-radius: 0;
+}
+
+.theme-windows .switch-slider:before {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    border-radius: 0;
+    left: 0; bottom: 0;
+    height: 16px; width: 16px;
+}
+
+.theme-windows .custom-switch input:checked + .switch-slider {
+    background: #ffffff;
+}
+
+/* Custom Dropdown Classic Styling */
+.theme-windows .custom-dropdown-trigger {
+    background: #ffffff;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+    border-radius: 0;
+    color: #000;
+}
+
+.theme-windows .custom-dropdown-menu {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    border-radius: 0;
+    backdrop-filter: none;
+}
+
+.theme-windows .custom-dropdown-item {
+    color: #000;
+}
+
+.theme-windows .custom-dropdown-item:hover {
+    background: #000080;
+    color: #fff;
+}
+
+.theme-windows .custom-dropdown-item.active {
+    background: #000080;
+    color: #fff;
+}
+
+.theme-windows .panel-name-text {
+    color: #ffffff !important;
+    text-shadow: 1px 1px #000;
+}
+
+/* Classic Scrollbar */
+.theme-windows ::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+}
+
+.theme-windows ::-webkit-scrollbar-track {
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAD0lEQVQImWNggAFGRgYGAAMAAQBX97S9AAAAAElFTkSuQmCC");
+    background-color: #dfdfdf;
+}
+
+.theme-windows ::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    border-radius: 0;
+}
+
+.theme-windows ::-webkit-scrollbar-thumb:hover {
+    background: #c0c0c0;
+}
+
+.theme-windows ::-webkit-scrollbar-button {
+    background: #c0c0c0;
+    width: 16px;
+    height: 16px;
+    display: block;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+}
+
+.theme-windows .atm-toast {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #404040 #404040 #ffffff;
+    box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+    border-radius: 0;
+}

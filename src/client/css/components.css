@@ -1,30 +1,29 @@
 .strip-context-menu {
    position: absolute;
-   min-width: 200px;
-   max-width: 320px;
+   min-width: 250px;
+   max-width: 340px;
    background: var(--sys-bg-2);
    color: var(--sys-text);
-   box-shadow: var(--shadow-technical);
+   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
    border: 1px solid var(--sys-border);
-   border-radius: var(--radius-ui);
-   padding: 2px;
+   border-radius: 6px;
    z-index: 10000;
-   max-height: 70vh;
+   max-height: 75vh;
    display: flex;
    flex-direction: column;
    overflow: hidden;
-   animation: menuScaleIn 0.1s ease-out;
+   animation: menuScaleIn 0.12s ease-out;
 }
 
 @keyframes menuScaleIn {
    from {
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.96) translateY(-4px);
    }
 
    to {
       opacity: 1;
-      transform: scale(1);
+      transform: scale(1) translateY(0);
    }
 }
 
@@ -36,75 +35,251 @@
    scrollbar-color: var(--sys-bg-4) transparent;
 }
 
+/* ── Flight identity header ── */
+
+.menu-header {
+   padding: 11px 14px 9px;
+   border-bottom: 1px solid var(--sys-border);
+   background: linear-gradient(180deg, var(--sys-bg-3) 0%, var(--sys-bg-2) 100%);
+   border-top: 3px solid var(--hdr-accent, var(--sys-highlight));
+   flex-shrink: 0;
+}
+
+.menu-header-departure { --hdr-accent: var(--strip-departure); }
+.menu-header-arrival   { --hdr-accent: var(--strip-arrival);   }
+.menu-header-overfly   { --hdr-accent: var(--strip-overfly);   }
+.menu-header-transfer  { --hdr-accent: var(--atm-amber);       }
+
+.menu-header-top {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   margin-bottom: 5px;
+}
+
+.menu-callsign {
+   font-family: var(--font-data);
+   font-size: 1.1rem;
+   font-weight: 900;
+   letter-spacing: 1px;
+   color: var(--sys-text);
+   line-height: 1;
+}
+
+.menu-type-pill {
+   font-family: var(--font-data);
+   font-size: 0.55rem;
+   font-weight: 800;
+   text-transform: uppercase;
+   letter-spacing: 1px;
+   padding: 3px 8px;
+   border-radius: 2px;
+}
+
+.menu-type-pill-departure {
+   color: var(--strip-departure);
+   background: rgba(110, 231, 183, 0.12);
+   border: 1px solid rgba(110, 231, 183, 0.3);
+}
+
+.menu-type-pill-arrival {
+   color: var(--strip-arrival);
+   background: rgba(248, 113, 113, 0.12);
+   border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.menu-type-pill-overfly {
+   color: var(--strip-overfly);
+   background: rgba(253, 230, 138, 0.12);
+   border: 1px solid rgba(253, 230, 138, 0.3);
+}
+
+.menu-type-pill-transfer {
+   color: var(--atm-amber);
+   background: rgba(255, 171, 0, 0.12);
+   border: 1px solid rgba(255, 171, 0, 0.3);
+}
+
+.menu-type-pill-route {
+   color: var(--sys-text-dim);
+   background: rgba(127, 140, 141, 0.12);
+   border: 1px solid rgba(127, 140, 141, 0.25);
+}
+
+.menu-header-route {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   font-family: var(--font-data);
+   font-size: 0.72rem;
+   font-weight: 700;
+   color: var(--sys-text-dim);
+}
+
+.menu-header-route .material-icons {
+   font-size: 0.8rem;
+   opacity: 0.5;
+}
+
+.menu-actype {
+   opacity: 0.6;
+   font-weight: 500;
+}
+
+.menu-header-chips {
+   display: flex;
+   gap: 4px;
+   margin-top: 7px;
+   flex-wrap: wrap;
+}
+
+.menu-chip {
+   font-family: var(--font-data);
+   font-size: 0.6rem;
+   font-weight: 700;
+   letter-spacing: 0.3px;
+   padding: 2px 7px;
+   border-radius: 2px;
+   background: var(--sys-bg-4);
+   color: var(--sys-text-dim);
+}
+
+.menu-chip-sid {
+   color: var(--atm-blue);
+   background: rgba(33, 150, 243, 0.12);
+}
+
+.menu-chip-star {
+   color: var(--atm-green);
+   background: rgba(0, 230, 118, 0.1);
+}
+
+/* ── Menu items ── */
+
 .menu-item {
-   padding: 6px 12px;
+   padding: 7px 12px;
    cursor: pointer;
    display: flex;
    align-items: center;
-   gap: 8px;
+   gap: 10px;
    font-family: var(--font-ui);
    font-size: 0.8rem;
+   border-radius: 4px;
+   border-left: 2px solid transparent;
+   transition: background 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+   margin: 1px 2px;
+}
+
+.menu-item-default:hover {
+   background: rgba(52, 152, 219, 0.12);
+   border-left-color: var(--sys-highlight);
+}
+
+.menu-item-success:hover {
+   background: rgba(0, 230, 118, 0.1);
+   border-left-color: var(--atm-green);
+   color: var(--atm-green);
+}
+
+.menu-item-danger:hover {
+   background: rgba(255, 61, 0, 0.1);
+   border-left-color: var(--atm-red);
+   color: var(--atm-red);
+}
+
+.menu-item-icon {
+   font-size: 1rem !important;
+   color: var(--sys-text-dim);
+   flex-shrink: 0;
+   transition: color 0.1s ease;
+}
+
+.menu-item-default:hover .menu-item-icon { color: var(--sys-highlight); }
+.menu-item-success:hover .menu-item-icon { color: var(--atm-green); }
+.menu-item-danger:hover  .menu-item-icon { color: var(--atm-red); }
+
+.menu-item-content {
+   flex: 1;
+   display: flex;
+   flex-direction: column;
+   gap: 1px;
+   min-width: 0;
+}
+
+.menu-item-label {
    font-weight: 500;
-   border-radius: 4px;
-   transition: all 0.1s ease;
-   margin: 1px 0;
+   white-space: nowrap;
 }
 
-.menu-item:hover {
-   background: var(--sys-highlight);
-   color: var(--sys-highlight-text);
+.menu-item-sublabel {
+   font-family: var(--font-data);
+   font-size: 0.62rem;
+   color: var(--sys-text-dim);
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
 }
 
-.menu-item .material-icons {
-   font-size: 1rem;
-   color: var(--sys-highlight);
+.menu-item-arrow {
+   font-size: 0.9rem !important;
+   color: var(--sys-text-dim);
+   opacity: 0.4;
+   flex-shrink: 0;
+   transition: opacity 0.1s ease;
 }
 
-.menu-item:hover .material-icons {
-   color: var(--sys-highlight-text);
+.menu-item:hover .menu-item-arrow {
+   opacity: 0.8;
 }
 
-.menu-search-container {
-   padding: 6px;
-   background: transparent;
-   border-bottom: 1px solid var(--sys-border);
+/* ── Section header ── */
+
+.menu-section {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   padding: 8px 12px 3px;
+   margin-top: 2px;
+   font-size: 0.6rem;
+   font-weight: 800;
+   text-transform: uppercase;
+   letter-spacing: 1px;
+   color: var(--sys-text-dim);
 }
 
-.menu-search-input {
-   width: 100%;
-   background: var(--sys-bg-2);
-   border: 1px solid var(--sys-border);
-   color: var(--sys-text);
-   padding: 5px 10px;
-   border-radius: 4px;
-   font-family: var(--font-ui);
-   font-size: 0.75rem;
-   outline: none;
+.menu-section::after {
+   content: '';
+   flex: 1;
+   height: 1px;
+   background: var(--sys-border);
+   margin-left: 4px;
 }
 
-.menu-search-input:focus {
-   border-color: var(--sys-highlight);
-   background: var(--sys-bg-3);
+.menu-section .material-icons {
+   font-size: 0.72rem;
 }
+
+/* ── Back button ── */
 
 .menu-back-btn {
    cursor: pointer;
-   padding: 6px 12px;
+   padding: 7px 12px;
    font-family: var(--font-data);
-   font-size: 0.7rem;
+   font-size: 0.65rem;
    font-weight: 700;
    text-transform: uppercase;
+   letter-spacing: 0.5px;
    color: var(--sys-highlight);
    display: flex;
    align-items: center;
    gap: 6px;
    background: rgba(255, 255, 255, 0.02);
    border-bottom: 1px solid var(--sys-border);
-   margin-bottom: 2px;
+   transition: background 0.1s ease;
 }
 
 .menu-back-btn:hover {
-   background: rgba(255, 255, 255, 0.06);
+   background: rgba(52, 152, 219, 0.1);
 }
 
 .menu-back-btn .material-icons {
@@ -112,37 +287,17 @@
 }
 
 .route-modern-container {
-   padding: 16px;
-   max-width: 380px;
-   background: var(--sys-bg-2);
-   border-radius: var(--radius-ui);
-   min-width: 250px;
-   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+   padding: 0;
+   background: transparent;
+   min-width: 260px;
 }
 
 .route-header {
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   padding-bottom: 12px;
-   margin-bottom: 12px;
-   border-bottom: 1px solid var(--sys-border);
+   display: none;
 }
 
 .route-endpoints {
-   display: flex;
-   align-items: center;
-   gap: 16px;
-   font-size: 1.1rem;
-   font-weight: 800;
-   font-family: var(--font-data);
-   color: var(--sys-text);
-}
-
-.route-endpoints .material-icons {
-   color: var(--sys-text-dim);
-   font-size: 20px;
-   opacity: 0.7;
+   display: none;
 }
 
 .route-text-flow {
@@ -151,7 +306,14 @@
    gap: 6px 10px;
    font-family: var(--font-data);
    font-size: 0.8rem;
-   line-height: 1.5;
+   line-height: 1.6;
+   padding: 12px;
+}
+
+.route-empty {
+   color: var(--sys-text-dim);
+   font-style: italic;
+   font-size: 0.75rem;
 }
 
 .route-text-flow span {
@@ -201,86 +363,515 @@
    font-weight: normal;
 }
 
-.procedure-btn,
-.transition-btn,
-.type-option,
-.atc-btn,
-.runway-btn {
-   cursor: pointer;
-   padding: 7px 12px;
-   margin: 2px 4px;
-   border-radius: 4px;
-   transition: all 0.1s ease;
+/* ─── Procedure Picker ──────────────────────────────────────────────────────── */
+
+.proc-picker {
    display: flex;
-   justify-content: space-between;
-   align-items: center;
-   gap: 16px;
-   font-family: var(--font-ui);
-   font-size: 0.75rem;
-   color: var(--sys-text);
-   background: transparent;
-   border: 1px solid transparent;
+   flex-direction: column;
+   min-width: 260px;
 }
 
-.procedure-btn:hover,
-.transition-btn:hover,
-.type-option:hover,
-.atc-btn:hover,
-.runway-btn:hover {
+/* ── Hero header (runway selection screen) ── */
+
+.proc-picker-hero {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   padding: 12px 14px 10px;
+   background: linear-gradient(135deg, var(--sys-bg-3) 0%, var(--sys-bg-2) 100%);
+   border-bottom: 1px solid var(--sys-border);
+}
+
+.proc-picker-hero-airport {
+   font-family: var(--font-data);
+   font-size: 1.4rem;
+   font-weight: 900;
+   letter-spacing: 2px;
+   color: var(--sys-text);
+   line-height: 1;
+}
+
+.proc-type-badge {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   font-family: var(--font-data);
+   font-size: 0.65rem;
+   font-weight: 800;
+   text-transform: uppercase;
+   letter-spacing: 1px;
+   padding: 4px 9px;
+   border-radius: 3px;
+}
+
+.proc-type-badge .material-icons {
+   font-size: 0.8rem;
+}
+
+.proc-type-sid {
+   background: rgba(33, 150, 243, 0.15);
+   color: var(--atm-blue);
+   border: 1px solid rgba(33, 150, 243, 0.35);
+}
+
+.proc-type-star {
+   background: rgba(0, 230, 118, 0.12);
+   color: var(--atm-green);
+   border: 1px solid rgba(0, 230, 118, 0.35);
+}
+
+/* ── Context bar (breadcrumb) ── */
+
+.proc-context-bar {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   padding: 5px 12px;
+   font-family: var(--font-data);
+   font-size: 0.65rem;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: 0.5px;
+   color: var(--sys-text-dim);
+   background: var(--sys-bg-3);
+   border-bottom: 1px solid var(--sys-border);
+}
+
+.proc-context-bar .material-icons {
+   font-size: 0.85rem;
+}
+
+.proc-context-bar-top {
+   border-top: none;
+}
+
+.proc-context-rwy {
+   margin-left: auto;
+   color: var(--atm-amber);
+}
+
+.proc-context-count {
+   margin-left: auto;
+   color: var(--sys-text-dim);
+   opacity: 0.7;
+}
+
+/* ── Runway grid (step 1) ── */
+
+.proc-rwy-grid {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 4px;
+   padding: 8px;
+}
+
+.proc-rwy-card {
+   cursor: pointer;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   padding: 10px 6px 8px;
+   border-radius: 5px;
+   background: var(--sys-bg-3);
+   border: 1px solid var(--sys-border);
+   transition: all 0.12s ease;
+   gap: 3px;
+}
+
+.proc-rwy-card:hover {
+   background: var(--sys-highlight);
+   border-color: var(--sys-highlight);
+   transform: translateY(-1px);
+   box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+.proc-rwy-num {
+   font-family: var(--font-data);
+   font-size: 1rem;
+   font-weight: 900;
+   color: var(--sys-text);
+   line-height: 1;
+}
+
+.proc-rwy-card:hover .proc-rwy-num {
+   color: var(--sys-highlight-text);
+}
+
+.proc-rwy-count {
+   font-family: var(--font-data);
+   font-size: 0.6rem;
+   color: var(--sys-text-dim);
+}
+
+.proc-rwy-card:hover .proc-rwy-count {
+   color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Footer back link (runway screen) ── */
+
+.proc-picker-footer {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   padding: 7px 12px;
+   font-family: var(--font-data);
+   font-size: 0.65rem;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: 0.5px;
+   color: var(--sys-text-dim);
+   border-top: 1px solid var(--sys-border);
+   cursor: pointer;
+   transition: color 0.1s ease;
+}
+
+.proc-picker-footer .material-icons {
+   font-size: 0.85rem;
+}
+
+.proc-picker-footer:hover {
+   color: var(--sys-highlight);
+}
+
+/* ── Approach type buttons (step 2, STAR) ── */
+
+.proc-appr-list {
+   padding: 6px;
+   display: flex;
+   flex-direction: column;
+   gap: 3px;
+}
+
+.proc-appr-all {
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   padding: 9px 12px;
+   border-radius: 5px;
+   background: var(--sys-bg-3);
+   border: 1px solid var(--sys-border);
+   transition: all 0.12s ease;
+   margin-bottom: 4px;
+}
+
+.proc-appr-all .material-icons {
+   font-size: 1.1rem;
+   color: var(--sys-text-dim);
+}
+
+.proc-appr-all:hover {
    background: var(--sys-highlight);
    border-color: var(--sys-highlight);
    color: var(--sys-highlight-text);
 }
 
-.atc-btn:hover .atc-callsign,
-.atc-btn:hover .atc-frequency,
-.atc-btn:hover .atc-icon,
-.procedure-btn:hover .procedure-name,
-.procedure-btn:hover .procedure-count {
-   color: var(--sys-highlight-text) !important;
+.proc-appr-all:hover .material-icons {
+   color: var(--sys-highlight-text);
 }
 
-.procedure-btn.base-procedure {
-   background: rgba(0, 230, 118, 0.05);
-   border-left: 2px solid var(--atm-green);
+.proc-appr-btn {
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   padding: 8px 12px;
+   border-radius: 5px;
+   background: var(--sys-bg-3);
+   border: 1px solid var(--sys-border);
+   border-left: 3px solid var(--appr-color, var(--sys-border));
+   transition: all 0.12s ease;
 }
 
-.procedure-btn.base-procedure:hover {
-   background: rgba(0, 230, 118, 0.1);
-   border-color: var(--atm-green);
+.proc-appr-btn:hover {
+   background: color-mix(in srgb, var(--appr-color, var(--sys-highlight)) 15%, var(--sys-bg-3) 85%);
+   border-color: var(--appr-color, var(--sys-highlight));
 }
 
-.procedures-container {
-   max-height: 400px;
+.proc-appr-icon {
+   font-size: 1.1rem !important;
+   color: var(--appr-color, var(--sys-text-dim));
+}
+
+.proc-appr-label {
+   flex: 1;
+   font-family: var(--font-data);
+   font-size: 0.8rem;
+   font-weight: 700;
+   color: var(--sys-text);
+}
+
+.proc-appr-count {
+   font-family: var(--font-data);
+   font-size: 0.65rem;
+   color: var(--sys-text-dim);
+   background: var(--sys-bg-4);
+   padding: 1px 7px;
+   border-radius: 2px;
+}
+
+.proc-appr-btn:hover .proc-appr-label {
+   color: var(--appr-color, var(--sys-text));
+}
+
+/* ── Procedure list (step 3) ── */
+
+.proc-search-wrapper {
+   background: var(--sys-bg-3);
+}
+
+.proc-picker-list {
+   max-height: 340px;
    overflow-y: auto;
-   padding: 2px;
+   padding: 4px;
    scrollbar-width: thin;
    scrollbar-color: var(--sys-bg-4) transparent;
 }
 
-.procedure-name {
-   font-weight: 600;
-   flex: 1;
-   text-align: left;
-   white-space: nowrap;
-   overflow: hidden;
-   text-overflow: ellipsis;
+.proc-picker-empty {
+   padding: 14px 16px;
+   font-size: 0.75rem;
+   color: var(--sys-text-dim);
+   text-align: center;
+   font-style: italic;
 }
 
-.runway-btn span:first-child {
-   flex: 1;
-   text-align: left;
+.proc-item {
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 8px;
+   padding: 6px 10px;
+   margin: 1px 2px;
+   border-radius: 4px;
+   border-left: 2px solid transparent;
+   transition: all 0.1s ease;
 }
 
-.transition-count,
-.procedure-count {
+.proc-item:hover {
+   background: var(--sys-highlight);
+   color: var(--sys-highlight-text);
+   border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.proc-item-base {
+   border-left-color: var(--atm-green);
+   background: rgba(0, 230, 118, 0.04);
+}
+
+.proc-item-base:hover {
+   background: var(--sys-highlight);
+   border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.proc-item-name {
    font-family: var(--font-data);
-   font-size: 0.65rem;
-   opacity: 0.6;
-   background: var(--sys-bg-3);
-   padding: 1px 7px;
-   border-radius: 2px;
+   font-size: 0.78rem;
+   font-weight: 700;
+   letter-spacing: 0.3px;
+   flex: 1;
 }
+
+.proc-item-right {
+   display: flex;
+   align-items: center;
+   gap: 5px;
+}
+
+.proc-item-tag {
+   font-family: var(--font-data);
+   font-size: 0.6rem;
+   font-weight: 600;
+   color: var(--atm-amber);
+   background: rgba(255, 171, 0, 0.1);
+   border: 1px solid rgba(255, 171, 0, 0.25);
+   padding: 1px 6px;
+   border-radius: 2px;
+   white-space: nowrap;
+}
+
+.proc-item-tag-default {
+   color: var(--atm-green);
+   background: rgba(0, 230, 118, 0.1);
+   border-color: rgba(0, 230, 118, 0.25);
+}
+
+.proc-item:hover .proc-item-tag {
+   background: rgba(255, 255, 255, 0.2);
+   border-color: transparent;
+   color: var(--sys-highlight-text);
+}
+
+.proc-item-chevron {
+   font-size: 0.9rem !important;
+   color: var(--sys-text-dim);
+   opacity: 0.5;
+   transition: opacity 0.1s ease;
+}
+
+.proc-item:hover .proc-item-chevron {
+   opacity: 1;
+   color: var(--sys-highlight-text);
+}
+
+/* ── Transition sub-view (step 4) ── */
+
+.proc-trans-item {
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 8px;
+   padding: 7px 10px;
+   margin: 1px 2px;
+   border-radius: 4px;
+   border-left: 2px solid transparent;
+   transition: all 0.1s ease;
+}
+
+.proc-trans-item:hover {
+   background: var(--sys-highlight);
+   color: var(--sys-highlight-text);
+}
+
+.proc-trans-base {
+   border-left-color: var(--atm-green);
+   background: rgba(0, 230, 118, 0.04);
+}
+
+.proc-trans-base:hover {
+   background: var(--sys-highlight);
+}
+
+.proc-trans-name {
+   display: flex;
+   align-items: center;
+   gap: 7px;
+   font-family: var(--font-data);
+   font-size: 0.78rem;
+   font-weight: 700;
+   flex: 1;
+}
+
+.proc-trans-dot {
+   font-size: 0.7rem !important;
+   color: var(--sys-text-dim);
+   flex-shrink: 0;
+}
+
+.proc-trans-item:hover .proc-trans-dot {
+   color: var(--sys-highlight-text);
+}
+
+.proc-trans-via {
+   font-family: var(--font-data);
+   font-size: 0.7rem;
+   color: var(--sys-text-dim);
+   white-space: nowrap;
+}
+
+.proc-trans-via strong {
+   color: var(--atm-amber);
+   font-weight: 700;
+}
+
+.proc-trans-item:hover .proc-trans-via,
+.proc-trans-item:hover .proc-trans-via strong {
+   color: var(--sys-highlight-text);
+}
+
+/* ── Search wrapper tweaks ── */
+
+.proc-search-clear {
+   font-size: 0.9rem;
+   color: var(--sys-text-dim);
+   cursor: pointer;
+   padding: 2px;
+   border-radius: 2px;
+   transition: color 0.1s ease;
+}
+
+.proc-search-clear:hover {
+   color: var(--sys-text);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── ATC Transfer ── */
+
+.atc-btn {
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   padding: 7px 12px;
+   margin: 1px 2px;
+   border-radius: 4px;
+   border-left: 2px solid transparent;
+   transition: background 0.1s ease, border-color 0.1s ease;
+   font-family: var(--font-ui);
+   font-size: 0.8rem;
+}
+
+.atc-btn:hover {
+   background: rgba(52, 152, 219, 0.12);
+   border-left-color: var(--sys-highlight);
+}
+
+.atc-icon {
+   font-size: 1rem !important;
+   color: var(--atm-blue);
+   flex-shrink: 0;
+}
+
+.atc-callsign {
+   flex: 1;
+   font-weight: 600;
+   color: var(--sys-text);
+}
+
+.atc-frequency {
+   font-family: var(--font-data);
+   font-size: 0.7rem;
+   color: var(--atm-amber);
+   letter-spacing: 0.3px;
+}
+
+.atc-btn:hover .atc-icon,
+.atc-btn:hover .atc-callsign,
+.atc-btn:hover .atc-frequency {
+   color: var(--sys-highlight) !important;
+}
+
+.transfer-list {
+   max-height: 45vh;
+   overflow-y: auto;
+   scrollbar-width: thin;
+   scrollbar-color: var(--sys-bg-4) transparent;
+}
+
+.transfer-status {
+   padding: 12px 16px;
+   font-size: 0.75rem;
+   color: var(--sys-text-dim);
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   font-style: italic;
+}
+
+.transfer-error {
+   color: var(--atm-red);
+   font-style: normal;
+}
+
+.transfer-error .material-icons {
+   font-size: 1rem;
+}
+
+/* ── Search (shared with procedures) ── */
 
 .search-wrapper {
    display: flex;
@@ -291,9 +882,10 @@
 }
 
 .search-icon {
-   font-size: 1rem;
+   font-size: 1rem !important;
    color: var(--sys-text-dim);
-   margin-right: 8px;
+   margin-right: 6px;
+   flex-shrink: 0;
 }
 
 .procedure-search {
@@ -307,48 +899,112 @@
    font-family: var(--font-ui);
 }
 
-.atc-btn {
-   gap: 8px;
-   margin-bottom: 2px;
+/* ── Strip type cards ── */
+
+.type-cards {
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
+   padding: 8px;
 }
 
-.atc-icon {
-   font-size: 1rem;
-   color: var(--atm-blue);
-}
-
-.atc-callsign {
-   flex: 1;
-   font-weight: 700;
-   color: var(--sys-text);
-}
-
-.atc-frequency {
-   font-family: var(--font-data);
-   font-size: 0.7rem;
-   color: var(--atm-amber);
-}
-
-.atc-section {
-   cursor: default;
-   padding: 4px 10px;
-   margin: 8px 0 4px 0;
-   font-size: 0.65rem;
-   font-weight: 800;
-   color: var(--sys-text-dim);
-   text-transform: uppercase;
-   letter-spacing: 0.5px;
-   border-bottom: 1px solid var(--sys-border);
+.type-card {
+   cursor: pointer;
    display: flex;
    align-items: center;
-   gap: 6px;
+   gap: 12px;
+   padding: 10px 14px;
+   border-radius: 5px;
+   background: var(--sys-bg-3);
+   border: 1px solid var(--sys-border);
+   border-left: 3px solid var(--type-color, var(--sys-border));
+   transition: all 0.12s ease;
 }
 
-.atc-section::after {
-   content: '';
+.type-card-departure { --type-color: var(--strip-departure); }
+.type-card-arrival   { --type-color: var(--strip-arrival); }
+.type-card-overfly   { --type-color: var(--strip-overfly); }
+
+.type-card:hover {
+   background: color-mix(in srgb, var(--type-color, var(--sys-highlight)) 14%, var(--sys-bg-3));
+   border-color: var(--type-color, var(--sys-highlight));
+}
+
+.type-card-active {
+   background: color-mix(in srgb, var(--type-color) 10%, var(--sys-bg-3));
+   border-color: var(--type-color);
+   pointer-events: none;
+   opacity: 0.65;
+}
+
+.type-card-icon {
+   font-size: 1.2rem !important;
+   color: var(--type-color, var(--sys-text-dim));
+}
+
+.type-card-label {
    flex: 1;
-   height: 1px;
-   background: var(--sys-border);
+   font-weight: 600;
+   font-size: 0.85rem;
+}
+
+.type-card-check {
+   font-size: 1rem !important;
+   color: var(--type-color);
+}
+
+/* ── Handoff buttons ── */
+
+.handoff-actions {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 6px;
+   padding: 10px 8px 6px;
+}
+
+.handoff-btn {
+   cursor: pointer;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
+   padding: 14px 8px;
+   border-radius: 6px;
+   border: 1px solid var(--sys-border);
+   background: var(--sys-bg-3);
+   font-family: var(--font-ui);
+   font-size: 0.7rem;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: 0.5px;
+   transition: all 0.12s ease;
+}
+
+.handoff-btn .material-icons {
+   font-size: 1.4rem;
+}
+
+.handoff-accept {
+   color: var(--atm-green);
+   border-color: rgba(0, 230, 118, 0.25);
+}
+
+.handoff-accept:hover {
+   background: rgba(0, 230, 118, 0.15);
+   border-color: var(--atm-green);
+   box-shadow: 0 0 12px rgba(0, 230, 118, 0.15);
+}
+
+.handoff-refuse {
+   color: var(--atm-red);
+   border-color: rgba(255, 61, 0, 0.25);
+}
+
+.handoff-refuse:hover {
+   background: rgba(255, 61, 0, 0.12);
+   border-color: var(--atm-red);
+   box-shadow: 0 0 12px rgba(255, 61, 0, 0.12);
 }
 
 .panel-move-target {
@@ -358,105 +1014,6 @@
 .highlight-move {
    outline: 3px solid var(--atm-amber) !important;
    border-radius: 4px;
-}
-
-.controller-info input,
-.controller-info select {
-   background: #f3f5f0;
-   color: #232526;
-   border: 1px solid #b0b0b0;
-   font-weight: 600;
-   font-size: 1rem;
-   border-radius: 6px;
-   padding: 2px 8px;
-   margin-right: 0.25rem;
-   transition: background 0.18s, color 0.18s, border-color 0.18s;
-}
-
-body.dark-mode .controller-info input,
-body.dark-mode .controller-info select {
-   background: #23272b;
-   color: #f8f9fa;
-   border: 1px solid #444;
-}
-
-.theme-toggle-switch {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   min-width: 54px;
-}
-
-.theme-toggle-input {
-   display: none;
-}
-
-.theme-toggle-label {
-   cursor: pointer;
-   display: inline-block;
-   width: 54px;
-   height: 28px;
-   position: relative;
-}
-
-.theme-toggle-slider {
-   background: var(--sys-bg-3);
-   border-radius: 5px;
-   width: 100%;
-   height: 100%;
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   padding: 0 7px;
-   position: relative;
-   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-   transition: background 0.2s;
-}
-
-.theme-toggle-slider .material-icons {
-   font-size: 19px;
-   transition: opacity 0.2s, color 0.2s;
-   z-index: 2;
-   opacity: 0;
-   pointer-events: none;
-}
-
-.theme-toggle-slider .sun {
-   color: #fbc02d;
-   opacity: 1;
-}
-
-.theme-toggle-input:checked+.theme-toggle-label .theme-toggle-slider .sun {
-   opacity: 0;
-}
-
-.theme-toggle-slider .moon {
-   color: #90caf9;
-   opacity: 0;
-}
-
-.theme-toggle-input:checked+.theme-toggle-label .theme-toggle-slider .moon {
-   opacity: 1;
-   color: #ffd600;
-}
-
-.theme-toggle-slider::after {
-   content: "";
-   position: absolute;
-   top: 3px;
-   left: 6px;
-   width: 22px;
-   height: 22px;
-   background: #fff;
-   border-radius: 25%;
-   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
-   transition: left 0.22s cubic-bezier(.4, 2, .6, 1), background 0.2s;
-   z-index: 1;
-}
-
-.theme-toggle-input:checked+.theme-toggle-label .theme-toggle-slider::after {
-   left: 26px;
-   background: #23272b;
 }
 
 .custom-settings-modal {
@@ -972,6 +1529,69 @@ body.dark-mode .controller-info select {
 
 .atm-toast.warning {
    border-left-color: var(--atm-amber);
+}
+
+/* ── Flight Info view ── */
+
+.finfo-container {
+   display: flex;
+   flex-direction: column;
+   max-height: 75vh;
+   overflow: hidden;
+}
+
+.finfo-scroll {
+   flex: 1;
+   overflow-y: auto;
+   padding: 4px 4px 8px;
+   scrollbar-width: thin;
+   scrollbar-color: var(--sys-bg-4) transparent;
+}
+
+.finfo-section {
+   font-family: var(--font-ui);
+   font-size: 0.58rem;
+   font-weight: 700;
+   letter-spacing: 1px;
+   text-transform: uppercase;
+   color: var(--sys-text-dim);
+   padding: 8px 8px 3px;
+   margin-top: 2px;
+   border-bottom: 1px solid var(--sys-border);
+}
+
+.finfo-section:first-child {
+   margin-top: 0;
+}
+
+.finfo-row {
+   display: flex;
+   align-items: baseline;
+   justify-content: space-between;
+   gap: 8px;
+   padding: 4px 8px;
+   border-radius: 3px;
+   transition: background 0.1s;
+}
+
+.finfo-row:hover {
+   background: var(--sys-bg-3);
+}
+
+.finfo-label {
+   font-family: var(--font-ui);
+   font-size: 0.68rem;
+   color: var(--sys-text-dim);
+   white-space: nowrap;
+   flex-shrink: 0;
+}
+
+.finfo-value {
+   font-family: var(--font-data);
+   font-size: 0.68rem;
+   color: var(--sys-text);
+   text-align: right;
+   word-break: break-all;
 }
 
 .atm-toast.hiding {

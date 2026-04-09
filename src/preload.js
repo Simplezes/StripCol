@@ -13,9 +13,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     rendererReady: () => ipcRenderer.send('renderer-ready'),
     openExternal: (url) => ipcRenderer.send('open-external', url),
     listUserThemes: () => ipcRenderer.invoke('list-user-themes'),
-    onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, info) => callback(info)),
-    onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', (event, info) => callback(info)),
-    onUpdateError: (callback) => ipcRenderer.on('update-error', (event, message) => callback(message)),
-    onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (event, progress) => callback(progress)),
-    onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (event, info) => callback(info))
+    onUpdateAvailable: (callback) => ipcRenderer.once('update-available', (_event, info) => callback(info)),
+    onUpdateNotAvailable: (callback) => ipcRenderer.once('update-not-available', (_event, info) => callback(info)),
+    onUpdateError: (callback) => ipcRenderer.once('update-error', (_event, message) => callback(message)),
+    onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (_event, progress) => callback(progress)),
+    onUpdateDownloaded: (callback) => ipcRenderer.once('update-downloaded', (_event, info) => callback(info))
 });

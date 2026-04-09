@@ -1,7 +1,13 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { fork } = require('child_process');
+
+require('dotenv').config({
+  path: process.env.NODE_ENV === 'development'
+    ? path.join(__dirname, '..', '.env')
+    : path.join(process.resourcesPath, '.env'),
+});
 const { autoUpdater } = require('electron-updater');
 const rpc = require('./rpc');
 
@@ -11,6 +17,7 @@ let serverProcess;
 let updateInfo = null;
 let updateDownloaded = false;
 const SETTINGS_PATH = path.join(app.getPath('userData'), 'settings.json');
+const isDev = process.env.NODE_ENV === 'development';
 
 function getStoredSettings() {
     try {
@@ -109,6 +116,17 @@ function startFailoverWatchdog() {
 }
 
 function createWindow() {
+    const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ws: http://127.0.0.1:3000; img-src 'self' data:; object-src 'none'";
+    const devCSP  = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ws: wss: http: https:; img-src 'self' data:; object-src 'none'";
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': [isDev ? devCSP : prodCSP],
+            },
+        });
+    });
+
     const win = new BrowserWindow({
         width: 1550,
         height: 840,
@@ -121,7 +139,12 @@ function createWindow() {
         icon: path.join(__dirname, 'client/img/icon.png')
     });
 
-    win.loadFile(path.join(__dirname, 'client/index.html'));
+    if (isDev) {
+        win.loadURL('http://localhost:5173');
+        win.webContents.openDevTools();
+    } else {
+        win.loadFile(path.join(__dirname, 'client/dist/index.html'));
+    }
 
 }
 
@@ -141,15 +164,24 @@ app.whenReady().then(() => {
     });
 
     ipcMain.handle('list-user-themes', () => {
-        const themesPath = path.join(__dirname, 'client/css/styles');
-        console.log("IPC: Listing themes from:", themesPath);
+        const candidates = isDev
+            ? [
+                path.join(__dirname, 'client/public/css/styles'),
+                path.join(__dirname, 'client/css/styles')
+            ]
+            : [
+                path.join(__dirname, 'client/dist/css/styles'),
+                path.join(__dirname, 'client/dist/styles')
+            ];
+        console.log("IPC: Listing themes from candidates:", candidates);
         try {
-            if (!fs.existsSync(themesPath)) {
-                console.log("IPC: Themes path does not exist");
+            const themesPath = candidates.find(p => fs.existsSync(p));
+            if (!themesPath) {
+                console.log("IPC: No themes path exists");
                 return [];
             }
             const files = fs.readdirSync(themesPath).filter(file => file.endsWith('.css'));
-            console.log("IPC: Found theme files:", files);
+            console.log("IPC: Found theme files:", files, "from", themesPath);
             return files;
         } catch (e) {
             console.error("IPC: Failed to list user themes:", e);

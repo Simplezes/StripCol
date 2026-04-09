@@ -8,7 +8,10 @@ const fs = require('fs');
 
 let sectorsData = {};
 try {
-  const sectorsPath = path.join(__dirname, 'client', 'assets', 'sectors.json');
+  const isDev = process.env.NODE_ENV === 'development';
+  const sectorsPath = isDev
+    ? path.join(__dirname, 'client', 'public', 'assets', 'sectors.json')
+    : path.join(__dirname, 'client', 'dist', 'assets', 'sectors.json');
   if (fs.existsSync(sectorsPath)) {
     sectorsData = JSON.parse(fs.readFileSync(sectorsPath, 'utf8'));
   }
@@ -21,7 +24,7 @@ const app = express();
 const SERVER_IP = process.argv[2] || '127.0.0.1';
 
 app.use(cors({
-  origin: '*',
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
@@ -29,7 +32,17 @@ app.use(express.json());
 
 const sessions = new Map();
 
-app.get(['/', '/api'], (req, res) => {
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Gateway Hub',
+    version: '1.1.1',
+    connections: sessions.size,
+    uptime: process.uptime()
+  });
+});
+
+app.get('/api', (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
@@ -107,6 +120,7 @@ wss.on('connection', (ws, req) => {
         };
         const session = sessions.get(currentCode);
         const wasConnected = !!(session && session.ws);
+        const prevPositionId = session?.controller?.positionId || "";
 
         if (!sessions.has(currentCode)) {
           sessions.set(currentCode, {
@@ -126,6 +140,13 @@ wss.on('connection', (ws, req) => {
         }
 
         if (!wasConnected) {
+          broadcastToSession(currentCode, {
+            type: 'gateway_status',
+            status: 'plugin_connected',
+            code: currentCode,
+            controller: controllerData
+          });
+        } else if (controllerData.positionId !== prevPositionId) {
           broadcastToSession(currentCode, {
             type: 'gateway_status',
             status: 'plugin_connected',
@@ -213,7 +234,18 @@ function sendRPCUpdate(code) {
     if (icaoMatch) localIcao = icaoMatch[1].toUpperCase();
 
     const isAerodrome = [1, 2, 3, 4].includes(facility);
-    const sectorInfo = sectorsData[positionId];
+    const sectorAirports = (() => {
+      const airports = new Set();
+      const direct = sectorsData[positionId];
+      if (direct?.airports) direct.airports.forEach(a => airports.add(a));
+      if (positionId.includes(':')) {
+        positionId.split(':').forEach(part => {
+          const sub = sectorsData[part];
+          if (sub?.airports) sub.airports.forEach(a => airports.add(a));
+        });
+      }
+      return airports;
+    })();
 
     session.aircraft.forEach(ac => {
       const acDep = (ac.departure || "").toUpperCase();
@@ -223,9 +255,9 @@ function sendRPCUpdate(code) {
       if (isAerodrome) {
         if (acDep === localIcao) type = "departure";
         else if (acArr === localIcao) type = "arrival";
-      } else if (sectorInfo && sectorInfo.airports) {
-        if (sectorInfo.airports.includes(acDep)) type = "departure";
-        else if (sectorInfo.airports.includes(acArr)) type = "arrival";
+      } else if (sectorAirports.size > 0) {
+        if (sectorAirports.has(acDep)) type = "departure";
+        else if (sectorAirports.has(acArr)) type = "arrival";
       }
 
       if (type === "departure") dep++;
@@ -463,7 +495,27 @@ app.get('/api/logs.html', (req, res) => {
 app.get('/api/logs', (req, res) => res.json({ logs }));
 app.post('/api/logs/clear', (req, res) => { logs.length = 0; console.log('Logs cleared'); res.json({ success: true }); });
 
-// Consolidated API Command Handler
+app.get('/api/assets/procedures', async (req, res) => {
+  const baseUrl = process.env.STRIPCOL_BASE_URL;
+  const apiKey  = process.env.STRIPCOL_API_KEY;
+
+  if (!baseUrl || !apiKey) {
+    return res.status(503).json({ error: 'Remote procedures not configured' });
+  }
+
+  try {
+    const r = await fetch(`${baseUrl}/files/procedures`, {
+      headers: { Authorization: apiKey },
+    });
+    if (!r.ok) return res.status(r.status).end();
+    const data = await r.json();
+    return res.json(data);
+  } catch (err) {
+    console.error('[Server] Failed to fetch remote procedures:', err.message);
+    return res.status(502).json({ error: 'Failed to fetch remote procedures' });
+  }
+});
+
 app.post('/api/:action', (req, res) => {
   const action = req.params.action;
   const { code, ...payload } = req.body;
@@ -487,10 +539,9 @@ app.post('/api/:action', (req, res) => {
   }
 });
 
-// Session Cleanup Task (Every 10 minutes)
 setInterval(() => {
   const now = Date.now();
-  const TTL = 1000 * 60 * 60 * 2; // 2 hour TTL for inactive sessions
+  const TTL = 1000 * 60 * 60 * 2;
   for (const [code, session] of sessions.entries()) {
     if (now - session.lastActivity > TTL) {
       console.log(`[Server] Cleaning up inactive session: ${code}`);
