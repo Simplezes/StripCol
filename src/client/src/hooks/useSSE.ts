@@ -208,14 +208,12 @@ export function useSSE(): void {
 
           src.addEventListener('aircraft', (e) => {
             const flight: FlightPlan = JSON.parse((e as MessageEvent).data)
-            console.log(`[SSE aircraft] ${flight.callsign}`, JSON.parse((e as MessageEvent).data))
             flight.transfer = false
             if (useFlightStore.getState().aircraftMap[flight.callsign]) {
               deleteStripByCallsign(flight.callsign)
             }
             useFlightStore.getState().addAircraft(flight.callsign, flight)
             renderAircraftAsStrip(flight)
-            // Play notification sound for real-time assumptions (skip grace period after connect)
             if (
               useSettingsStore.getState().settings.audioEnabled &&
               Date.now() - connectedAt > 3000
@@ -239,7 +237,6 @@ export function useSSE(): void {
 
           src.addEventListener('fpupdate', (e) => {
             const flight: FlightPlan = JSON.parse((e as MessageEvent).data)
-            console.log(`[SSE fpupdate] ${flight.callsign}`, JSON.parse((e as MessageEvent).data))
             const alreadyTracked = !!useFlightStore.getState().aircraftMap[flight.callsign]
             if (alreadyTracked) {
               useFlightStore.getState().updateAircraft(flight.callsign, flight)
