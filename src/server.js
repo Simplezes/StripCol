@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.1.1',
+    version: '1.1.4',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -46,7 +46,7 @@ app.get('/api', (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.1.1',
+    version: '1.1.4',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -367,7 +367,13 @@ app.get('/api/ATC-list', (req, res) => {
   res.json(session.atcList);
 });
 
-app.get('/api/logs.html', (req, res) => {
+function requireLocalhost(req, res, next) {
+  const addr = req.socket.remoteAddress;
+  if (addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1') return next();
+  return res.status(403).json({ error: 'Forbidden' });
+}
+
+app.get('/api/logs.html', requireLocalhost, (req, res) => {
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -492,8 +498,8 @@ app.get('/api/logs.html', (req, res) => {
   res.send(html);
 });
 
-app.get('/api/logs', (req, res) => res.json({ logs }));
-app.post('/api/logs/clear', (req, res) => { logs.length = 0; console.log('Logs cleared'); res.json({ success: true }); });
+app.get('/api/logs', requireLocalhost, (req, res) => res.json({ logs }));
+app.post('/api/logs/clear', requireLocalhost, (req, res) => { logs.length = 0; console.log('Logs cleared'); res.json({ success: true }); });
 
 app.get('/api/assets/procedures', async (req, res) => {
   const baseUrl = process.env.STRIPCOL_BASE_URL;
@@ -516,8 +522,38 @@ app.get('/api/assets/procedures', async (req, res) => {
   }
 });
 
+const ALLOWED_ACTIONS = new Set([
+  // Strip cell sync
+  'set-squawk',
+  'set-departureTime',
+  'set-assigned-mach',
+  'set-assigned-speed',
+  'set-direct-point',
+  'set-final-alt',
+  'set-cleared-alt',
+  'set-assigned-heading',
+  'set-star',
+  'set-sid',
+  // Clearance / squawk
+  'set-clearance',
+  'generate-squawk',
+  // Transfer / handoff
+  'ATC-transfer',
+  'accept-handoff',
+  'refuse-handoff',
+  'end-tracking',
+  // Traffic assumption
+  'get-nearby-aircraft',
+  'assume-aircraft',
+]);
+
 app.post('/api/:action', (req, res) => {
   const action = req.params.action;
+
+  if (!ALLOWED_ACTIONS.has(action)) {
+    return res.status(404).json({ success: false, message: 'Unknown action' });
+  }
+
   const { code, ...payload } = req.body;
 
   if (!code) {
@@ -592,5 +628,5 @@ app.post('/api/rpc-update', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Gateway Hub (V1.1.0) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
+  console.log(`Gateway Hub (V1.1.4) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
 });

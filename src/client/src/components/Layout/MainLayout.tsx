@@ -258,12 +258,13 @@ export function MainLayout() {
   useEffect(() => {
     const mode = facilityToLayoutMode(facilityType)
     const defs = FACILITY_PANEL_MAP[facilityType]
+    const localHandoverDef = defs.find((d) => d.key === 'handover')
 
     initLayoutPanels(defs)
 
     const collapsed = loadHandoverCollapsed(mode)
-    const newGrid = handoverDef && !handoverDef.noCollapse
-      ? applyHandoverHeight(loadGrid(mode), handoverDef.col, collapsed)
+    const newGrid = localHandoverDef && !localHandoverDef.noCollapse
+      ? applyHandoverHeight(loadGrid(mode), localHandoverDef.col, collapsed)
       : loadGrid(mode)
 
     gridRef.current = newGrid

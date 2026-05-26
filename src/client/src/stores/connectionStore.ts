@@ -86,8 +86,6 @@ export const useConnectionStore = create<ConnectionState>((set) => ({
     const localIcao = icaoMatch ? icaoMatch[1] : ''
     const positionId = typeof data.positionId === 'string' ? data.positionId : ''
 
-    console.log(data)
-
     set({
       controllerMode: info.mode,
       facilityType: info.facilityType,

@@ -28,7 +28,7 @@ interface StripGhostContentProps {
 }
 
 export function StripGhostContent({ strip }: StripGhostContentProps) {
-  const autohideHeader = useSettingsStore.getState().settings.autohideHeader
+  const autohideHeader = useSettingsStore((s) => s.settings.autohideHeader)
   const c33 = formatC33(strip.lastUpdate)
 
   return (

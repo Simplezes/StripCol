@@ -27,12 +27,11 @@ function initRPC() {
         rpc = null;
     });
 
-    rpc.login({ clientId }).catch(err => {
+    rpc.login({ clientId }).then(() => {
+        if (rpc && !rpc.transport) rpc = null;
+    }).catch(err => {
         console.error('[RPC] Failed to connect to Discord:', err.message);
         rpc = null;
-    }).then(() => {
-        
-        if (rpc && !rpc.transport) rpc = null;
     });
 }
 
@@ -43,7 +42,7 @@ function updatePresence(data = {}) {
     const { details = 'Awaiting Connection', state = 'Ready for traffic', callsign = null } = data;
 
     const isSameData = lastUpdateData && lastUpdateData.details === details && lastUpdateData.state === state;
-    if (isSameData || (now - lastUpdateTime < THROTTLE_INTERVAL)) {
+    if (isSameData && (now - lastUpdateTime < THROTTLE_INTERVAL)) {
         return;
     }
 
@@ -79,6 +78,7 @@ function clearRPC() {
         rpc = null;
         startTimestamp = null;
         lastUpdateData = null;
+        lastUpdateTime = 0;
     }
 }
 

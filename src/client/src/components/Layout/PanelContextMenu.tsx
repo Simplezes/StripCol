@@ -139,12 +139,14 @@ function AssumeView({
     .sort((a, b) => a.localeCompare(b))
 
   const handleAssume = async (callsign: string) => {
-    const res = await apiFetch('/api/assume-aircraft', {
-      method: 'POST',
-      body: JSON.stringify({ code: getLinkCode(), callsign, panel: panelName }),
-    })
-    if (res.ok) {
-      onClose()
+    try {
+      const res = await apiFetch('/api/assume-aircraft', {
+        method: 'POST',
+        body: JSON.stringify({ code: getLinkCode(), callsign, panel: panelName }),
+      })
+      if (res.ok) onClose()
+    } catch (err) {
+      console.error('Assume aircraft failed:', err)
     }
   }
 

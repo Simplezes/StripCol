@@ -177,13 +177,16 @@ export function Strip({ stripId, panelName }: StripProps) {
 
   const prevFlightPlan = useRef(strip?.flightPlan)
   const phase4Cells = useRef<Set<string>>(new Set())
+  // Always-current ref so the flight-plan effect below never reads a stale closure value
+  const localValuesRef = useRef(localValues)
+  localValuesRef.current = localValues
 
   useEffect(() => {
     if (!strip) return
     if (prevFlightPlan.current !== strip.flightPlan) {
       const next = { ...strip.values }
       CUSTOM_BOX_KEYS.forEach((k) => {
-        if (localValues[k] && strip.values[k] !== '') next[k] = localValues[k]
+        if (localValuesRef.current[k] && strip.values[k] !== '') next[k] = localValuesRef.current[k]
       })
       setLocalValues(next)
     }
@@ -369,11 +372,12 @@ export function Strip({ stripId, panelName }: StripProps) {
     }
   }, [])
 
+  const autohideHeader = useSettingsStore((s) => s.settings.autohideHeader)
+  const searchQuery = useUIStore((s) => s.searchQuery)
+
   if (!strip) return null
 
   const c33 = formatC33(strip.lastUpdate)
-  const autohideHeader = useSettingsStore.getState().settings.autohideHeader
-  const searchQuery = useUIStore((s) => s.searchQuery)
 
   const isHidden = searchQuery.length > 0 && (() => {
     const q = searchQuery.toLowerCase()

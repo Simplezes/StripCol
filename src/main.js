@@ -314,7 +314,11 @@ ipcMain.on('restart-server', (event, ip) => {
 });
 
 ipcMain.on('open-external', (event, url) => {
-    require('electron').shell.openExternal(url);
+    if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+        require('electron').shell.openExternal(url);
+    } else {
+        console.warn('open-external blocked non-http URL:', url);
+    }
 });
 
 app.on('window-all-closed', () => {

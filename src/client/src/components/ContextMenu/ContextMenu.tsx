@@ -245,23 +245,31 @@ function TransferView({
   }, [])
 
   const handleTransfer = async (targetCallsign: string) => {
-    await apiFetch('/api/ATC-transfer', {
-      method: 'POST',
-      body: JSON.stringify({
-        code: getLinkCode(),
-        callsign: flight.callsign,
-        targetATC: targetCallsign,
-      }),
-    })
+    try {
+      await apiFetch('/api/ATC-transfer', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: getLinkCode(),
+          callsign: flight.callsign,
+          targetATC: targetCallsign,
+        }),
+      })
+    } catch (err) {
+      console.error('ATC transfer failed:', err)
+    }
     onClose()
   }
 
   const handleUnicom = async () => {
-    const res = await apiFetch('/api/end-tracking', {
-      method: 'POST',
-      body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign }),
-    })
-    if (res.ok) deleteStripByCallsign(flight.callsign)
+    try {
+      const res = await apiFetch('/api/end-tracking', {
+        method: 'POST',
+        body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign }),
+      })
+      if (res.ok) deleteStripByCallsign(flight.callsign)
+    } catch (err) {
+      console.error('End tracking failed:', err)
+    }
     onClose()
   }
 
@@ -895,14 +903,19 @@ function MainView({
             <div
               className="handoff-btn handoff-accept"
               onClick={async () => {
-                const res = await apiFetch('/api/accept-handoff', {
-                  method: 'POST',
-                  body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
-                })
-                if (res.ok) {
-                  deleteStripByCallsign(fp.callsign)
-                  renderAircraftAsStrip({ ...fp, transfer: false })
-                } else {
+                try {
+                  const res = await apiFetch('/api/accept-handoff', {
+                    method: 'POST',
+                    body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
+                  })
+                  if (res.ok) {
+                    deleteStripByCallsign(fp.callsign)
+                    renderAircraftAsStrip({ ...fp, transfer: false })
+                  } else {
+                    usePanelStore.getState().removeStrip(panelName, stripId)
+                  }
+                } catch (err) {
+                  console.error('Accept handoff failed:', err)
                   usePanelStore.getState().removeStrip(panelName, stripId)
                 }
                 onClose()
@@ -914,12 +927,17 @@ function MainView({
             <div
               className="handoff-btn handoff-refuse"
               onClick={async () => {
-                const res = await apiFetch('/api/refuse-handoff', {
-                  method: 'POST',
-                  body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
-                })
-                if (res.ok) deleteStripByCallsign(fp.callsign)
-                else usePanelStore.getState().removeStrip(panelName, stripId)
+                try {
+                  const res = await apiFetch('/api/refuse-handoff', {
+                    method: 'POST',
+                    body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
+                  })
+                  if (res.ok) deleteStripByCallsign(fp.callsign)
+                  else usePanelStore.getState().removeStrip(panelName, stripId)
+                } catch (err) {
+                  console.error('Refuse handoff failed:', err)
+                  usePanelStore.getState().removeStrip(panelName, stripId)
+                }
                 onClose()
               }}
             >
@@ -1007,7 +1025,7 @@ function MainView({
           {type === 'departure' && (<>
             <MenuItem
               icon={isCleared ? 'restart_alt' : 'check_circle'}
-              label={isCleared ? 'Reset Clearance' : 'Issue Clearance'}
+              label={isCleared ? 'Remove Clearance' : 'Issue Clearance'}
               variant={isCleared ? 'default' : 'success'}
               onClick={async () => {
                 try {
@@ -1059,11 +1077,15 @@ function MainView({
             label="Free Aircraft"
             variant="success"
             onClick={async () => {
-              const res = await apiFetch('/api/end-tracking', {
-                method: 'POST',
-                body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
-              })
-              if (res.ok) deleteStripByCallsign(fp.callsign)
+              try {
+                const res = await apiFetch('/api/end-tracking', {
+                  method: 'POST',
+                  body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
+                })
+                if (res.ok) deleteStripByCallsign(fp.callsign)
+              } catch (err) {
+                console.error('Free aircraft failed:', err)
+              }
               onClose()
             }}
           />

@@ -16,7 +16,7 @@ import type { FlightPlan } from '../types'
 
 const INITIAL_RETRY_DELAY = 1000
 const MAX_RETRY_DELAY = 10_000
-const HUB_POLL_INTERVAL = 1000
+const HUB_POLL_INTERVAL = 5000
 
 export function useSSE(): void {
   const reconnectRef = useRef<() => void>(() => {})
@@ -149,6 +149,7 @@ export function useSSE(): void {
       const code = useSettingsStore.getState().settings.linkCode
       try {
         const r = await apiFetch(`/api/assumed?code=${code}`)
+        if (!r.ok) return
         const aircraft: FlightPlan[] = await r.json()
         aircraft.forEach((a) => {
           if (a.transfer) return
@@ -280,8 +281,9 @@ export function useSSE(): void {
             useConnectionStore.getState().setPluginLinked(false)
             useConnectionStore.getState().setPaired(false)
             closeSource()
-            useFlightStore.getState().clearAll()
-            usePanelStore.getState().clearAllStrips()
+            // Do NOT clear strips here — a transient network drop should not destroy
+            // the controller's working state. Strips are cleared only on an explicit
+            // plugin_disconnected gateway event.
             scheduleReconnect()
           }
         })
