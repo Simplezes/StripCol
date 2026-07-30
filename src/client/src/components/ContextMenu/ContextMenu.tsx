@@ -953,7 +953,6 @@ function MainView({
   }
 
   if (euroscope && fp) {
-    const isCleared = (fp.clearedFlag as number) == 1
     const showProcedure = type === 'departure' || type === 'arrival'
     const depAirport = type === 'departure' ? fp.departure : fp.arrival
     const procType = type === 'departure' ? 'SID' : 'STAR'
@@ -1022,50 +1021,6 @@ function MainView({
           />
 
           <MenuSection label="ATC" icon="headset_mic" />
-          {type === 'departure' && (<>
-            <MenuItem
-              icon={isCleared ? 'restart_alt' : 'check_circle'}
-              label={isCleared ? 'Remove Clearance' : 'Issue Clearance'}
-              variant={isCleared ? 'default' : 'success'}
-              onClick={async () => {
-                try {
-                  const res = await apiFetch('/api/set-clearance', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                      code: getLinkCode(),
-                      callsign: fp.callsign,
-                      cleared: isCleared ? 'false' : 'true',
-                    }),
-                  })
-                  if (res.ok) {
-                    const newFlag = isCleared ? 0 : 1
-                    const newC12 = newFlag === 1 ? 'Ⓑ' : ''
-                    usePanelStore
-                      .getState()
-                      .updateStrip(panelName, stripId, {
-                        flightPlan: { ...fp, clearedFlag: newFlag },
-                        values: { ...strip.values, c12: newC12 },
-                      })
-                  }
-                } catch (err) {
-                  console.error('Clearance toggle failed:', err)
-                }
-                onClose()
-              }}
-            />
-            <MenuItem
-              icon="dialpad"
-              label="Generate Squawk"
-              sublabel={fp.squawk ? String(fp.squawk) : undefined}
-              onClick={async () => {
-                await apiFetch('/api/generate-squawk', {
-                  method: 'POST',
-                  body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
-                }).catch(console.error)
-                onClose()
-              }}
-            />
-          </>)}
           <MenuItem
             icon="compare_arrows"
             label="Transfer"

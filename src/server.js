@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.1.4',
+    version: '1.1.5',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -46,7 +46,7 @@ app.get('/api', (req, res) => {
   res.json({
     status: 'online',
     service: 'Gateway Hub',
-    version: '1.1.4',
+    version: '1.1.5',
     connections: sessions.size,
     uptime: process.uptime()
   });
@@ -181,7 +181,6 @@ wss.on('connection', (ws, req) => {
 
     } catch (e) {
       console.error('Error parsing WebSocket message:', e.message);
-      console.error('Raw message:', message.toString());
     }
   });
 
@@ -499,28 +498,7 @@ app.get('/api/logs.html', requireLocalhost, (req, res) => {
 });
 
 app.get('/api/logs', requireLocalhost, (req, res) => res.json({ logs }));
-app.post('/api/logs/clear', requireLocalhost, (req, res) => { logs.length = 0; console.log('Logs cleared'); res.json({ success: true }); });
-
-app.get('/api/assets/procedures', async (req, res) => {
-  const baseUrl = process.env.STRIPCOL_BASE_URL;
-  const apiKey  = process.env.STRIPCOL_API_KEY;
-
-  if (!baseUrl || !apiKey) {
-    return res.status(503).json({ error: 'Remote procedures not configured' });
-  }
-
-  try {
-    const r = await fetch(`${baseUrl}/files/procedures`, {
-      headers: { Authorization: apiKey },
-    });
-    if (!r.ok) return res.status(r.status).end();
-    const data = await r.json();
-    return res.json(data);
-  } catch (err) {
-    console.error('[Server] Failed to fetch remote procedures:', err.message);
-    return res.status(502).json({ error: 'Failed to fetch remote procedures' });
-  }
-});
+app.post('/api/logs/clear', requireLocalhost, (req, res) => { logs.length = 0; res.json({ success: true }); });
 
 const ALLOWED_ACTIONS = new Set([
   // Strip cell sync
@@ -534,9 +512,6 @@ const ALLOWED_ACTIONS = new Set([
   'set-assigned-heading',
   'set-star',
   'set-sid',
-  // Clearance / squawk
-  'set-clearance',
-  'generate-squawk',
   // Transfer / handoff
   'ATC-transfer',
   'accept-handoff',
@@ -628,5 +603,5 @@ app.post('/api/rpc-update', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Gateway Hub (V1.1.4) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
+  console.log(`Gateway Hub (V1.1.5) listening on ${SERVER_IP}:${PORT} (bound to 0.0.0.0)`);
 });

@@ -193,16 +193,12 @@ app.whenReady().then(() => {
                 path.join(__dirname, 'client/dist/css/styles'),
                 path.join(__dirname, 'client/dist/styles')
             ];
-        console.log("IPC: Listing themes from candidates:", candidates);
         try {
             const themesPath = candidates.find(p => fs.existsSync(p));
             if (!themesPath) {
-                console.log("IPC: No themes path exists");
                 return [];
             }
-            const files = fs.readdirSync(themesPath).filter(file => file.endsWith('.css'));
-            console.log("IPC: Found theme files:", files, "from", themesPath);
-            return files;
+            return fs.readdirSync(themesPath).filter(file => file.endsWith('.css'));
         } catch (e) {
             console.error("IPC: Failed to list user themes:", e);
             return [];
@@ -259,10 +255,6 @@ ipcMain.on('save-settings', (event, settings) => {
     }
 });
 
-autoUpdater.on('checking-for-update', () => {
-    console.log('Checking for update...');
-});
-
 autoUpdater.on('update-available', (info) => {
     updateInfo = info;
     console.log('Update available:', info.version);
@@ -272,7 +264,6 @@ autoUpdater.on('update-available', (info) => {
 });
 
 autoUpdater.on('update-not-available', (info) => {
-    console.log('Update not available.');
     BrowserWindow.getAllWindows().forEach(win => {
         win.webContents.send('update-not-available', info);
     });
@@ -286,10 +277,6 @@ autoUpdater.on('error', (err) => {
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
-    let log_message = "Download speed: " + progressObj.bytesPerSecond;
-    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-    console.log(log_message);
     BrowserWindow.getAllWindows().forEach(win => {
         win.webContents.send('download-progress', progressObj);
     });

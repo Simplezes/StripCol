@@ -103,22 +103,6 @@ export function useSSE(): void {
       })
     }
 
-    function updateStripSquawk(callsign: string, squawkCode: string) {
-      const id = `strip-${callsign}`
-      usePanelStore.getState().panels.forEach((p) => {
-        const strip = p.strips.find((s) => s.id === id)
-        if (strip) {
-          const updatedFp = strip.flightPlan
-            ? { ...strip.flightPlan, squawk: squawkCode }
-            : strip.flightPlan
-          usePanelStore.getState().updateStrip(p.name, id, {
-            ...(updatedFp ? { flightPlan: updatedFp } : {}),
-            values: { ...strip.values, c6: 'A' + squawkCode },
-          })
-        }
-      })
-    }
-
     async function checkHubStatus() {
       try {
         const r = await apiFetch('/api')
@@ -252,13 +236,6 @@ export function useSSE(): void {
           src.addEventListener('nearby-aircraft', (e) => {
             const callsigns: string[] = JSON.parse((e as MessageEvent).data)
             useFlightStore.getState().setNearbyCallsigns(callsigns)
-          })
-
-          src.addEventListener('squawk-assigned', (e) => {
-            const { callsign, code: sq } = JSON.parse((e as MessageEvent).data)
-            if (!callsign || !sq) return
-            useFlightStore.getState().updateAircraft(callsign, { squawk: sq })
-            updateStripSquawk(callsign, sq)
           })
 
           src.onopen = () => {
