@@ -66,11 +66,10 @@ export function StripTransfer({ stripId, panelName }: StripTransferProps) {
   return (
     <div
       ref={setNodeRef}
-      className="srow"
+      className={`srow${isDragging ? ' drag-src' : ''}`}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0 : undefined,
       }}
       {...attributes}
       {...listeners}

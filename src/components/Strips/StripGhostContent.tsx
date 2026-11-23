@@ -21,13 +21,21 @@ const CELL_CLASSES: string[] = [
 ]
 const CELL_KEYS = CELL_CLASSES.map((cls) => cls.split(' ')[0])
 
-interface StripGhostContentProps {
-  strip: StripData
-  panelName: string
-}
-
-export function StripGhostContent({ strip }: StripGhostContentProps) {
+export function StripGhostContent({ strip }: { strip: StripData }) {
   const c33 = formatC33(strip.lastUpdate)
+
+  if (strip.type === 'transfer') {
+    const fp = strip.flightPlan
+    return (
+      <div className="strip incoming strip-drag-overlay" data-type="transfer">
+        <span className="tag">Handover</span>
+        <h3>{fp?.callsign}</h3>
+        <span>
+          {fp?.departure} → {fp?.arrival} · {fp?.aircraftType || '---'}
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div
