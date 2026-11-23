@@ -6,12 +6,17 @@ import { useConnectionStore } from '../../stores/connectionStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useContextMenuStore } from '../../stores/contextMenuStore'
 import { useUIStore } from '../../stores/uiStore'
+import { useDragStore } from '../../stores/dragStore'
 import { apiFetch } from '../../utils/api'
 import { autoMoveOnC12 } from '../../utils/stripActions'
 import { CUSTOM_BOX_KEYS } from '../../utils/stripValues'
 import { useAssetsStore } from '../../stores/assetsStore'
 import { computeProcedurePoints, fetchPointETAs } from '../../utils/procedurePoints'
 import { showToast } from '../../utils/toast'
+import { useFitText } from './useFitText'
+import { useCellHint } from './useCellHint'
+import { useCellPickerStore } from '../../stores/cellPickerStore'
+import { PICKABLE_CELLS } from './pickers/pickerData'
 
 const CELL_CLASSES: string[] = [
   'c1 al_ot',
@@ -360,6 +365,14 @@ export function Strip({ stripId, panelName }: StripProps) {
 
   const showMenu = useContextMenuStore((s) => s.show)
 
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    const cell = (e.target as HTMLElement).closest<HTMLElement>('[data-cell]')
+    const key = cell?.dataset.cell
+    if (!cell || !key || !PICKABLE_CELLS.includes(key)) return
+    useUIStore.getState().selectStrip(stripId)
+    useCellPickerStore.getState().openPicker({ stripId, panelName, cell: key, rect: cell.getBoundingClientRect() })
+  }
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -373,6 +386,10 @@ export function Strip({ stripId, panelName }: StripProps) {
   }, [])
 
   const searchQuery = useUIStore((s) => s.searchQuery)
+  const stripRef = useRef<HTMLDivElement | null>(null)
+  useFitText(stripRef, localValues)
+  const cellHint = useCellHint(strip?.type ?? '')
+  const landed = useDragStore((s) => s.landedId === stripId)
   const isSelected = useUIStore((s) => s.selectedStripId === stripId)
   const typeHidden = useUIStore((s) => s.trafficFilters[strip?.type as 'departure'] === false)
 
@@ -391,20 +408,24 @@ export function Strip({ stripId, panelName }: StripProps) {
   const dragStyle = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0 : undefined,
     ...(isHidden ? { display: 'none' } : {}),
   }
 
   return (
     <div
-      ref={setNodeRef}
-      className={`strip draggable${isSelected ? ' sel' : ''}`}
+      ref={(node) => {
+        setNodeRef(node)
+        stripRef.current = node
+      }}
+      className={`strip draggable${isSelected ? ' sel' : ''}${isDragging ? ' drag-src' : ''}${landed ? ' landed' : ''}`}
       data-strip-id={stripId}
       data-type={strip.type}
       data-euroscope={strip.euroscope ? 'true' : 'false'}
       data-panel={panelName}
       onContextMenu={handleContextMenu}
       onClick={() => useUIStore.getState().selectStrip(stripId)}
+      onDoubleClick={handleDoubleClick}
+      {...cellHint}
       style={dragStyle}
       {...attributes}
       {...listeners}
@@ -423,7 +444,7 @@ export function Strip({ stripId, panelName }: StripProps) {
         />
       ))}
 
-      <div className="box c33 ri_ot bt_ot">
+      <div className="box c33 ri_ot bt_ot" data-cell="c33">
         <span>{c33.date}</span>
         <span>{c33.time}</span>
       </div>

@@ -6,6 +6,9 @@ import { Inspector } from './components/Inspector/Inspector'
 import { StatusBar } from './components/StatusBar/StatusBar'
 import { SettingsModal } from './components/Settings/SettingsModal'
 import { ContextMenu } from './components/ContextMenu/ContextMenu'
+import { CellHintLayer } from './components/Strips/CellHintLayer'
+import { CellPickerLayer } from './components/Strips/pickers/CellPickerLayer'
+import { Splash } from './components/Splash/Splash'
 import { StripDndProvider } from './components/Strips/StripDndProvider'
 
 export default function App() {
@@ -21,6 +24,9 @@ export default function App() {
       />
       <ContextMenu />
       <SettingsModal />
+      <CellHintLayer />
+      <CellPickerLayer />
+      <Splash />
     </StripDndProvider>
   )
 }

@@ -1,0 +1,305 @@
+.cm.w240 {
+    width: 240px;
+}
+
+.pk-menu .seg {
+    margin: 8px 8px 2px;
+}
+
+.pk-menu .seg b {
+    height: 28px;
+    font-size: 13px;
+}
+
+.pk-scroll {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.pk-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    margin: 4px 8px;
+    padding: 0 8px;
+    background: var(--body);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+}
+
+.pk-search:focus-within {
+    border-color: var(--accent);
+}
+
+.pk-search svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: var(--dim);
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.pk-search input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font: 500 13px var(--font-ui);
+}
+
+.pk-dial {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 8px 6px;
+}
+
+.pk-dial button {
+    width: 36px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--chip);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--ink);
+    font: 600 22px var(--font-cond);
+    cursor: pointer;
+}
+
+.pk-dial button:hover {
+    background: var(--chip2);
+}
+
+.pk-val {
+    flex: 1;
+    height: 40px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    padding-top: 6px;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+}
+
+.pk-val b {
+    font: 700 28px/1 var(--font-cond);
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pk-val small {
+    font: 600 11px var(--font-cond);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+}
+
+.pk-list {
+    height: 150px;
+    margin: 0 8px;
+    overflow-y: auto;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    background: var(--body);
+    position: relative;
+}
+
+.pk-row {
+    width: 100%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--hair);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+}
+
+.pk-row:hover {
+    background: var(--chip);
+}
+
+.pk-row b {
+    font: 700 16px var(--font-cond);
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pk-row em {
+    margin-left: auto;
+    font: 500 11px var(--font-ui);
+    font-style: normal;
+    color: var(--dim);
+}
+
+.pk-row svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.pk-row.cur {
+    background: var(--sel);
+    box-shadow: inset 3px 0 0 var(--selline);
+}
+
+.pk-foot {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+}
+
+.pk-foot input {
+    flex: 1;
+    min-width: 0;
+    height: 30px;
+    padding: 0 8px;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    color: var(--ink);
+    font: 500 12px var(--font-ui);
+    outline: none;
+}
+
+.pk-foot input:focus {
+    border-color: var(--accent);
+}
+
+.pk-set,
+.pk-clr {
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 2px;
+    font: 700 12px var(--font-cond);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.pk-set {
+    background: var(--accent);
+    border: none;
+    color: var(--onacc);
+}
+
+.pk-clr {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--no);
+}
+
+.pk-tokens {
+    display: flex;
+    gap: 4px;
+    padding: 3px 8px;
+}
+
+.pk-chip {
+    flex: 1;
+    height: 28px;
+    background: var(--chip);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    color: var(--ink);
+    font: 700 13px var(--font-cond);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.pk-chip:hover {
+    background: var(--chip2);
+}
+
+.pk-chip.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--onacc);
+}
+
+.pk-chip.alert {
+    color: var(--no);
+}
+
+.pk-chip.alert.on {
+    color: var(--onacc);
+}
+
+.pk-squawk {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px 6px;
+}
+
+.pk-squawk b {
+    width: 40px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    font: 700 26px var(--font-cond);
+}
+
+.pk-squawk b.next {
+    border-color: var(--accent);
+}
+
+.pk-keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 4px 8px;
+}
+
+.pk-keys button {
+    height: 34px;
+    background: var(--chip);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    color: var(--ink);
+    font: 700 17px var(--font-cond);
+    cursor: pointer;
+}
+
+.pk-keys button:hover {
+    background: var(--chip2);
+}
+
+.pk-keys button.wide {
+    grid-column: span 2;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.pk-keys button.go {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--onacc);
+}
+
+.pk-keys button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}

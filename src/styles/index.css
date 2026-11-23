@@ -5,6 +5,8 @@
 @import "./frame.css";
 @import "./board.css";
 @import "./strip.css";
+@import "./drag.css";
+@import "./pickers.css";
 @import "./inspector.css";
 @import "./popovers.css";
 @import "./contextmenu.css";
@@ -12,3 +14,4 @@
 @import "./components/toast.css";
 @import "./components/tooltip.css";
 @import "./components/animations.css";
+@import "./components/loading.css";

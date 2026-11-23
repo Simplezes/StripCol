@@ -17,3 +17,38 @@
 .custom-tooltip.visible {
    opacity: 1;
 }
+
+.cell-hint {
+   position: fixed;
+   z-index: 11000;
+   width: max-content;
+   max-width: 260px;
+   display: flex;
+   flex-direction: column;
+   gap: 3px;
+   padding: 8px 11px;
+   background: var(--pop-card);
+   border: 1px solid var(--pop-line);
+   border-radius: 2px;
+   color: var(--pop-ink);
+   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+   pointer-events: none;
+   animation: cell-hint-in 0.12s ease-out;
+}
+
+.cell-hint b {
+   font: 700 13px var(--font-cond);
+   letter-spacing: 0.08em;
+   text-transform: uppercase;
+   color: var(--accent);
+}
+
+.cell-hint span {
+   font: 500 12px/1.4 var(--font-ui);
+}
+
+@keyframes cell-hint-in {
+   from {
+      opacity: 0;
+   }
+}
