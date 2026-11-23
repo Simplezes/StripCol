@@ -1,4 +1,5 @@
 import type { ControllerMode } from '../../types'
+import { isClearanceFlagCell } from '../../utils/stripValues'
 
 export interface CellHelp {
   title: string
@@ -55,9 +56,12 @@ export function describeCell(key: string, mode: ControllerMode, type: string): C
       if (type === 'departure') return { title: 'SID', text: 'Standard instrument departure. Changing it from the right-click menu updates EuroScope.' }
       return { title: 'Procedure', text: 'Departure or arrival procedure.' }
     case 'c12':
+      if (isClearanceFlagCell(key, mode, type)) {
+        return { title: 'Clearance flag', text: 'Shows Ⓑ once the clearance is received. Double-click to set or remove it in EuroScope.' }
+      }
       return radar
         ? { title: 'Direct to', text: 'Fix the aircraft is cleared direct to. Clearing it also resets the assigned heading.' }
-        : { title: 'Clearance', text: 'Direct point or clearance note. Filling it moves the strip from Pending to Clearance when auto-move is on.' }
+        : { title: 'Clearance', text: 'Direct point or clearance note.' }
     case 'c16':
       return radar || type !== 'departure'
         ? { title: 'Assigned heading', text: 'Heading assigned to the aircraft. Editing it updates EuroScope.' }

@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useDroppable } from '@dnd-kit/core'
 import { useDragStore } from '../../stores/dragStore'
 import { usePanelStore } from '../../stores/panelStore'
 import { usePanelContextMenuStore } from '../../stores/panelContextMenuStore'
@@ -55,7 +54,6 @@ export function Section({ panelName, isHandover, handoverCollapsed, onToggleHand
   const toggleStored = useUIStore((s) => s.toggleSectionCollapsed)
   const sortRef = useRef<HTMLButtonElement>(null)
   const [sortAnchor, setSortAnchor] = useState<DOMRect | null>(null)
-  const { setNodeRef } = useDroppable({ id: panelName, data: { type: 'section' } })
   const dropOver = useDragStore((s) => s.overPanel === panelName && s.sourcePanel !== panelName)
 
   const collapsed = isHandover ? handoverCollapsed : storedCollapsed
@@ -73,7 +71,7 @@ export function Section({ panelName, isHandover, handoverCollapsed, onToggleHand
   if (dropOver) classes.push('drop-over')
 
   return (
-    <section ref={setNodeRef} className={classes.join(' ')} data-panel-name={panelName} onContextMenu={handleContextMenu}>
+    <section className={classes.join(' ')} data-panel-name={panelName} onContextMenu={handleContextMenu}>
       <header className="sechd">
         <h2 className="ttl">{panelName}</h2>
         <span className="cnt">{stripCount}</span>

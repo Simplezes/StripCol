@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { Draggable } from '@hello-pangea/dnd'
 import { usePanelStore, markFieldCleared } from '../../stores/panelStore'
 import { useConnectionStore } from '../../stores/connectionStore'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -8,15 +7,15 @@ import { useContextMenuStore } from '../../stores/contextMenuStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useDragStore } from '../../stores/dragStore'
 import { apiFetch } from '../../utils/api'
-import { autoMoveOnC12 } from '../../utils/stripActions'
-import { CUSTOM_BOX_KEYS } from '../../utils/stripValues'
+import { CUSTOM_BOX_KEYS, isClearanceFlagCell } from '../../utils/stripValues'
+import { toggleClearance } from '../../utils/stripActions'
 import { useAssetsStore } from '../../stores/assetsStore'
 import { computeProcedurePoints, fetchPointETAs } from '../../utils/procedurePoints'
 import { showToast } from '../../utils/toast'
 import { useFitText } from './useFitText'
 import { useCellHint } from './useCellHint'
 import { useCellPickerStore } from '../../stores/cellPickerStore'
-import { PICKABLE_CELLS } from './pickers/pickerData'
+import { isPickableCell } from './pickers/pickerData'
 
 const CELL_CLASSES: string[] = [
   'c1 al_ot',
@@ -67,6 +66,7 @@ function formatC33(ts: number): { date: string; time: string } {
 interface StripProps {
   stripId: string
   panelName: string
+  index: number
 }
 
 function digitsOnly(raw: string): string {
@@ -169,8 +169,7 @@ async function syncFieldToGateway(key: string, rawValue: string, callsign: strin
   }
 }
 
-export function Strip({ stripId, panelName }: StripProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: stripId })
+export function Strip({ stripId, panelName, index }: StripProps) {
 
   const strip = usePanelStore((s) =>
     s.panels.find((p) => p.name === panelName)?.strips.find((st) => st.id === stripId),
@@ -255,6 +254,8 @@ export function Strip({ stripId, panelName }: StripProps) {
     clearTimeout(saveTimer.current)
     syncToStore(localValues)
 
+    if (isClearanceFlagCell(key, useConnectionStore.getState().controllerMode, strip?.type ?? '')) return
+
     const effectiveValue = domValue !== undefined ? domValue.trim().toUpperCase() : (localValues[key] ?? '')
 
     if (strip?.euroscope && strip.flightPlan?.callsign) {
@@ -267,10 +268,6 @@ export function Strip({ stripId, panelName }: StripProps) {
       syncFieldToGateway(key, effectiveValue, strip.flightPlan.callsign).catch((err) => {
         console.error(`Failed syncing ${key} to gateway:`, err)
       })
-    }
-
-    if (key === 'c12') {
-      autoMoveOnC12(stripId, panelName, effectiveValue)
     }
 
     if (key === 'c18' && strip?.euroscope && strip.flightPlan) {
@@ -368,7 +365,15 @@ export function Strip({ stripId, panelName }: StripProps) {
   const handleDoubleClick = (e: React.MouseEvent) => {
     const cell = (e.target as HTMLElement).closest<HTMLElement>('[data-cell]')
     const key = cell?.dataset.cell
-    if (!cell || !key || !PICKABLE_CELLS.includes(key)) return
+    if (!cell || !key) return
+
+    const { controllerMode } = useConnectionStore.getState()
+    if (strip?.euroscope && strip.flightPlan && isClearanceFlagCell(key, controllerMode, strip.type)) {
+      toggleClearance(strip.flightPlan)
+      return
+    }
+
+    if (!isPickableCell(key, controllerMode, strip?.type ?? '')) return
     useUIStore.getState().selectStrip(stripId)
     useCellPickerStore.getState().openPicker({ stripId, panelName, cell: key, rect: cell.getBoundingClientRect() })
   }
@@ -392,6 +397,7 @@ export function Strip({ stripId, panelName }: StripProps) {
   const landed = useDragStore((s) => s.landedId === stripId)
   const isSelected = useUIStore((s) => s.selectedStripId === stripId)
   const typeHidden = useUIStore((s) => s.trafficFilters[strip?.type as 'departure'] === false)
+  const controllerMode = useConnectionStore((s) => s.controllerMode)
 
   if (!strip) return null
 
@@ -405,49 +411,47 @@ export function Strip({ stripId, panelName }: StripProps) {
     return !valuesMatch && !fpMatch
   })()
 
-  const dragStyle = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    ...(isHidden ? { display: 'none' } : {}),
-  }
-
   return (
-    <div
-      ref={(node) => {
-        setNodeRef(node)
-        stripRef.current = node
-      }}
-      className={`strip draggable${isSelected ? ' sel' : ''}${isDragging ? ' drag-src' : ''}${landed ? ' landed' : ''}`}
-      data-strip-id={stripId}
-      data-type={strip.type}
-      data-euroscope={strip.euroscope ? 'true' : 'false'}
-      data-panel={panelName}
-      onContextMenu={handleContextMenu}
-      onClick={() => useUIStore.getState().selectStrip(stripId)}
-      onDoubleClick={handleDoubleClick}
-      {...cellHint}
-      style={dragStyle}
-      {...attributes}
-      {...listeners}
-    >
-      {CELL_KEYS.map((key, i) => (
-        <input
-          key={key}
-          className={`box ${CELL_CLASSES[i]}`}
-          value={localValues[key] ?? ''}
-          onChange={(e) => handleChange(key, e.target.value)}
-          onBlur={(e) => handleBlur(key, e.currentTarget.value)}
-          onMouseDown={(e) => e.stopPropagation()}
-          data-cell={key}
-          spellCheck={false}
-          autoComplete="off"
-        />
-      ))}
+    <Draggable draggableId={stripId} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={(node) => {
+            provided.innerRef(node)
+            stripRef.current = node
+          }}
+          className={`strip draggable${isSelected ? ' sel' : ''}${snapshot.isDragging ? ' dragging-strip' : ''}${landed ? ' landed' : ''}`}
+          data-strip-id={stripId}
+          data-type={strip.type}
+          data-euroscope={strip.euroscope ? 'true' : 'false'}
+          data-panel={panelName}
+          onContextMenu={handleContextMenu}
+          onClick={() => useUIStore.getState().selectStrip(stripId)}
+          onDoubleClick={handleDoubleClick}
+          {...cellHint}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          style={isHidden ? { ...provided.draggableProps.style, display: 'none' } : provided.draggableProps.style}
+        >
+          {CELL_KEYS.map((key, i) => (
+            <input
+              key={key}
+              className={`box ${CELL_CLASSES[i]}`}
+              value={localValues[key] ?? ''}
+              readOnly={isClearanceFlagCell(key, controllerMode, strip.type)}
+              onChange={(e) => handleChange(key, e.target.value)}
+              onBlur={(e) => handleBlur(key, e.currentTarget.value)}
+              data-cell={key}
+              spellCheck={false}
+              autoComplete="off"
+            />
+          ))}
 
-      <div className="box c33 ri_ot bt_ot" data-cell="c33">
-        <span>{c33.date}</span>
-        <span>{c33.time}</span>
-      </div>
-    </div>
+          <div className="box c33 ri_ot bt_ot" data-cell="c33">
+            <span>{c33.date}</span>
+            <span>{c33.time}</span>
+          </div>
+        </div>
+      )}
+    </Draggable>
   )
 }
