@@ -34,8 +34,10 @@ interface AssetsState {
   procedures: ProceduresData
   sectors: SectorsData
   loaded: boolean
+  fromSectorFile: boolean
 
   load: () => Promise<void>
+  applySectorData: (data: { procedures?: ProceduresData; sectors?: SectorsData }) => void
 
   checkSector: (positionId: string, airportCode: string) => boolean
 }
@@ -44,6 +46,7 @@ export const useAssetsStore = create<AssetsState>((set, get) => ({
   procedures: {},
   sectors: {},
   loaded: false,
+  fromSectorFile: false,
 
   load: async () => {
     try {
@@ -52,6 +55,10 @@ export const useAssetsStore = create<AssetsState>((set, get) => ({
         fetchSectors(),
       ])
       console.log('Assets: Procedures & Sectors loaded.')
+      if (get().fromSectorFile) {
+        set({ loaded: true })
+        return
+      }
       set({
         procedures: (procedures as ProceduresData) ?? {},
         sectors: (sectors as SectorsData) ?? {},
@@ -60,6 +67,15 @@ export const useAssetsStore = create<AssetsState>((set, get) => ({
     } catch (e) {
       console.error('Error loading assets', e)
     }
+  },
+
+  applySectorData: (data) => {
+    const hasProcedures = data.procedures && Object.keys(data.procedures).length > 0
+    set((state) => ({
+      procedures: hasProcedures ? (data.procedures as ProceduresData) : state.procedures,
+      sectors: data.sectors ?? state.sectors,
+      fromSectorFile: hasProcedures || state.fromSectorFile,
+    }))
   },
 
   checkSector: (positionId, airportCode) => {

@@ -207,6 +207,10 @@ export function useSSE(): void {
             }
           })
 
+          src.addEventListener('sector-data', (e) => {
+            useAssetsStore.getState().applySectorData(JSON.parse(e.data))
+          })
+
           src.addEventListener('release', (e) => {
             const { callsign } = JSON.parse((e as MessageEvent).data)
             useFlightStore.getState().removeAircraft(callsign)
