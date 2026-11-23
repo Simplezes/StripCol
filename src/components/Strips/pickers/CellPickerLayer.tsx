@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
+import { useConnectionStore } from '../../../stores/connectionStore'
 import { useCellPickerStore } from '../../../stores/cellPickerStore'
 import { usePanelStore } from '../../../stores/panelStore'
 import type { FlightPlan } from '../../../types'
@@ -126,6 +127,7 @@ export function CellPickerLayer() {
   const close = useCellPickerStore((s) => s.closePicker)
   const stackRef = useRef<HTMLDivElement>(null)
   const strip = usePanelStore((s) => (open ? s.getStrip(open.stripId) : undefined))
+  const mode = useConnectionStore((s) => s.controllerMode)
 
   useEffect(() => {
     if (!open) return
@@ -141,6 +143,7 @@ export function CellPickerLayer() {
   if (!open || !strip) return null
 
   const flight = strip.flightPlan
+  const runwayInHeadingCell = open.cell === 'c16' && mode === 'aerodrome'
   const current = strip.values[open.cell] ?? ''
   const pick = (value: string) => {
     applyCellValue(open.stripId, open.cell, value)
@@ -154,7 +157,7 @@ export function CellPickerLayer() {
       if (!flight || strip.type === 'overfly' || !airport) return <Group label="No procedure for this strip" />
       return <ProcedurePicker airport={airport} procType={isArrival ? 'STAR' : 'SID'} stripId={open.stripId} panelName={open.panelName} onClose={close} />
     }
-    const Body = BODIES[open.cell]
+    const Body = runwayInHeadingCell ? RunwayBody : BODIES[open.cell]
     return Body ? <Body flight={flight} type={strip.type} current={current} pick={pick} /> : null
   }
 
@@ -173,7 +176,7 @@ export function CellPickerLayer() {
       >
         {standalone ? (
           <div className="cm w240 pk-menu" role="menu" data-type={strip.type}>
-            <Group label={PICKER_TITLES[open.cell] ?? 'Choose'} />
+            <Group label={runwayInHeadingCell ? 'Departure runway' : (PICKER_TITLES[open.cell] ?? 'Choose')} />
             {renderBody()}
           </div>
         ) : (

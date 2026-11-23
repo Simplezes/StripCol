@@ -1,5 +1,6 @@
 import { useAssetsStore } from '../../../stores/assetsStore'
 import type { ControllerMode, FlightPlan } from '../../../types'
+import { hasRunwayInCell18 } from '../../../utils/stripValues'
 import { buildLegs } from '../../ContextMenu/routeLegs'
 
 export interface PointOption {
@@ -7,13 +8,16 @@ export interface PointOption {
   eta: string
 }
 
-const ANY_MODE_CELLS = ['c6', 'c7', 'c8', 'c13', 'c14', 'c18']
-const RADAR_ONLY_CELLS = ['c9', 'c12', 'c16']
+const ANY_MODE_CELLS = ['c6', 'c7', 'c13', 'c14']
+const RADAR_ONLY_CELLS = ['c9', 'c12']
 const POINT_CELLS = ['c19', 'c20', 'c21', 'c22']
 
 export function isPickableCell(key: string, mode: ControllerMode, type: string): boolean {
   const radar = mode !== 'aerodrome'
   if (RADAR_ONLY_CELLS.includes(key)) return radar
+  if (key === 'c16') return radar || type === 'departure'
+  if (key === 'c18') return hasRunwayInCell18(mode, type)
+  if (key === 'c8') return type !== 'overfly'
   if (POINT_CELLS.includes(key)) return radar || type === 'arrival'
   return ANY_MODE_CELLS.includes(key)
 }
