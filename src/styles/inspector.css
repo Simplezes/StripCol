@@ -6,8 +6,19 @@
     padding: 16px;
     overflow-x: hidden;
     overflow-y: auto;
+    scrollbar-width: none;
     background: var(--bar);
     border-left: 1px solid var(--hair);
+}
+
+.insp::-webkit-scrollbar {
+    display: none;
+}
+
+.insp > * {
+    min-width: 0;
+    max-width: 100%;
+    flex-shrink: 0;
 }
 
 .app.no-insp .insp {
@@ -54,12 +65,18 @@
 
 .ih h2 {
     margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font: 700 34px/1 var(--font-cond);
     letter-spacing: 0.02em;
     color: var(--tc);
 }
 
 .ih .sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font: 500 14px var(--font-ui);
     color: var(--dim);
 }
@@ -141,6 +158,10 @@
 }
 
 .kv b {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font: 700 20px var(--font-cond);
     font-variant-numeric: tabular-nums;
 }
@@ -189,10 +210,12 @@
 .proc {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
 }
 
 .sidtag {
+    flex-shrink: 0;
     padding: 3px 8px;
     border-radius: 2px;
     background: var(--tc);
@@ -202,54 +225,24 @@
 }
 
 .proc .pn {
-    font: 700 24px/1 var(--font-cond);
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 700 22px/1 var(--font-cond);
     letter-spacing: 0.03em;
 }
 
 .proc .rwy {
+    flex-shrink: 0;
+    white-space: nowrap;
     margin-left: auto;
     padding: 4px 8px;
     border-radius: 2px;
     background: var(--chip);
     font: 700 14px var(--font-cond);
     letter-spacing: 0.06em;
-}
-
-.rw {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.rw span {
-    padding: 3px 8px;
-    border-radius: 2px;
-    background: var(--chip);
-    font: 600 15px var(--font-cond);
-    letter-spacing: 0.04em;
-}
-
-.rwbox {
-    position: relative;
-    padding: 10px 12px;
-    max-height: 116px;
-    overflow: hidden;
-}
-
-.rwbox.open {
-    max-height: 260px;
-    overflow-y: auto;
-}
-
-.rwbox:not(.open)::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 36px;
-    background: linear-gradient(rgba(0, 0, 0, 0), var(--strip));
-    pointer-events: none;
 }
 
 .p-fix { color: var(--p-fix); }
@@ -260,20 +253,23 @@
 .p-dct { color: var(--dim); }
 
 .legs {
-    position: relative;
-    max-height: 204px;
+    container-type: inline-size;
     padding: 4px 12px 4px 0;
-    overflow-y: auto;
 }
 
 .leg {
     position: relative;
     display: grid;
-    grid-template-columns: 1fr 56px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        'via eta'
+        'pts pts';
     align-items: center;
-    gap: 8px;
-    min-height: 38px;
-    padding-left: 34px;
+    column-gap: 10px;
+    row-gap: 1px;
+    min-height: 52px;
+    padding: 7px 0 7px 34px;
+    min-width: 0;
 }
 
 .leg::before {
@@ -314,14 +310,96 @@
     font-weight: 700;
 }
 
+.leg .via {
+    grid-area: via;
+}
+
+.leg .pts {
+    grid-area: pts;
+}
+
+.leg .eta {
+    grid-area: eta;
+}
+
 .via {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font: 700 14px var(--font-cond);
     letter-spacing: 0.04em;
+}
+
+.via.p-dct {
+    font-weight: 500;
+}
+
+.pts {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 8px;
+    min-width: 0;
+    font: 500 15px var(--font-cond);
+    letter-spacing: 0.03em;
+}
+
+.pts em,
+.pts b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pts em {
+    font-style: normal;
+    color: var(--dim);
+}
+
+.pts b {
+    font-weight: 700;
+}
+
+.pts i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dim);
+}
+
+.pts i svg {
+    width: 16px;
+    height: 10px;
 }
 
 .eta {
     text-align: right;
     font: 600 14px var(--font-cond);
-    color: var(--dim);
     font-variant-numeric: tabular-nums;
+    color: var(--dim);
+}
+
+@container (min-width: 440px) {
+    .leg {
+        grid-template-columns: minmax(80px, 30%) minmax(0, 1fr) 44px;
+        grid-template-areas: 'via pts eta';
+        min-height: 38px;
+        padding-block: 0;
+    }
+
+    .leg .pts {
+        grid-template-columns: minmax(0, 52px) 32px minmax(0, 1fr);
+    }
+
+    .leg .pts em {
+        text-align: right;
+    }
+}
+
+.cnt2 {
+    margin-left: 8px;
+    font: 500 13px var(--font-ui);
+    color: var(--dim);
 }

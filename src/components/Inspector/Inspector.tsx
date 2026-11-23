@@ -1,13 +1,8 @@
-import { useState } from 'react'
 import { useUIStore } from '../../stores/uiStore'
 import type { FlightPlan } from '../../types'
+import { Arrow } from '../ContextMenu/Icon'
+import { buildLegs, routeWordClass } from '../ContextMenu/routeLegs'
 import { useSelectedStrip } from './useSelectedStrip'
-
-function routeWordClass(word: string): string {
-  if (word === 'DCT') return 'p-dct'
-  if (/^[A-Z]{1,2}\d{1,3}$/.test(word)) return 'p-awy'
-  return 'p-fix'
-}
 
 function value(input: unknown): string {
   if (input === undefined || input === null || input === '') return '---'
@@ -45,28 +40,30 @@ function FlightFacts({ fp, rwy }: { fp: FlightPlan; rwy: string }) {
   )
 }
 
-function RouteBlock({ route }: { route: string }) {
-  const [open, setOpen] = useState(false)
-  const words = route.split(/\s+/).filter(Boolean)
+function RouteBlock({ flight }: { flight: FlightPlan }) {
+  const legs = buildLegs(flight)
 
   return (
     <div className="blk">
       <div className="bh">
-        <h3 className="gt">Route</h3>
-        {words.length > 12 && (
-          <button className="lnk" onClick={() => setOpen(!open)}>
-            {open ? 'Show less' : `Show all ${words.length}`}
-          </button>
-        )}
+        <h3 className="gt">
+          Route<span className="cnt2">{legs.length} {legs.length === 1 ? 'leg' : 'legs'}</span>
+        </h3>
       </div>
-      <div className={`card rwbox${open || words.length <= 12 ? ' open' : ''}`}>
-        <div className="rw">
-          {words.map((word, i) => (
-            <span key={`${word}-${i}`} className={routeWordClass(word)}>
-              {word}
+      <div className="card legs">
+        {legs.map((leg, i) => (
+          <div key={`${leg.to}-${i}`} className={`leg${i === 0 ? ' next' : ''}`}>
+            <span className={`via ${routeWordClass(leg.via)}`} title={leg.via}>{leg.via}</span>
+            <span className="pts">
+              <em>{leg.from}</em>
+              <i>
+                <Arrow />
+              </i>
+              <b>{leg.to}</b>
             </span>
-          ))}
-        </div>
+            <span className="eta">{leg.eta}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -91,7 +88,6 @@ export function Inspector() {
   const isArrival = type === 'arrival'
   const procedure = isArrival ? fp.star : fp.sid
   const rwy = (isArrival ? fp.arrivalRwy : fp.departureRwy) ?? ''
-  const points = (isArrival ? fp.arrivalPoints : fp.departurePoints) ?? []
 
   return (
     <aside className="insp" data-type={type}>
@@ -121,29 +117,14 @@ export function Inspector() {
           </div>
           <div className="card proc">
             <span className="sidtag">{isArrival ? 'STAR' : 'SID'}</span>
-            <span className="pn">{procedure}</span>
+            <span className="pn" title={procedure}>{procedure}</span>
             {rwy && <span className="rwy">RWY {rwy}</span>}
           </div>
         </div>
       )}
 
-      {fp.route && <RouteBlock route={fp.route} />}
+      {fp.route && <RouteBlock flight={fp} />}
 
-      {points.length > 0 && (
-        <div className="blk">
-          <div className="bh">
-            <h3 className="gt">Next points</h3>
-          </div>
-          <div className="card legs">
-            {points.map((point, i) => (
-              <div key={`${point.name}-${i}`} className={`leg${i === 0 ? ' next' : ''}`}>
-                <span className="via">{point.name}</span>
-                <span className="eta">{point.eta ?? '--:--'}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </aside>
   )
 }

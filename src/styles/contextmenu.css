@@ -374,6 +374,10 @@
 }
 
 .cm .via {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font: 700 14px var(--font-cond);
     letter-spacing: 0.04em;
 }

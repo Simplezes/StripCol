@@ -36,6 +36,24 @@ function saveStatusBar(items: StatusItems, hidden: boolean): void {
   }
 }
 
+export const INSPECTOR_MIN_WIDTH = 300
+export const INSPECTOR_MAX_WIDTH = 560
+const INSPECTOR_DEFAULT_WIDTH = 372
+const INSPECTOR_WIDTH_KEY = 'inspectorWidth'
+
+function clampInspectorWidth(width: number): number {
+  return Math.min(INSPECTOR_MAX_WIDTH, Math.max(INSPECTOR_MIN_WIDTH, Math.round(width)))
+}
+
+function loadInspectorWidth(): number {
+  try {
+    const saved = Number(localStorage.getItem(INSPECTOR_WIDTH_KEY))
+    return saved ? clampInspectorWidth(saved) : INSPECTOR_DEFAULT_WIDTH
+  } catch {
+    return INSPECTOR_DEFAULT_WIDTH
+  }
+}
+
 const SECTION_KEY = 'sectionView'
 
 interface SectionView {
@@ -78,6 +96,8 @@ interface UIState {
 
   inspectorOpen: boolean
   toggleInspector: () => void
+  inspectorWidth: number
+  setInspectorWidth: (width: number) => void
 
   statusPanel: StatusPanel | null
   toggleStatusPanel: (panel: StatusPanel) => void
@@ -116,6 +136,16 @@ export const useUIStore = create<UIState>((set) => ({
 
   inspectorOpen: true,
   toggleInspector: () => set((s) => ({ inspectorOpen: !s.inspectorOpen })),
+  inspectorWidth: loadInspectorWidth(),
+  setInspectorWidth: (width) => {
+    const clamped = clampInspectorWidth(width)
+    try {
+      localStorage.setItem(INSPECTOR_WIDTH_KEY, String(clamped))
+    } catch {
+      void 0
+    }
+    set({ inspectorWidth: clamped })
+  },
 
   statusPanel: null,
   toggleStatusPanel: (panel) =>
