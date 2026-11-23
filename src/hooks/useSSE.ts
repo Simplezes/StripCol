@@ -131,6 +131,7 @@ export function useSSE(): void {
 
     async function fetchAndSync() {
       const code = useSettingsStore.getState().settings.linkCode
+      useConnectionStore.getState().setSyncing(true)
       try {
         const r = await apiFetch(`/api/assumed?code=${code}`)
         if (!r.ok) return
@@ -147,6 +148,8 @@ export function useSSE(): void {
         })
       } catch (err) {
         console.error('Error fetching aircraft list:', err)
+      } finally {
+        useConnectionStore.getState().setSyncing(false)
       }
     }
 

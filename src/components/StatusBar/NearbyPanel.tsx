@@ -3,6 +3,7 @@ import { apiFetch } from '../../utils/api'
 import { useFlightStore } from '../../stores/flightStore'
 import { usePanelStore } from '../../stores/panelStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { StationSkeleton } from '../ui/Skeleton'
 import { useSelectedStrip } from '../Inspector/useSelectedStrip'
 
 function linkCode(): string {
@@ -55,6 +56,10 @@ export function NearbyPanel({ onDone }: { onDone: () => void }) {
           <path d="M20 20l-4-4" />
         </svg>
         <input
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           type="text"
           placeholder="Search callsign"
           value={search}
@@ -62,7 +67,12 @@ export function NearbyPanel({ onDone }: { onDone: () => void }) {
           autoFocus
         />
       </label>
-      {requested && callsigns.length === 0 && <p className="pnote">Searching for nearby aircraft…</p>}
+      {requested && callsigns.length === 0 && (
+        <div className="ladder" aria-busy="true" aria-label="Searching for nearby aircraft">
+          <StationSkeleton />
+          <StationSkeleton />
+        </div>
+      )}
       {callsigns.length > 0 && filtered.length === 0 && <p className="pnote">No matches.</p>}
       {filtered.map((callsign) => (
         <div key={callsign} className="ncard">

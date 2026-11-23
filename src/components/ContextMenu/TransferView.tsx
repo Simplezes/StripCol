@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type { FlightPlan } from '../../types'
 import { apiFetch } from '../../utils/api'
 import { deleteStripByCallsign } from '../../utils/stripActions'
-import { roleOf } from '../StatusBar/RoleIcon'
+import { StationSkeleton } from '../ui/Skeleton'
+import { isAtcPosition, roleOf } from '../StatusBar/RoleIcon'
 import { Group, Item, Sep } from './MenuParts'
 import { getLinkCode } from './menuHelpers'
 
@@ -13,7 +14,7 @@ export interface ATCEntry {
   role: string
 }
 
-const ROLE_ORDER = ['Centre', 'Approach', 'Tower', 'Ground', 'Delivery', 'Apron', 'Information', 'ATIS']
+const ROLE_ORDER = ['Centre', 'Approach', 'Tower', 'Ground', 'Delivery']
 
 export function TransferView({ flight, onClose }: { flight: FlightPlan; onClose: () => void }) {
   const [stations, setStations] = useState<ATCEntry[] | null>(null)
@@ -23,8 +24,9 @@ export function TransferView({ flight, onClose }: { flight: FlightPlan; onClose:
     apiFetch(`/api/ATC-list?code=${getLinkCode()}`)
       .then((r) => r.json())
       .then((data: Array<{ callsign: string; frequency: string }>) => {
+        if (!Array.isArray(data)) throw new Error('no session')
         const cleaned = data
-          .filter((atc) => atc.frequency && atc.frequency !== 'N/A')
+          .filter((atc) => atc.frequency && atc.frequency !== 'N/A' && isAtcPosition(atc.callsign))
           .map((atc) => ({
             callsign: atc.callsign,
             label: atc.callsign.split('_').join(' '),
@@ -63,8 +65,14 @@ export function TransferView({ flight, onClose }: { flight: FlightPlan; onClose:
 
   return (
     <div className="cm" role="menu">
-      {error && <Group label="Could not load stations" />}
-      {!stations && !error && <Group label="Loading stations…" />}
+      {error && <Group label="No EuroScope link, pair a link code first" />}
+      {!stations && !error && (
+        <div aria-busy="true" aria-label="Loading stations">
+          <StationSkeleton />
+          <StationSkeleton />
+          <StationSkeleton />
+        </div>
+      )}
       {stations &&
         ROLE_ORDER.map((role) => {
           const group = stations.filter((s) => s.role === role)

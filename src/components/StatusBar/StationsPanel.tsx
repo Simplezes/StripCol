@@ -3,7 +3,8 @@ import { apiFetch } from '../../utils/api'
 import { deleteStripByCallsign } from '../../utils/stripActions'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useSelectedStrip } from '../Inspector/useSelectedStrip'
-import { RoleIcon, roleOf } from './RoleIcon'
+import { StationSkeleton } from '../ui/Skeleton'
+import { RoleIcon, isAtcPosition, roleOf } from './RoleIcon'
 
 interface Station {
   callsign: string
@@ -12,7 +13,7 @@ interface Station {
   frequency: string
 }
 
-const ROLE_ORDER = ['Centre', 'Approach', 'Tower', 'Ground', 'Delivery', 'Apron', 'Information', 'ATIS']
+const ROLE_ORDER = ['Centre', 'Approach', 'Tower', 'Ground', 'Delivery']
 
 const UNICOM: Station = { callsign: 'UNICOM', label: 'UNICOM', role: 'Information', frequency: '122.800' }
 
@@ -30,8 +31,9 @@ export function StationsPanel({ onDone }: { onDone: () => void }) {
     apiFetch(`/api/ATC-list?code=${linkCode()}`)
       .then((r) => r.json())
       .then((data: Array<{ callsign: string; frequency: string }>) => {
+        if (!Array.isArray(data)) throw new Error('no session')
         const list = data
-          .filter((atc) => atc.frequency && atc.frequency !== 'N/A')
+          .filter((atc) => atc.frequency && atc.frequency !== 'N/A' && isAtcPosition(atc.callsign))
           .map((atc) => ({
             callsign: atc.callsign,
             label: atc.callsign.split('_').join(' '),
@@ -92,7 +94,13 @@ export function StationsPanel({ onDone }: { onDone: () => void }) {
 
       <div className="rlab">Choose who takes it</div>
       {failed && <p className="pnote">Could not load the station list.</p>}
-      {!stations && !failed && <p className="pnote">Loading stations…</p>}
+      {!stations && !failed && (
+        <div className="ladder" aria-busy="true" aria-label="Loading stations">
+          <StationSkeleton />
+          <StationSkeleton />
+          <StationSkeleton />
+        </div>
+      )}
       {stations && (
         <div className="ladder" role="listbox" aria-label="Online stations">
           {stations.map((s) => (
