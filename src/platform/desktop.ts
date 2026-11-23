@@ -31,3 +31,29 @@ export async function openExternal(url: string): Promise<void> {
   const { openUrl } = await import('@tauri-apps/plugin-opener')
   await openUrl(url)
 }
+
+export async function minimizeWindow(): Promise<void> {
+  if (!isDesktop) return
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  await getCurrentWindow().minimize()
+}
+
+export async function toggleMaximizeWindow(): Promise<boolean> {
+  if (!isDesktop) return false
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  const win = getCurrentWindow()
+  await win.toggleMaximize()
+  return win.isMaximized()
+}
+
+export async function isWindowMaximized(): Promise<boolean> {
+  if (!isDesktop) return false
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  return getCurrentWindow().isMaximized()
+}
+
+export async function closeWindow(): Promise<void> {
+  if (!isDesktop) return
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  await getCurrentWindow().close()
+}

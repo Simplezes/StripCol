@@ -1,4 +1,66 @@
 import { create } from 'zustand'
+import type { StripType } from '../types'
+
+export type StatusPanel = 'stations' | 'nearby' | 'add' | 'filters'
+
+export type StatusItemKey = 'stations' | 'nearby' | 'add' | 'filters' | 'position' | 'link' | 'version'
+
+export type StatusItems = Record<StatusItemKey, boolean>
+
+const STATUS_KEY = 'statusBar'
+
+const DEFAULT_STATUS_ITEMS: StatusItems = {
+  stations: true,
+  nearby: true,
+  add: true,
+  filters: true,
+  position: true,
+  link: true,
+  version: true,
+}
+
+function loadStatusBar(): { items: StatusItems; hidden: boolean } {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}')
+    return { items: { ...DEFAULT_STATUS_ITEMS, ...saved.items }, hidden: saved.hidden === true }
+  } catch {
+    return { items: { ...DEFAULT_STATUS_ITEMS }, hidden: false }
+  }
+}
+
+function saveStatusBar(items: StatusItems, hidden: boolean): void {
+  try {
+    localStorage.setItem(STATUS_KEY, JSON.stringify({ items, hidden }))
+  } catch {
+    return
+  }
+}
+
+const SECTION_KEY = 'sectionView'
+
+interface SectionView {
+  sort: Record<string, string>
+  collapsed: Record<string, boolean>
+}
+
+function loadSectionView(): SectionView {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SECTION_KEY) || '{}')
+    return { sort: saved.sort ?? {}, collapsed: saved.collapsed ?? {} }
+  } catch {
+    return { sort: {}, collapsed: {} }
+  }
+}
+
+function saveSectionView(view: SectionView): void {
+  try {
+    localStorage.setItem(SECTION_KEY, JSON.stringify(view))
+  } catch {
+    return
+  }
+}
+
+export type TrafficFilters = Record<Exclude<StripType, 'transfer'>, boolean>
 
 interface UIState {
   searchQuery: string
@@ -10,7 +72,33 @@ interface UIState {
 
   hasUpdate: boolean
   setHasUpdate: (v: boolean) => void
+
+  selectedStripId: string | null
+  selectStrip: (id: string | null) => void
+
+  inspectorOpen: boolean
+  toggleInspector: () => void
+
+  statusPanel: StatusPanel | null
+  toggleStatusPanel: (panel: StatusPanel) => void
+  closeStatusPanel: () => void
+
+  statusItems: StatusItems
+  statusHidden: boolean
+  toggleStatusItem: (key: StatusItemKey) => void
+  setStatusHidden: (hidden: boolean) => void
+
+  sectionSort: Record<string, string>
+  sectionCollapsed: Record<string, boolean>
+  setSectionSort: (panel: string, key: string) => void
+  toggleSectionCollapsed: (panel: string) => void
+
+  trafficFilters: TrafficFilters
+  toggleTraffic: (type: keyof TrafficFilters) => void
+  resetTraffic: () => void
 }
+
+const ALL_TRAFFIC: TrafficFilters = { departure: true, arrival: true, overfly: true }
 
 export const useUIStore = create<UIState>((set) => ({
   searchQuery: '',
@@ -22,4 +110,49 @@ export const useUIStore = create<UIState>((set) => ({
 
   hasUpdate: false,
   setHasUpdate: (v) => set({ hasUpdate: v }),
+
+  selectedStripId: null,
+  selectStrip: (id) => set({ selectedStripId: id }),
+
+  inspectorOpen: true,
+  toggleInspector: () => set((s) => ({ inspectorOpen: !s.inspectorOpen })),
+
+  statusPanel: null,
+  toggleStatusPanel: (panel) =>
+    set((s) => ({ statusPanel: s.statusPanel === panel ? null : panel })),
+  closeStatusPanel: () => set({ statusPanel: null }),
+
+  statusItems: loadStatusBar().items,
+  statusHidden: loadStatusBar().hidden,
+  toggleStatusItem: (key) =>
+    set((s) => {
+      const items = { ...s.statusItems, [key]: !s.statusItems[key] }
+      saveStatusBar(items, s.statusHidden)
+      return { statusItems: items }
+    }),
+  setStatusHidden: (hidden) =>
+    set((s) => {
+      saveStatusBar(s.statusItems, hidden)
+      return { statusHidden: hidden, statusPanel: null }
+    }),
+
+  sectionSort: loadSectionView().sort,
+  sectionCollapsed: loadSectionView().collapsed,
+  setSectionSort: (panel, key) =>
+    set((s) => {
+      const sort = { ...s.sectionSort, [panel]: key }
+      saveSectionView({ sort, collapsed: s.sectionCollapsed })
+      return { sectionSort: sort }
+    }),
+  toggleSectionCollapsed: (panel) =>
+    set((s) => {
+      const collapsed = { ...s.sectionCollapsed, [panel]: !s.sectionCollapsed[panel] }
+      saveSectionView({ sort: s.sectionSort, collapsed })
+      return { sectionCollapsed: collapsed }
+    }),
+
+  trafficFilters: { ...ALL_TRAFFIC },
+  toggleTraffic: (type) =>
+    set((s) => ({ trafficFilters: { ...s.trafficFilters, [type]: !s.trafficFilters[type] } })),
+  resetTraffic: () => set({ trafficFilters: { ...ALL_TRAFFIC } }),
 }))

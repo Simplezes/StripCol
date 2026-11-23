@@ -1,15 +1,23 @@
 import type { ReactNode } from 'react'
+import { useUIStore } from '../../stores/uiStore'
 
 interface AppShellProps {
   header: ReactNode
-  content: ReactNode
+  board: ReactNode
+  inspector: ReactNode
+  footer: ReactNode
 }
 
-export function AppShell({ header, content }: AppShellProps) {
+export function AppShell({ header, board, inspector, footer }: AppShellProps) {
+  const inspectorOpen = useUIStore((s) => s.inspectorOpen)
+  const statusHidden = useUIStore((s) => s.statusHidden)
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--sys-bg-0)' }}>
+    <div className={`app${inspectorOpen ? '' : ' no-insp'}${statusHidden ? ' no-sbar' : ''}`}>
       {header}
-      {content}
+      {board}
+      {inspector}
+      {statusHidden ? null : footer}
     </div>
   )
 }

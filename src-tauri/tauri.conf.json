@@ -13,6 +13,7 @@
     "windows": [
       {
         "title": "StripCol",
+        "decorations": false,
         "width": 1550,
         "height": 840,
         "minWidth": 900,
