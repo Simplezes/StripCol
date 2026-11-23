@@ -3,13 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
+const GATEWAY_URL = 'http://127.0.0.1:3000'
+
 export default defineConfig({
-  root: 'src/client',
   base: './',
-  plugins: [
-    react(),
-    tailwindcss(),
-  ],
+  clearScreen: false,
+  plugins: [react(), tailwindcss()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -17,14 +16,15 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src/client/src'),
+      '@': path.resolve(__dirname, 'src'),
     },
   },
   server: {
     port: 5173,
+    strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:3000',
+        target: GATEWAY_URL,
         changeOrigin: true,
         configure: (proxy) => {
           proxy.on('proxyReq', (_proxyReq, _req, res) => {

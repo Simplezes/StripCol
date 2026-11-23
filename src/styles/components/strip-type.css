@@ -1,0 +1,114 @@
+
+
+.type-cards {
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
+   padding: 8px;
+}
+
+.type-card {
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   gap: 12px;
+   padding: 10px 14px;
+   border-radius: 5px;
+   background: var(--sys-bg-3);
+   border: 1px solid var(--sys-border);
+   border-left: 3px solid var(--type-color, var(--sys-border));
+   transition: all 0.12s ease;
+}
+
+.type-card-departure { --type-color: var(--strip-departure); }
+.type-card-arrival   { --type-color: var(--strip-arrival); }
+.type-card-overfly   { --type-color: var(--strip-overfly); }
+
+.type-card:hover {
+   background: color-mix(in srgb, var(--type-color, var(--sys-highlight)) 14%, var(--sys-bg-3));
+   border-color: var(--type-color, var(--sys-highlight));
+}
+
+.type-card-active {
+   background: color-mix(in srgb, var(--type-color) 10%, var(--sys-bg-3));
+   border-color: var(--type-color);
+   pointer-events: none;
+   opacity: 0.65;
+}
+
+.type-card-icon {
+   font-size: 1.2rem !important;
+   color: var(--type-color, var(--sys-text-dim));
+}
+
+.type-card-label {
+   flex: 1;
+   font-weight: 600;
+   font-size: 0.85rem;
+}
+
+.type-card-check {
+   font-size: 1rem !important;
+   color: var(--type-color);
+}
+
+.handoff-actions {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 6px;
+   padding: 10px 8px 6px;
+}
+
+.handoff-btn {
+   cursor: pointer;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
+   padding: 14px 8px;
+   border-radius: 6px;
+   border: 1px solid var(--sys-border);
+   background: var(--sys-bg-3);
+   font-family: var(--font-ui);
+   font-size: 0.7rem;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: 0.5px;
+   transition: all 0.12s ease;
+}
+
+.handoff-btn .material-icons {
+   font-size: 1.4rem;
+}
+
+.handoff-accept {
+   color: var(--atm-green);
+   border-color: rgba(0, 230, 118, 0.25);
+}
+
+.handoff-accept:hover {
+   background: rgba(0, 230, 118, 0.15);
+   border-color: var(--atm-green);
+   box-shadow: 0 0 12px rgba(0, 230, 118, 0.15);
+}
+
+.handoff-refuse {
+   color: var(--atm-red);
+   border-color: rgba(255, 61, 0, 0.25);
+}
+
+.handoff-refuse:hover {
+   background: rgba(255, 61, 0, 0.12);
+   border-color: var(--atm-red);
+   box-shadow: 0 0 12px rgba(255, 61, 0, 0.12);
+}
+
+.panel-move-target {
+   outline: 1px dashed var(--atm-blue) !important;
+}
+
+.highlight-move {
+   outline: 3px solid var(--atm-amber) !important;
+   border-radius: 4px;
+}
