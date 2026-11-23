@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "StripCol",
+  "version": "1.1.5",
+  "identifier": "com.simplezes.stripcol",
+  "build": {
+    "beforeDevCommand": "pnpm dev:vite",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "pnpm build:gateway && pnpm exec vite build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "StripCol",
+        "width": 1550,
+        "height": 840,
+        "minWidth": 900,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ipc: http://ipc.localhost ws: http://*:3000; img-src 'self' data: asset: http://asset.localhost; object-src 'none'",
+      "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ipc: http://ipc.localhost ws: wss: http: https:; img-src 'self' data: asset: http://asset.localhost; object-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": ["binaries/gateway"],
+    "resources": {
+      "../plugin/StripCol.dll": "plugin/StripCol.dll"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYwMjhFNkExODIyNDEwODAKUldTQUVDU0NvZVlvWUZVSFBjYmV4RzBlT3VLdU5YdmdmNjRHdW9vdk8yUHJreExiTFhUOE42SzEK",
+      "endpoints": [
+        "https://github.com/Simplezes/StripCol/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}
