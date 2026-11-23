@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="src\client\img\icon_name.png" alt="StripCol Icon" style="width:45%">
+    <img src="src/assets/icon_name.png" alt="StripCol Icon" style="width:45%">
 </div>
 
 **StripCol** is an electronic flight strip management ecosystem custom-built for **[VATSIM Colombia (VATCOL)](https://vatcol.org/)**. It bridges the gap between traditional EuroScope operations and modern web-based interfaces, providing Air Traffic Controllers with a sleek, responsive, and highly functional workspace.
@@ -8,19 +8,21 @@
 
 ## 🏛️ Architecture
 
-StripCol is designed as a modular **three-tier ecosystem** (located in the `src/` directory):
+StripCol is a modular **three-tier ecosystem**:
 
-1.  **.🔌 EuroScope Plugin (C++)**:
+1.  **🔌 EuroScope Plugin (C++)** (separate `StripCol-cpp` repository):
     *   Direct integration with the EuroScope SDK.
-    *   Exposes real-time flight data via a localized TCP server.
+    *   Exposes real-time flight data to the gateway over WebSocket.
     *   Handles low-level ATC commands and telemetry.
-2.  **🌌 Gateway Hub (Node.js)**:
+2.  **🌌 Gateway Hub (`gateway/`, Node.js)**:
     *   A central orchestration server (Express & WebSocket).
     *   Supports session-based pairing via unique **Link Codes**.
     *   Features a live web console for real-time server monitoring and logs.
-3.  **🖥️ Desktop Client (Electron)**:
-    *   A professional, high-fidelity UI built for multi-monitor ATC setups.
+    *   Shipped inside the desktop app as a sidecar executable.
+3.  **🖥️ Desktop Client (`src/` and `src-tauri/`, React + Tauri)**:
+    *   A high-fidelity UI built for multi-monitor ATC setups.
     *   Features dynamic panels, custom tooltips, and terminal-style configuration.
+    *   Rust shell handling the gateway process, Discord presence, settings and auto-updates.
 
 ---
 
@@ -42,34 +44,42 @@ StripCol is designed as a modular **three-tier ecosystem** (located in the `src/
 ## 🚀 Quick Start
 
 ### 1. Requirements
-*   **Node.js** (Latest LTS)
+*   **Node.js** (Latest LTS) and **pnpm**
+*   **Rust** (stable) with the Visual Studio C++ build tools
 *   **EuroScope** v3.2 or later
-*   **Visual Studio** (if building the plugin from source)
 
 ### 2. Installation
 ```bash
-# Clone the repository
 git clone https://github.com/Simplezes/StripCol.git
-
-# Install dependencies
-npm install
+cd StripCol
+pnpm install
 ```
 
 ### 3. Execution
 1.  **Launch EuroScope** and load the `StripCol.dll`.
-2.  **Start the Gateway & Client**:
+2.  **Build the gateway sidecar once**, then start the app:
     ```bash
-    npm start
+    pnpm build:gateway
+    pnpm dev
     ```
 3.  Enter your **Link Code** in the client settings to pair and start controlling.
+
+### 4. Production build
+```bash
+pnpm build
+```
+Updater artifacts are signed with `TAURI_SIGNING_PRIVATE_KEY`.
+
+### 5. Releasing
+Bump the version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`, push the commit, then run `pnpm release` with `GITHUB_TOKEN` set. It uploads the installer, its signature and `latest.json` to a draft release; publishing that release (or running with `--publish`) makes installed apps offer the update.
 
 ---
 
 ## 🛠️ Technology Stack
 
 *   **Back-End**: Node.js, Express, `ws` (WebSockets)
-*   **Front-End**: Vanilla JavaScript, CSS3 (Glassmorphism), Bootstrap 5
-*   **Platform**: Electron
+*   **Front-End**: React, TypeScript, Tailwind, Zustand, dnd-kit
+*   **Platform**: Tauri 2 (Rust)
 *   **Plugin**: C++ (EuroScope SDK)
 
 ---
