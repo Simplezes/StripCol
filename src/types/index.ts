@@ -8,6 +8,7 @@ export interface FlightPlan {
   route?: string
   altitude?: string
   squawk?: string
+  clearanceReceived?: boolean
   speed?: string
   remarks?: string
   transfer?: boolean

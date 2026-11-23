@@ -4,6 +4,7 @@ import { useConnectionStore } from '../stores/connectionStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useAssetsStore } from '../stores/assetsStore'
 import { useFlightStore } from '../stores/flightStore'
+import { apiFetch } from './api'
 import { buildInitialValues, CUSTOM_BOX_KEYS } from './stripValues'
 
 export function panelNameToStripType(panelName: string): StripType | null {
@@ -71,6 +72,7 @@ export function renderAircraftAsStrip(flight: FlightPlan): void {
   }
 
   usePanelStore.getState().addStrip(targetPanel, strip, type === 'transfer')
+  autoMoveOnClearance(id, targetPanel, !!flight.clearanceReceived)
 }
 
 export function deleteStripByCallsign(callsign: string): void {
@@ -86,10 +88,24 @@ export function deleteStripByCallsign(callsign: string): void {
   })
 }
 
-export function autoMoveOnC12(
+export async function toggleClearance(flight: FlightPlan): Promise<void> {
+  const { linkCode } = useSettingsStore.getState().settings
+  if (!linkCode) return
+
+  try {
+    await apiFetch('/api/set-clearance', {
+      method: 'POST',
+      body: JSON.stringify({ code: linkCode, callsign: flight.callsign, cleared: !flight.clearanceReceived }),
+    })
+  } catch (err) {
+    console.error('Set clearance failed:', err)
+  }
+}
+
+export function autoMoveOnClearance(
   stripId: string,
   currentPanelName: string,
-  c12Value: string,
+  clearanceReceived: boolean,
 ): void {
   const { facilityType } = useConnectionStore.getState()
   const aerodromeFacilities = new Set(['del', 'ground', 'tower'])
@@ -98,13 +114,12 @@ export function autoMoveOnC12(
   const { autoMoveClearance, autoMoveRevert } = useSettingsStore.getState().settings
   if (!autoMoveClearance) return
 
-  const isFilled = c12Value.trim() !== ''
   const store = usePanelStore.getState()
 
-  if (isFilled && currentPanelName === 'Pending') {
+  if (clearanceReceived && currentPanelName === 'Pending') {
     const clearancePanel = store.panels.find((p) => p.name === 'Clearance')
     if (clearancePanel) store.moveStrip(currentPanelName, 'Clearance', stripId)
-  } else if (!isFilled && autoMoveRevert && currentPanelName === 'Clearance') {
+  } else if (!clearanceReceived && autoMoveRevert && currentPanelName === 'Clearance') {
     const pendingPanel = store.panels.find((p) => p.name === 'Pending')
     if (pendingPanel) store.moveStrip(currentPanelName, 'Pending', stripId)
   }

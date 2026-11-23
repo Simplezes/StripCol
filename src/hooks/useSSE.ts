@@ -9,6 +9,7 @@ import { CUSTOM_BOX_KEYS } from '../utils/stripValues'
 import {
   renderAircraftAsStrip,
   deleteStripByCallsign,
+  autoMoveOnClearance,
 } from '../utils/stripActions'
 import { buildInitialValues } from '../utils/stripValues'
 import { playNotificationSound } from '../utils/sound'
@@ -100,6 +101,10 @@ export function useSSE(): void {
           flightPlan: flight,
           values: { ...newVals, ...preserved },
         })
+
+        if (!!strip.flightPlan?.clearanceReceived !== !!flight.clearanceReceived) {
+          autoMoveOnClearance(id, p.name, !!flight.clearanceReceived)
+        }
       })
     }
 
