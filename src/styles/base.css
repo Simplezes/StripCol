@@ -21,12 +21,12 @@ button {
 
 * {
     scrollbar-width: thin;
-    scrollbar-color: #8a949e transparent;
+    scrollbar-color: var(--line) transparent;
 }
 
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -34,12 +34,16 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #8a949e;
-    border-radius: 3px;
+    background: var(--line);
+    border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #68727c;
+    background: var(--dim);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 ::-webkit-scrollbar-button {
