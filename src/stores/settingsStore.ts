@@ -1,40 +1,17 @@
 import { create } from 'zustand'
 import type { Settings } from '../types'
 import { saveDesktopSettings } from '../platform/desktop'
-import { getThemeUrl } from '../utils/themes'
 
 const STORAGE_KEY = 'stripcol_settings'
-
-const THEME_CLASSES = ['theme-dark-modern', 'theme-light']
-
-function clearThemeClasses(): void {
-
-  document.body.classList.forEach((cls) => {
-    if (cls.startsWith('theme-') && cls !== 'theme-dark-strips' && cls !== 'theme-autohide-header') {
-      document.body.classList.remove(cls)
-    }
-  })
-}
-
-function applyThemeStylesheet(themeFile: string, existingLink: HTMLLinkElement | null): void {
-  const url = getThemeUrl(themeFile)
-  if (!url) return
-
-  const link = existingLink ?? document.createElement('link')
-  link.id = 'custom-theme-link'
-  link.rel = 'stylesheet'
-  link.href = url
-  if (!existingLink) document.head.appendChild(link)
-}
 
 const DEFAULT_SETTINGS: Settings = {
   audioEnabled: true,
   cleanupEnabled: false,
   cleanupMinutes: 15,
   showSeconds: true,
-  departureColor: '#6ee7b7',
-  arrivalColor: '#f87171',
-  overflyColor: '#fde68a',
+  departureColor: '',
+  arrivalColor: '',
+  overflyColor: '',
   linkCode: '',
   serverIp: '127.0.0.1',
   discordRpcEnabled: true,
@@ -55,32 +32,22 @@ function loadFromStorage(): Settings {
   }
 }
 
-function applyThemeToDom(settings: Settings): void {
+const LEGACY_COLORS = ['#6ee7b7', '#f87171', '#fde68a', '#7fb0ff', '#f0a367', '#62d08c']
+
+function applyColor(name: string, value: string): void {
   const root = document.documentElement
+  if (!value || LEGACY_COLORS.includes(value.toLowerCase())) root.style.removeProperty(name)
+  else root.style.setProperty(name, value)
+}
 
-  root.style.setProperty('--custom-departure-color', settings.departureColor)
-  root.style.setProperty('--custom-arrival-color', settings.arrivalColor)
-  root.style.setProperty('--custom-overfly-color', settings.overflyColor)
+function applyThemeToDom(settings: Settings): void {
+  applyColor('--user-departure-color', settings.departureColor)
+  applyColor('--user-arrival-color', settings.arrivalColor)
+  applyColor('--user-overfly-color', settings.overflyColor)
 
-  const { theme } = settings
-  const existingLink = document.getElementById('custom-theme-link') as HTMLLinkElement | null
-
-  if (theme.endsWith('.css')) {
-    applyThemeStylesheet(theme, existingLink)
-
-    clearThemeClasses()
-    const nameClass = `theme-${theme.replace('.css', '')}`
-    document.body.classList.add(nameClass)
-  } else {
-    existingLink?.remove()
-    clearThemeClasses()
-    if (theme !== 'dark') {
-      document.body.classList.add(`theme-${theme}`)
-    }
-  }
-
-  document.body.classList.toggle('theme-dark-strips', settings.darkStrips)
-  document.body.classList.toggle('theme-autohide-header', settings.autohideHeader)
+  document.body.classList.toggle('theme-light', settings.theme.includes('light'))
+  document.body.classList.toggle('dark-strips', settings.darkStrips)
+  document.body.classList.toggle('autohide-bar', settings.autohideHeader)
 }
 
 interface SettingsState {
