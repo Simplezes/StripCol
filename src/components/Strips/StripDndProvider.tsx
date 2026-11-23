@@ -12,6 +12,8 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { usePanelStore } from '../../stores/panelStore'
+import { useUIStore } from '../../stores/uiStore'
+import { activeSort, isOrdered, sortStrips, type SortKey } from '../Layout/sectionSort'
 import { useConnectionStore } from '../../stores/connectionStore'
 import { buildInitialValues } from '../../utils/stripValues'
 import { panelNameToStripType } from '../../utils/stripActions'
@@ -74,15 +76,19 @@ export function StripDndProvider({ children }: StripDndProviderProps) {
     if (!targetPanel) return
 
     if (sourcePanel.name === targetPanel.name) {
-      const ids = sourcePanel.strips.map((s) => s.id)
+      const ui = useUIStore.getState()
+      const sortKey = activeSort(sourcePanel.name, ui.sectionSort[sourcePanel.name] as SortKey | undefined)
+      const ids = sortStrips(sourcePanel.strips, sortKey).map((s) => s.id)
       const oldIndex = ids.indexOf(activeId)
       const newIndex = ids.indexOf(overId)
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         state.reorderStrips(sourcePanel.name, arrayMove(ids, oldIndex, newIndex))
+        if (isOrdered(sortKey)) ui.setSectionSort(sourcePanel.name, 'MANUAL')
       }
     } else {
+      const targetSort = activeSort(targetPanel.name, useUIStore.getState().sectionSort[targetPanel.name] as SortKey | undefined)
       const overIndex = targetPanel.strips.findIndex((s) => s.id === overId)
-      const insertAt = overIndex === -1 ? undefined : overIndex
+      const insertAt = overIndex === -1 || isOrdered(targetSort) ? undefined : overIndex
 
       const inferredType = panelNameToStripType(targetPanel.name)
       const strip = sourcePanel.strips.find((s) => s.id === activeId)!

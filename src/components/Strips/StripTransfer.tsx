@@ -66,11 +66,7 @@ export function StripTransfer({ stripId, panelName }: StripTransferProps) {
   return (
     <div
       ref={setNodeRef}
-      className="strip draggable transfer-request"
-      data-strip-id={stripId}
-      data-type="transfer"
-      data-euroscope={strip.euroscope ? 'true' : 'false'}
-      data-panel={panelName}
+      className="srow"
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
@@ -79,31 +75,41 @@ export function StripTransfer({ stripId, panelName }: StripTransferProps) {
       {...attributes}
       {...listeners}
     >
-      <div className="transfer-info">
-        <div className="transfer-label">HANDOFF REQUEST</div>
-        <div className="transfer-callsign">{fp.callsign}</div>
-        <div className="transfer-details">
-          {fp.departure} &rarr; {fp.arrival} | {fp.aircraftType || '---'}
-        </div>
+      <div
+        className="strip incoming"
+        data-strip-id={stripId}
+        data-type="transfer"
+        data-euroscope={strip.euroscope ? 'true' : 'false'}
+        data-panel={panelName}
+      >
+        <span className="tag">Handover</span>
+        <h3>{fp.callsign}</h3>
+        <span>
+          {fp.departure} → {fp.arrival} · {fp.aircraftType || '---'}
+        </span>
       </div>
-      <div className="transfer-actions">
+      <div className="sact">
         <button
-          className="transfer-btn accept"
-          title="Accept Handoff"
+          className="ok"
+          title="Accept handoff"
           onClick={handleAccept}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <span className="material-icons">check_circle</span>
-          ACCEPT
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12l5 5 9-10" />
+          </svg>
+          Accept
         </button>
         <button
-          className="transfer-btn refuse"
-          title="Refuse Handoff"
+          className="no"
+          title="Refuse handoff"
           onClick={handleRefuse}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <span className="material-icons">cancel</span>
-          REFUSE
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+          Refuse
         </button>
       </div>
     </div>

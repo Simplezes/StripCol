@@ -372,14 +372,15 @@ export function Strip({ stripId, panelName }: StripProps) {
     }
   }, [])
 
-  const autohideHeader = useSettingsStore((s) => s.settings.autohideHeader)
   const searchQuery = useUIStore((s) => s.searchQuery)
+  const isSelected = useUIStore((s) => s.selectedStripId === stripId)
+  const typeHidden = useUIStore((s) => s.trafficFilters[strip?.type as 'departure'] === false)
 
   if (!strip) return null
 
   const c33 = formatC33(strip.lastUpdate)
 
-  const isHidden = searchQuery.length > 0 && (() => {
+  const isHidden = typeHidden || searchQuery.length > 0 && (() => {
     const q = searchQuery.toLowerCase()
     const valuesMatch = Object.values(localValues).some((v) => v.toLowerCase().includes(q))
     const fpMatch = strip.flightPlan?.callsign?.toLowerCase().includes(q) ||
@@ -397,12 +398,13 @@ export function Strip({ stripId, panelName }: StripProps) {
   return (
     <div
       ref={setNodeRef}
-      className={`strip draggable${autohideHeader ? ' theme-autohide-header' : ''}`}
+      className={`strip draggable${isSelected ? ' sel' : ''}`}
       data-strip-id={stripId}
       data-type={strip.type}
       data-euroscope={strip.euroscope ? 'true' : 'false'}
       data-panel={panelName}
       onContextMenu={handleContextMenu}
+      onClick={() => useUIStore.getState().selectStrip(stripId)}
       style={dragStyle}
       {...attributes}
       {...listeners}
@@ -415,23 +417,13 @@ export function Strip({ stripId, panelName }: StripProps) {
           onChange={(e) => handleChange(key, e.target.value)}
           onBlur={(e) => handleBlur(key, e.currentTarget.value)}
           onMouseDown={(e) => e.stopPropagation()}
-          style={{ fontSize: 'clamp(8px, 1cqw, 16px)' }}
           data-cell={key}
           spellCheck={false}
           autoComplete="off"
         />
       ))}
 
-      <div
-        className="box c33 ri_ot bt_ot"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          textAlign: 'center',
-          fontSize: '60%',
-          color: 'var(--sys-text)',
-        }}
-      >
+      <div className="box c33 ri_ot bt_ot">
         <span>{c33.date}</span>
         <span>{c33.time}</span>
       </div>

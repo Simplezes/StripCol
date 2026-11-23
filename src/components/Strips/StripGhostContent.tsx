@@ -1,4 +1,3 @@
-import { useSettingsStore } from '../../stores/settingsStore'
 import type { StripData } from '../../types'
 
 function formatC33(ts: number): { date: string; time: string } {
@@ -28,12 +27,11 @@ interface StripGhostContentProps {
 }
 
 export function StripGhostContent({ strip }: StripGhostContentProps) {
-  const autohideHeader = useSettingsStore((s) => s.settings.autohideHeader)
   const c33 = formatC33(strip.lastUpdate)
 
   return (
     <div
-      className={`strip draggable strip-drag-overlay${autohideHeader ? ' theme-autohide-header' : ''}`}
+      className="strip draggable strip-drag-overlay"
       data-strip-id={strip.id}
       data-type={strip.type}
       data-euroscope={strip.euroscope ? 'true' : 'false'}
@@ -45,24 +43,14 @@ export function StripGhostContent({ strip }: StripGhostContentProps) {
           value={strip.values[key] ?? ''}
           readOnly
           tabIndex={-1}
-          style={{ fontSize: 'clamp(8px, 1cqw, 16px)', pointerEvents: 'none' }}
+          style={{ pointerEvents: 'none' }}
           data-cell={key}
           spellCheck={false}
           autoComplete="off"
         />
       ))}
 
-      <div
-        className="box c33 ri_ot bt_ot"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          textAlign: 'center',
-          fontSize: '60%',
-          color: 'var(--sys-text)',
-          pointerEvents: 'none',
-        }}
-      >
+      <div className="box c33 ri_ot bt_ot">
         <span>{c33.date}</span>
         <span>{c33.time}</span>
       </div>

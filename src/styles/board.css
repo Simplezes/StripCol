@@ -1,0 +1,145 @@
+.board {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(var(--lanes, 3), minmax(0, 1fr));
+    gap: 10px;
+    padding: 10px 6px 10px 10px;
+}
+
+.lane {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.sec {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    background: var(--body);
+    overflow: hidden;
+}
+
+.sec.collapsed {
+    flex: none;
+}
+
+.sec.collapsed .secbody {
+    display: none;
+}
+
+.sechd {
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 6px 0 14px;
+    border-bottom: 1px solid var(--hair);
+    background: transparent;
+}
+
+.sec.collapsed .sechd {
+    border-bottom: none;
+}
+
+.sechd .ttl {
+    margin: 0;
+    font: 700 15px var(--font-cond);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.sechd .cnt {
+    margin-right: auto;
+    font: 600 15px var(--font-cond);
+    font-variant-numeric: tabular-nums;
+    color: var(--dim);
+}
+
+.sec.alert .sechd .cnt {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--alert);
+    color: var(--alert-ink);
+    border-radius: 2px;
+}
+
+.sechd .sort {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 8px;
+    background: none;
+    border: none;
+    border-radius: 2px;
+    color: var(--dim);
+    cursor: pointer;
+    font: 600 14px/1 var(--font-cond);
+    letter-spacing: 0.06em;
+}
+
+.sechd .sort:hover {
+    background: var(--chip);
+    color: var(--ink);
+}
+
+.sechd .fold {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    border-radius: 2px;
+    color: var(--dim);
+    cursor: pointer;
+}
+
+.sechd .fold:hover {
+    background: var(--chip);
+    color: var(--ink);
+}
+
+.sechd .fold svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.secbody {
+    container-type: inline-size;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 6px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.secbody:empty::after {
+    content: 'No strips';
+    margin-top: 6px;
+    font: 500 13px var(--font-ui);
+    color: var(--dim);
+}

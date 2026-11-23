@@ -2,6 +2,8 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useShallow } from 'zustand/react/shallow'
 import { usePanelStore } from '../../stores/panelStore'
+import { useUIStore } from '../../stores/uiStore'
+import { activeSort, sortStrips, type SortKey } from '../Layout/sectionSort'
 import { Strip } from './Strip'
 import { StripTransfer } from './StripTransfer'
 
@@ -10,7 +12,9 @@ interface StripContainerProps {
 }
 
 export function StripContainer({ panelName }: StripContainerProps) {
-  const strips = usePanelStore(useShallow((s) => s.panels.find((p) => p.name === panelName)?.strips ?? []))
+  const stored = usePanelStore(useShallow((s) => s.panels.find((p) => p.name === panelName)?.strips ?? []))
+  const savedSort = useUIStore((s) => s.sectionSort[panelName])
+  const strips = sortStrips(stored, activeSort(panelName, savedSort as SortKey | undefined))
   const stripIds = strips.map((s) => s.id)
   const { setNodeRef } = useDroppable({ id: panelName })
 
