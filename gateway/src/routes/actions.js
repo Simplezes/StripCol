@@ -4,6 +4,7 @@ const { sendRpcUpdate } = require('../discordBridge');
 
 const ALLOWED_ACTIONS = new Set([
   'set-squawk',
+  'set-clearance',
   'set-departureTime',
   'set-assigned-mach',
   'set-assigned-speed',
