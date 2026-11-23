@@ -4,6 +4,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
 import { inject } from 'postject'
+import { rcedit } from 'rcedit'
 
 const SEA_FUSE = 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2'
 
@@ -42,6 +43,22 @@ function createSeaBlob(bundlePath) {
   return blobPath
 }
 
+async function applyWindowsIdentity(executablePath) {
+  const packageJson = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'))
+  await rcedit(executablePath, {
+    'file-version': packageJson.version,
+    'product-version': packageJson.version,
+    'version-string': {
+      FileDescription: 'StripCol Gateway',
+      ProductName: 'StripCol',
+      CompanyName: packageJson.author,
+      LegalCopyright: `Copyright (c) ${packageJson.author}`,
+      OriginalFilename: 'gateway.exe',
+      InternalName: 'gateway',
+    },
+  })
+}
+
 async function createExecutable(blobPath) {
   const targetTriple = readTargetTriple()
   const extension = process.platform === 'win32' ? '.exe' : ''
@@ -49,6 +66,9 @@ async function createExecutable(blobPath) {
 
   mkdirSync(binariesDirectory, { recursive: true })
   copyFileSync(process.execPath, executablePath)
+  if (process.platform === 'win32') {
+    await applyWindowsIdentity(executablePath)
+  }
   await inject(executablePath, 'NODE_SEA_BLOB', readFileSync(blobPath), { sentinelFuse: SEA_FUSE })
   return executablePath
 }
