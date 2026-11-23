@@ -21,6 +21,12 @@ const SUFFIX_ROLES: Array<[string, string]> = [
   ['_ATIS', 'ATIS'],
 ]
 
+const ATC_ROLES = ['Centre', 'Approach', 'Tower', 'Ground', 'Delivery']
+
+export function isAtcPosition(callsign: string): boolean {
+  return SUFFIX_ROLES.some(([suffix, role]) => callsign.endsWith(suffix) && ATC_ROLES.includes(role))
+}
+
 export function roleOf(callsign: string): string {
   const match = SUFFIX_ROLES.find(([suffix]) => callsign.endsWith(suffix))
   return match ? match[1] : 'Information'
