@@ -1,5 +1,20 @@
 import type { FlightPlan, ControllerMode } from '../types'
 
+export const CLEARANCE_FLAG_MARK = 'Ⓑ'
+
+export function isClearanceFlagCell(key: string, mode: ControllerMode, type: string): boolean {
+  return key === 'c12' && mode === 'aerodrome' && type === 'departure'
+}
+
+export function runwayCellKey(mode: ControllerMode, type: string): string {
+  return mode === 'aerodrome' && type === 'departure' ? 'c16' : 'c18'
+}
+
+export function hasRunwayInCell18(mode: ControllerMode, type: string): boolean {
+  if (mode === 'aerodrome') return type === 'arrival'
+  return type !== 'overfly'
+}
+
 export function formatTime(time: unknown): string {
   if (time == null) return ''
   return String(time).padStart(4, '0')
@@ -64,6 +79,7 @@ export function buildInitialValues(
 
   if (controllerMode === 'aerodrome') {
     if (type === 'departure') {
+      set('c12', flight.clearanceReceived ? CLEARANCE_FLAG_MARK : '')
       set('c16', flight.departureRwy as string)
     } else if (type === 'arrival') {
       set('c18', flight.arrivalRwy as string)

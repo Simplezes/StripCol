@@ -1,6 +1,6 @@
 import { usePanelStore } from '../../stores/panelStore'
 import { apiFetch } from '../../utils/api'
-import { deleteStripByCallsign, renderAircraftAsStrip } from '../../utils/stripActions'
+import { deleteStripByCallsign, renderAircraftAsStrip, toggleClearance } from '../../utils/stripActions'
 import { PLAN_TYPE_LABELS } from './FlightInfoView'
 import { Icon } from './Icon'
 import { Item, MenuHeader, Sep } from './MenuParts'
@@ -127,9 +127,18 @@ export function MainView({ stripId, panelName, view, setView, onClose }: MainVie
     onClose()
   }
 
+  const cleared = !!fp.clearanceReceived
+  const toggleFlag = async () => {
+    await toggleClearance(fp)
+    onClose()
+  }
+
   return (
     <div className="cm" role="menu" data-type={type}>
       <MenuHeader flight={fp} pill={type} chips={chips} />
+      {type === 'departure' && (
+        <Item icon="check" label={cleared ? 'Remove clearance' : 'Clearance received'} onClick={toggleFlag} />
+      )}
       <Item icon="route" label="Show route" value={routeValue} chevron hot={view.type === 'route'} onClick={() => open({ type: 'route' })} />
       <Item icon="info" label="Flight details" value={detailsValue} chevron hot={view.type === 'flightinfo'} onClick={() => open({ type: 'flightinfo' })} />
       {showProcedure && (

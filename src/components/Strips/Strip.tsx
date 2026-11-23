@@ -7,7 +7,7 @@ import { useContextMenuStore } from '../../stores/contextMenuStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useDragStore } from '../../stores/dragStore'
 import { apiFetch } from '../../utils/api'
-import { CUSTOM_BOX_KEYS, isClearanceFlagCell } from '../../utils/stripValues'
+import { CUSTOM_BOX_KEYS, isClearanceFlagCell, runwayCellKey } from '../../utils/stripValues'
 import { toggleClearance } from '../../utils/stripActions'
 import { useAssetsStore } from '../../stores/assetsStore'
 import { computeProcedurePoints, fetchPointETAs } from '../../utils/procedurePoints'
@@ -257,6 +257,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
     if (isClearanceFlagCell(key, useConnectionStore.getState().controllerMode, strip?.type ?? '')) return
 
     const effectiveValue = domValue !== undefined ? domValue.trim().toUpperCase() : (localValues[key] ?? '')
+    const runwayKey = runwayCellKey(useConnectionStore.getState().controllerMode, strip?.type ?? '')
 
     if (strip?.euroscope && strip.flightPlan?.callsign) {
       if (key === 'c12' && effectiveValue === '') {
@@ -265,26 +266,28 @@ export function Strip({ stripId, panelName, index }: StripProps) {
           console.error('Failed resetting heading on c12 clear:', err)
         })
       }
-      syncFieldToGateway(key, effectiveValue, strip.flightPlan.callsign).catch((err) => {
-        console.error(`Failed syncing ${key} to gateway:`, err)
-      })
+      if (key !== 'c16' || runwayKey !== 'c16') {
+        syncFieldToGateway(key, effectiveValue, strip.flightPlan.callsign).catch((err) => {
+          console.error(`Failed syncing ${key} to gateway:`, err)
+        })
+      }
     }
 
-    if (key === 'c18' && strip?.euroscope && strip.flightPlan) {
+    if (key === runwayKey && strip?.euroscope && strip.flightPlan) {
       const { controllerMode } = useConnectionStore.getState()
       const procedures = useAssetsStore.getState().procedures as Record<string, Record<string, Record<string, Record<string, unknown>>>>
       const fp = strip.flightPlan
       const isArrival = strip.type === 'arrival'
       const airport = (isArrival ? fp.arrival : fp.departure) as string | undefined
       const procType = isArrival ? 'STAR' : 'SID'
-      const newRunway = (localValues['c18'] ?? '').trim().toUpperCase()
+      const newRunway = (localValues[runwayKey] ?? '').trim().toUpperCase()
       const oldRunway = ((isArrival ? fp.arrivalRwy : fp.departureRwy) as string | undefined ?? '').trim().toUpperCase()
 
       if (newRunway && newRunway !== oldRunway && airport) {
         const runwaysObj = procedures?.[airport]?.[procType] ?? procedures?.[airport.toUpperCase()]?.[procType] ?? procedures?.[airport.toLowerCase()]?.[procType]
         if (!runwaysObj || !runwaysObj[newRunway]) {
           showToast(`Runway ${newRunway} not available at ${airport}`, 'warning')
-          const reverted = { ...localValues, c18: oldRunway }
+          const reverted = { ...localValues, [runwayKey]: oldRunway }
           setLocalValues(reverted)
           syncToStore(reverted)
         } else {
@@ -298,7 +301,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
 
           if (!matchedKey && baseProcName) {
             showToast(`${baseProcName} not available on runway ${newRunway} at ${airport}`, 'warning')
-            const reverted = { ...localValues, c18: oldRunway }
+            const reverted = { ...localValues, [runwayKey]: oldRunway }
             setLocalValues(reverted)
             syncToStore(reverted)
           } else if (matchedKey) {
@@ -314,7 +317,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
               if (!res.ok) throw new Error(`HTTP ${res.status}`)
             } catch (err) {
               console.error(`Failed to set ${procType}:`, err)
-              const reverted = { ...localValues, c18: oldRunway }
+              const reverted = { ...localValues, [runwayKey]: oldRunway }
               setLocalValues(reverted)
               syncToStore(reverted)
               return
@@ -323,13 +326,13 @@ export function Strip({ stripId, panelName, index }: StripProps) {
             const clearedPoints: Record<string, string> = {}
             for (let i = 19; i <= 27; i++) clearedPoints[`c${i}`] = ''
 
-            const updated = { ...localValues, c18: newRunway, c8: matchedKey, ...clearedPoints }
+            const updated = { ...localValues, [runwayKey]: newRunway, c8: matchedKey, ...clearedPoints }
             setLocalValues(updated)
             syncToStore(updated)
             phase4Cells.current.clear()
 
             usePanelStore.getState().updateStrip(panelName, stripId, {
-              values: { ...strip.values, c18: newRunway, c8: matchedKey, ...clearedPoints },
+              values: { ...strip.values, [runwayKey]: newRunway, c8: matchedKey, ...clearedPoints },
               flightPlan: {
                 ...fp,
                 ...(isArrival
