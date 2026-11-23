@@ -112,6 +112,10 @@ export function ProcedurePicker({ airport, procType, stripId, panelName, onClose
           <Field>
             <Icon name="search" />
             <input
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
               className="cm-input"
               placeholder={`Search ${procType}s at ${airport}`}
               value={search}

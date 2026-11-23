@@ -43,6 +43,10 @@ function CodeBoxes({ value, onChange, onEnter }: { value: string; onChange: (v: 
     <span className="code" role="group" aria-label="Link code">
       {chars.map((char, i) => (
         <input
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           key={i}
           ref={(el) => {
             refs.current[i] = el
@@ -146,6 +150,10 @@ export function ConnectionTab({ s, update }: Props) {
             <small>The IP your local StripCol gateway listens on.</small>
             <div className="ln">
               <input
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 className="inp"
                 value={serverIp}
                 placeholder="127.0.0.1"

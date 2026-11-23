@@ -45,6 +45,10 @@ export function LinkCodePill() {
       LINK
       {editing ? (
         <input
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           ref={inputRef}
           className="linkedit"
           type="text"

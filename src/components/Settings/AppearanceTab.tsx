@@ -92,6 +92,10 @@ export function AppearanceTab({ s, update }: Props) {
                 </label>
                 <div className="pk">
                   <input
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     type="color"
                     value={colorOf(key, token)}
                     aria-label={`${label.toLowerCase()} colour`}

@@ -73,6 +73,10 @@ function AssumeFlyout({ panelName, onClose }: { panelName: string; onClose: () =
       <Field>
         <Icon name="search" />
         <input
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           className="cm-input"
           placeholder="Search callsign"
           value={search}
