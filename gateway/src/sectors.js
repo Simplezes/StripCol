@@ -1,9 +1,9 @@
 const sectorsData = require('../../public/assets/sectors.json');
 
-function getSectorAirports(positionId) {
+function getSectorAirports(positionId, sectors = sectorsData) {
   const airports = new Set();
   const addAirports = (key) => {
-    const sector = sectorsData[key];
+    const sector = sectors[key];
     if (sector?.airports) sector.airports.forEach((airport) => airports.add(airport));
   };
 

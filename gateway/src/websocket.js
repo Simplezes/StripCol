@@ -31,6 +31,7 @@ function createSession(socket, controller) {
     lastSyncTime: 0,
     rpcManualState: null,
     lastActivity: Date.now(),
+    sectorData: null,
   };
 }
 
@@ -65,6 +66,8 @@ function applySessionUpdate(session, message) {
     if (payload.callsign) session.aircraft.set(payload.callsign, payload);
   } else if (message.type === 'release') {
     if (payload.callsign) session.aircraft.delete(payload.callsign);
+  } else if (message.type === 'sector-data') {
+    session.sectorData = message.data || null;
   } else if (message.type === 'atclist') {
     session.atcList = message.data || message.atclist || message.atcList || (Array.isArray(message) ? message : []);
   }

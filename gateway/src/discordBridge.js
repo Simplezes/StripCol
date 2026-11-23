@@ -40,7 +40,7 @@ function buildTrafficSummary(session, callsign, facility, positionId) {
   const context = {
     localIcao: icaoMatch ? icaoMatch[1].toUpperCase() : '',
     isAerodrome: AERODROME_FACILITIES.includes(facility),
-    sectorAirports: getSectorAirports(positionId),
+    sectorAirports: getSectorAirports(positionId, session.sectorData?.sectors || undefined),
   };
 
   const counts = { departure: 0, arrival: 0, overfly: 0 };

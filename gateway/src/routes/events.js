@@ -37,6 +37,10 @@ function registerEventRoutes(app) {
     const payload = { status, code, controller: session.controller };
     response.write(`event: gateway_status\ndata: ${JSON.stringify(payload)}\n\n`);
 
+    if (session.sectorData) {
+      response.write(`event: sector-data\ndata: ${JSON.stringify(session.sectorData)}\n\n`);
+    }
+
     requestSync(session);
 
     request.on('close', () => {
