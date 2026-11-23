@@ -4,7 +4,6 @@ import { useUIStore } from '../../stores/uiStore'
 import { showToast } from '../../utils/toast'
 import { getAppVersion, openExternal } from '../../platform/desktop'
 import { checkForUpdates, installDownloadedUpdate } from '../../platform/updater'
-import { Divider } from '../ui/Divider'
 
 const BYTES_PER_MEGABYTE = 1048576
 
@@ -27,35 +26,47 @@ function formatMegabytes(bytes: number): string {
   return (bytes / BYTES_PER_MEGABYTE).toFixed(2)
 }
 
-function UpdateStatusView({ status, onInstall }: { status: UpdateStatus; onInstall: () => void }) {
-  if (status.kind === 'checking') {
-    return <span style={{ color: 'var(--atm-blue)' }}>Checking…</span>
-  }
-  if (status.kind === 'upToDate') {
-    return <span style={{ color: 'var(--atm-green)' }}>You are up to date!</span>
-  }
-  if (status.kind === 'error') {
-    return <span style={{ color: 'var(--atm-red)' }}>Update error: {status.message}</span>
-  }
-  if (status.kind === 'download') {
-    const { version, percent, downloadedBytes, totalBytes, ready } = status.download
-    return (
-      <div style={{ background: 'rgba(110,231,183,0.1)', border: '1px solid rgba(110,231,183,0.2)', padding: '8px', borderRadius: 4 }}>
-        <div style={{ fontWeight: 700 }}>Update Available: V{version}</div>
-        <div style={{ fontSize: 11, color: 'var(--sys-text-dim)', marginTop: 4 }}>
-          {ready
-            ? 'Download complete.'
-            : `Downloading: ${Math.round(percent)}% (${formatMegabytes(downloadedBytes)} MB / ${formatMegabytes(totalBytes)} MB)`}
+function UpdateCard({ status, onInstall }: { status: UpdateStatus; onInstall: () => void }) {
+  if (status.kind === 'checking') return <p className="note">Checking for updates…</p>
+  if (status.kind === 'upToDate') return <p className="note ok">You are up to date.</p>
+  if (status.kind === 'error') return <p className="note bad">Update error: {status.message}</p>
+  if (status.kind !== 'download') return null
+
+  const { version, percent, downloadedBytes, totalBytes, ready } = status.download
+  const rounded = Math.round(percent)
+
+  return (
+    <div className="card upd">
+      <div className="row">
+        <div className="tx">
+          <b>Update available — v{version}</b>
+          <small>{ready ? 'Download complete.' : 'Downloading in the background.'}</small>
         </div>
         {ready && (
-          <button className="custom-btn primary" style={{ marginTop: 8, width: '100%' }} onClick={onInstall}>
+          <button className="btn pri" onClick={onInstall}>
             Restart and install
           </button>
         )}
       </div>
-    )
-  }
-  return null
+      <div className="bar2" role="progressbar" aria-valuenow={ready ? 100 : rounded} aria-valuemin={0} aria-valuemax={100}>
+        <i style={{ width: `${ready ? 100 : rounded}%` }} />
+      </div>
+      <div className="mt">
+        <span>{ready ? '100%' : `${rounded}%`}</span>
+        <span>
+          {formatMegabytes(downloadedBytes)} MB / {formatMegabytes(totalBytes)} MB
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function ExternalIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5" />
+    </svg>
+  )
 }
 
 export function AboutTab() {
@@ -99,63 +110,41 @@ export function AboutTab() {
     })
   }
 
-  const checking = status.kind === 'checking'
-
   return (
     <>
-      <div className="about-hero">
-        <img src={heroLogo} alt="StripCol Logo" className="hero-logo" />
-        <div className="hero-version">
-          Version <span id="appVersionDisplay">{version}</span>
+      <div className="ph">
+        <h2>About</h2>
+        <span>Version and updates</span>
+      </div>
+
+      <div className="ab">
+        <div className="hero">
+          <img src={heroLogo} alt="StripCol" />
+          <span>Electronic flight strips for Colombia</span>
+          <span>Version {version}</span>
         </div>
-      </div>
-
-      <div className="settings-card" style={{ marginTop: 16, textAlign: 'center' }}>
-        <button
-          className="custom-btn primary"
-          style={{ width: '100%' }}
-          onClick={handleCheckForUpdates}
-          disabled={checking}
-        >
-          <span className="material-icons">system_update</span> Check for Updates
-        </button>
-        {status.kind !== 'idle' && (
-          <div id="updateStatus" className="status-msg" style={{ marginTop: 12 }}>
-            <UpdateStatusView status={status} onInstall={installDownloadedUpdate} />
-          </div>
-        )}
-      </div>
-
-      <div className="settings-card" style={{ marginTop: 12, padding: 0 }}>
-        <div className="about-grid">
-          <div className="about-row">
-            <span className="about-label">Developer</span>
-            <button
-              className="about-value link"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              onClick={() => openExternal('https://github.com/simplezes')}
-            >
-              Simplezes
+        <div>
+          <UpdateCard status={status} onInstall={installDownloadedUpdate} />
+          <div className="card lk">
+            <button onClick={handleCheckForUpdates} disabled={status.kind === 'checking'}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+              </svg>
+              Check for updates
+            </button>
+            <button onClick={() => openExternal('https://github.com/simplezes')}>
+              <ExternalIcon />
+              Developer
+              <span>Simplezes</span>
+            </button>
+            <button onClick={() => openExternal('https://github.com/Simplezes/StripCol/blob/main/LICENSE')}>
+              <ExternalIcon />
+              License
+              <span>MIT</span>
             </button>
           </div>
-          <Divider />
-          <div className="about-row">
-            <span className="about-label">License</span>
-            <button
-              className="about-value link"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              onClick={() => openExternal('https://github.com/Simplezes/StripCol/blob/main/LICENSE')}
-            >
-              MIT License
-            </button>
-          </div>
+          <p className="note">&copy; 2026 StripCol Project. Designed for VATSIM Colombia.</p>
         </div>
-      </div>
-
-      <div className="about-footer">
-        &copy; 2026 StripCol Project.
-        <br />
-        Designed for Vatsim Colombia.
       </div>
     </>
   )

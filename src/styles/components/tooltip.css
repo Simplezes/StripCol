@@ -1,17 +1,14 @@
 .custom-tooltip {
    position: fixed;
    z-index: 11000;
-   padding: 6px 12px;
-   background: rgba(10, 12, 14, 0.95);
-   backdrop-filter: blur(8px);
-   border: 1px solid rgba(52, 152, 219, 0.5);
-   border-radius: 4px;
-   color: var(--sys-text);
-   font-family: var(--font-ui);
-   font-size: 0.75rem;
-   font-weight: 500;
+   padding: 6px 10px;
+   background: var(--dark-bar);
+   border: 1px solid var(--pop-line);
+   border-radius: 2px;
+   color: #fff;
+   font: 500 12px var(--font-ui);
    pointer-events: none;
-   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
    opacity: 0;
    transition: opacity 0.1s ease;
    white-space: nowrap;

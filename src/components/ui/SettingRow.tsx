@@ -1,20 +1,20 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 interface SettingRowProps {
-  label: string
-  description?: string
-  control: ReactNode
-  style?: CSSProperties
+  title: string
+  description: string
+  disabled?: boolean
+  children: ReactNode
 }
 
-export function SettingRow({ label, description, control, style }: SettingRowProps) {
+export function SettingRow({ title, description, disabled = false, children }: SettingRowProps) {
   return (
-    <div className="settings-item" style={style}>
-      <div className="settings-info">
-        <div className="settings-label">{label}</div>
-        {description && <div className="settings-description">{description}</div>}
+    <div className={`row${disabled ? ' off' : ''}`}>
+      <div className="tx">
+        <b>{title}</b>
+        <small>{description}</small>
       </div>
-      <div className="settings-control">{control}</div>
+      {children}
     </div>
   )
 }
