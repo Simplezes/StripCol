@@ -64,7 +64,6 @@ export function buildInitialValues(
 
   if (controllerMode === 'aerodrome') {
     if (type === 'departure') {
-      set('c12', (flight.clearedFlag as number) == 1 ? 'Ⓑ' : '')
       set('c16', flight.departureRwy as string)
     } else if (type === 'arrival') {
       set('c18', flight.arrivalRwy as string)

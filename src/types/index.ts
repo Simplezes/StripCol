@@ -10,7 +10,6 @@ export interface FlightPlan {
   squawk?: string
   speed?: string
   remarks?: string
-  clearedFlag?: number
   transfer?: boolean
   positionId?: string
   sid?: string

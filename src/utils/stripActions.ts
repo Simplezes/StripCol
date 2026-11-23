@@ -37,18 +37,8 @@ export function resolveTargetPanel(
   type: StripType,
   facilityType: string,
   controllerMode: string,
-  autoMoveClearance: boolean,
 ): string {
   if (flight.transfer) return 'Handover'
-
-  const aerodromeFacilities = new Set(['del', 'ground', 'tower'])
-  if (
-    autoMoveClearance &&
-    aerodromeFacilities.has(facilityType) &&
-    (flight.clearedFlag as number) == 1
-  ) {
-    return 'Clearance'
-  }
 
   if (controllerMode === 'approach' || controllerMode === 'center') {
     if (type === 'departure') return 'Departures'
@@ -68,8 +58,7 @@ export function renderAircraftAsStrip(flight: FlightPlan): void {
 
   const type = resolveStripType(flight)
   const { controllerMode, facilityType } = useConnectionStore.getState()
-  const { autoMoveClearance } = useSettingsStore.getState().settings
-  const targetPanel = resolveTargetPanel(flight, type, facilityType, controllerMode, autoMoveClearance)
+  const targetPanel = resolveTargetPanel(flight, type, facilityType, controllerMode)
 
   const strip: StripData = {
     id,
