@@ -41,6 +41,8 @@
 
 body.dark-strips .strip {
     --strip: #262c33;
+    --sel: #1c3a68;
+    --selline: #6aa4ff;
     --ink: #eef2f6;
     --hair: #353d45;
     --line: #47505a;
