@@ -10,6 +10,7 @@ const { registerEventRoutes } = require('./routes/events');
 const { registerLogRoutes } = require('./routes/logs');
 const { registerSessionDataRoutes } = require('./routes/sessionData');
 const { registerActionRoutes } = require('./routes/actions');
+const { startDiscoveryResponder } = require('./discovery');
 
 const PORT = process.env.PORT || 3000;
 const IS_BOUND_TO_PARENT = process.env.STRIPCOL_PARENT_BOUND === '1';
@@ -30,6 +31,7 @@ registerActionRoutes(app);
 const httpServer = http.createServer(app);
 attachWebSocketServer(httpServer);
 startSessionCleanup();
+startDiscoveryResponder(PORT);
 
 if (IS_BOUND_TO_PARENT) {
   process.stdin.resume();
