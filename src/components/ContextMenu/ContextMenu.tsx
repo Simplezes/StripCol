@@ -1,38 +1,42 @@
-import { useContextMenuStore } from '../../stores/contextMenuStore'
-import { usePanelStore } from '../../stores/panelStore'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useContextMenuStore } from '../../stores/contextMenuStore'
+import { usePanelStore } from '../../stores/panelStore'
 import { FlightInfoView } from './FlightInfoView'
 import { MainView } from './MainView'
 import { ProcedurePicker } from './ProcedurePicker'
 import { RouteView } from './RouteView'
 import { TransferView } from './TransferView'
 import { TypeView } from './TypeView'
-import { positionSafely } from './menuHelpers'
-import type { MenuView } from './menuTypes'
+import { positionSafely, type MenuView } from './menuHelpers'
 
 export function ContextMenu() {
   const { visible, x, y, stripId, panelName, hide } = useContextMenuStore()
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [view, setView] = useState<MenuView>({ type: 'main' })
+  const stackRef = useRef<HTMLDivElement>(null)
+  const [view, setView] = useState<MenuView>({ type: 'none' })
 
   useEffect(() => {
-    if (visible) setView({ type: 'main' })
+    if (visible) setView({ type: 'none' })
   }, [visible, stripId])
 
   useEffect(() => {
-    if (visible && menuRef.current) {
-      positionSafely(menuRef.current, x, y)
-    }
+    if (visible && stackRef.current) positionSafely(stackRef.current, x, y)
   }, [visible, x, y, view])
 
   useEffect(() => {
     if (!visible) return
-    const handler = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) hide()
+    const onDown = (e: MouseEvent) => {
+      if (!stackRef.current?.contains(e.target as Node)) hide()
     }
-    document.addEventListener('mousedown', handler, true)
-    return () => document.removeEventListener('mousedown', handler, true)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') hide()
+    }
+    document.addEventListener('mousedown', onDown, true)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown, true)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [visible, hide])
 
   if (!visible || !stripId || !panelName) return null
@@ -40,39 +44,18 @@ export function ContextMenu() {
   const strip = usePanelStore.getState().getStrip(stripId)
   if (!strip) return null
 
-  const renderView = () => {
+  const flight = strip.flightPlan
+
+  const renderFlyout = () => {
     switch (view.type) {
       case 'route':
-        return strip.flightPlan ? (
-          <RouteView flight={strip.flightPlan} onBack={() => setView({ type: 'main' })} />
-        ) : null
-
+        return flight ? <RouteView flight={flight} type={strip.type} /> : null
       case 'flightinfo':
-        return strip.flightPlan ? (
-          <FlightInfoView flight={strip.flightPlan} onBack={() => setView({ type: 'main' })} />
-        ) : null
-
+        return flight ? <FlightInfoView flight={flight} type={strip.type} /> : null
       case 'typemenu':
-        return (
-          <TypeView
-            stripId={stripId}
-            panelName={panelName}
-            currentType={strip.type}
-            flight={strip.flightPlan}
-            onBack={() => setView({ type: 'main' })}
-            onClose={hide}
-          />
-        )
-
+        return <TypeView stripId={stripId} panelName={panelName} currentType={strip.type} flight={flight} onClose={hide} />
       case 'transfer':
-        return strip.flightPlan ? (
-          <TransferView
-            flight={strip.flightPlan}
-            onBack={() => setView({ type: 'main' })}
-            onClose={hide}
-          />
-        ) : null
-
+        return flight ? <TransferView flight={flight} onClose={hide} /> : null
       case 'procedure':
         return (
           <ProcedurePicker
@@ -80,31 +63,24 @@ export function ContextMenu() {
             procType={view.procType}
             stripId={stripId}
             panelName={panelName}
-            onBack={() => setView({ type: 'main' })}
             onClose={hide}
           />
         )
-
       default:
-        return (
-          <MainView
-            stripId={stripId}
-            panelName={panelName}
-            setView={setView}
-            onClose={hide}
-          />
-        )
+        return null
     }
   }
 
   return createPortal(
     <div
-      ref={menuRef}
-      className="strip-context-menu"
-      style={{ position: 'fixed', left: x, top: y, visibility: 'hidden' }}
+      ref={stackRef}
+      className="cm-stack"
+      style={{ left: x, top: y, visibility: 'hidden' }}
       onWheel={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.preventDefault()}
     >
-      {renderView()}
+      <MainView stripId={stripId} panelName={panelName} view={view} setView={setView} onClose={hide} />
+      {renderFlyout()}
     </div>,
     document.body,
   )

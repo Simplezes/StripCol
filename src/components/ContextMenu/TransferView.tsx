@@ -1,56 +1,37 @@
+import { useEffect, useState } from 'react'
 import type { FlightPlan } from '../../types'
 import { apiFetch } from '../../utils/api'
 import { deleteStripByCallsign } from '../../utils/stripActions'
-import { useEffect, useState } from 'react'
-import { BackButton, MenuSection } from './MenuParts'
+import { roleOf } from '../StatusBar/RoleIcon'
+import { Group, Item, Sep } from './MenuParts'
 import { getLinkCode } from './menuHelpers'
 
 export interface ATCEntry {
   callsign: string
   frequency: string
-  expandedCallsign: string
+  label: string
+  role: string
 }
 
-export const SUFFIX_ORDER = ['_CTR', '_APP', '_TWR', '_GND', '_DEL']
-export const SUFFIX_LABELS: Record<string, { label: string; icon: string }> = {
-  _CTR: { label: 'Center', icon: 'public' },
-  _APP: { label: 'Approach', icon: 'flight_land' },
-  _TWR: { label: 'Tower', icon: 'flight_takeoff' },
-  _GND: { label: 'Ground', icon: 'directions_car' },
-  _DEL: { label: 'Delivery', icon: 'call' },
-}
+const ROLE_ORDER = ['Centre', 'Approach', 'Tower', 'Ground', 'Delivery', 'Apron', 'Information', 'ATIS']
 
-export function TransferView({
-  flight,
-  onBack,
-  onClose,
-}: {
-  flight: FlightPlan
-  onBack: () => void
-  onClose: () => void
-}) {
-  const [atcList, setAtcList] = useState<ATCEntry[] | null>(null)
+export function TransferView({ flight, onClose }: { flight: FlightPlan; onClose: () => void }) {
+  const [stations, setStations] = useState<ATCEntry[] | null>(null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     apiFetch(`/api/ATC-list?code=${getLinkCode()}`)
       .then((r) => r.json())
-      .then((data: ATCEntry[]) => {
+      .then((data: Array<{ callsign: string; frequency: string }>) => {
         const cleaned = data
           .filter((atc) => atc.frequency && atc.frequency !== 'N/A')
           .map((atc) => ({
-            ...atc,
-            frequency: !isNaN(Number(atc.frequency))
-              ? parseFloat(atc.frequency).toFixed(3)
-              : atc.frequency,
-            expandedCallsign: atc.callsign.split('_').join(' '),
+            callsign: atc.callsign,
+            label: atc.callsign.split('_').join(' '),
+            role: roleOf(atc.callsign),
+            frequency: !isNaN(Number(atc.frequency)) ? parseFloat(atc.frequency).toFixed(3) : atc.frequency,
           }))
-          .sort((a, b) => {
-            const ai = SUFFIX_ORDER.findIndex((s) => a.callsign.endsWith(s))
-            const bi = SUFFIX_ORDER.findIndex((s) => b.callsign.endsWith(s))
-            return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
-          })
-        setAtcList(cleaned)
+        setStations(cleaned)
       })
       .catch(() => setError(true))
   }, [])
@@ -59,11 +40,7 @@ export function TransferView({
     try {
       await apiFetch('/api/ATC-transfer', {
         method: 'POST',
-        body: JSON.stringify({
-          code: getLinkCode(),
-          callsign: flight.callsign,
-          targetATC: targetCallsign,
-        }),
+        body: JSON.stringify({ code: getLinkCode(), callsign: flight.callsign, targetATC: targetCallsign }),
       })
     } catch (err) {
       console.error('ATC transfer failed:', err)
@@ -85,54 +62,24 @@ export function TransferView({
   }
 
   return (
-    <div>
-      <div className="proc-context-bar">
-        <span className="material-icons">compare_arrows</span>
-        Transfer — {flight.callsign}
-      </div>
-      <BackButton onBack={onBack} />
-      <div className="menu-scroll-container transfer-list">
-        {error && (
-          <div className="transfer-status transfer-error">
-            <span className="material-icons">error_outline</span>
-            Failed to load ATC stations
-          </div>
-        )}
-        {!atcList && !error && (
-          <div className="transfer-status">Loading…</div>
-        )}
-        {atcList && (
-          <>
-            {SUFFIX_ORDER.map((suffix) => {
-              const group = atcList.filter((a) => a.callsign.endsWith(suffix))
-              if (!group.length) return null
-              const { label, icon } = SUFFIX_LABELS[suffix]
-              return (
-                <div key={suffix}>
-                  <MenuSection label={label} />
-                  {group.map((atc) => (
-                    <div
-                      key={atc.callsign}
-                      className="atc-btn"
-                      onClick={() => handleTransfer(atc.callsign)}
-                    >
-                      <span className="material-icons atc-icon">{icon}</span>
-                      <span className="atc-callsign">{atc.expandedCallsign}</span>
-                      <span className="atc-frequency">{atc.frequency}</span>
-                    </div>
-                  ))}
-                </div>
-              )
-            })}
-            <MenuSection label="UNICOM" />
-            <div className="atc-btn" onClick={handleUnicom}>
-              <span className="material-icons atc-icon">radio</span>
-              <span className="atc-callsign">UNICOM</span>
-              <span className="atc-frequency">122.800</span>
+    <div className="cm" role="menu">
+      {error && <Group label="Could not load stations" />}
+      {!stations && !error && <Group label="Loading stations…" />}
+      {stations &&
+        ROLE_ORDER.map((role) => {
+          const group = stations.filter((s) => s.role === role)
+          if (group.length === 0) return null
+          return (
+            <div key={role}>
+              <Group label={role} />
+              {group.map((s) => (
+                <Item key={s.callsign} role={role} label={s.label} frequency={s.frequency} onClick={() => handleTransfer(s.callsign)} />
+              ))}
             </div>
-          </>
-        )}
-      </div>
+          )
+        })}
+      <Sep />
+      <Item icon="radio" label="UNICOM" frequency="122.800" onClick={handleUnicom} />
     </div>
   )
 }

@@ -99,9 +99,9 @@ export async function applyProcedure(
   onClose()
 }
 
-export const APPROACH_META: Record<string, { icon: string; color: string; label: string }> = {
-  ILS: { icon: 'sensors', color: 'var(--atm-blue)', label: 'ILS' },
-  RNAV: { icon: 'satellite_alt', color: 'var(--atm-green)', label: 'RNAV' },
-  VORDME: { icon: 'radar', color: 'var(--atm-amber)', label: 'VOR/DME' },
-  LOC: { icon: 'navigation', color: 'var(--atm-steel)', label: 'LOC' },
+export const APPROACH_LABELS: Record<string, string> = {
+  ILS: 'ILS',
+  RNAV: 'RNAV',
+  VORDME: 'VOR/DME',
+  LOC: 'LOC',
 }

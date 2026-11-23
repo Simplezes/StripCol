@@ -1,0 +1,467 @@
+.cm-stack {
+    position: fixed;
+    z-index: 10000;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.cm {
+    --tc: var(--line);
+    width: 288px;
+    max-height: 80vh;
+    flex-shrink: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: var(--bar);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    font-family: var(--font-ui);
+    animation: cmIn 0.1s ease-out;
+}
+
+@keyframes cmIn {
+    from {
+        opacity: 0;
+        transform: translateY(-3px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.cm.w180 { width: 180px; }
+.cm.w200 { width: 200px; }
+.cm.w300 { width: 300px; }
+.cm.w360 { width: 360px; }
+.cm.w400 { width: 400px; }
+
+.cm[data-type='departure'] { --tc: var(--user-departure-color, var(--dep)); }
+.cm[data-type='arrival'] { --tc: var(--user-arrival-color, var(--arr)); }
+.cm[data-type='overfly'] { --tc: var(--user-overfly-color, var(--ovf)); }
+
+.cm .mh {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--hair);
+}
+
+.cm .mh .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cm .cs {
+    font: 700 24px/1 var(--font-cond);
+    color: var(--tc);
+}
+
+.cm .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: var(--tc);
+    color: var(--onacc);
+    font: 700 12px/1 var(--font-cond);
+    letter-spacing: 0.08em;
+    text-indent: 0.08em;
+    text-transform: uppercase;
+}
+
+.cm .pill.hand {
+    background: var(--alert);
+    color: var(--alert-ink);
+}
+
+.cm .rt {
+    font: 500 13px var(--font-ui);
+    color: var(--dim);
+}
+
+.cm .ar {
+    display: inline-block;
+    width: 14px;
+    height: 9px;
+    margin: 0 5px;
+    vertical-align: middle;
+}
+
+.cm .chips {
+    display: flex;
+    gap: 6px;
+}
+
+.cm .cchip {
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: var(--chip);
+    font: 600 13px var(--font-cond);
+    letter-spacing: 0.04em;
+}
+
+.cm .mi {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    color: var(--ink);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.cm .mi.hot,
+.cm .mi:hover {
+    background: var(--sel);
+    box-shadow: inset 0 0 0 1px var(--selline);
+}
+
+.cm .mi svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--dim);
+}
+
+.cm .mi svg.c {
+    width: 14px;
+    height: 14px;
+}
+
+.cm .mi svg.acc {
+    color: var(--accent);
+}
+
+.cm .mi .l {
+    flex: 1;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.cm .mi .v {
+    max-width: 132px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--dim);
+}
+
+.cm .mi .fq {
+    font: 600 14px var(--font-cond);
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--dim);
+}
+
+.cm .mi.ok,
+.cm .mi.ok svg {
+    color: var(--ok);
+}
+
+.cm .mi.no,
+.cm .mi.no svg {
+    color: var(--no);
+}
+
+.cm .mi .sw {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: 2px;
+    background: var(--tc);
+}
+
+.cm .mi.dep { --tc: var(--user-departure-color, var(--dep)); }
+.cm .mi.arr { --tc: var(--user-arrival-color, var(--arr)); }
+.cm .mi.ovf { --tc: var(--user-overfly-color, var(--ovf)); }
+
+.cm .mi.cur .l {
+    font-weight: 700;
+}
+
+.cm .sep {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--hair);
+}
+
+.cm .grp {
+    padding: 8px 14px 4px;
+    font: 600 12px var(--font-ui);
+    color: var(--dim);
+}
+
+.cm .btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 14px;
+}
+
+.cm .btn {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--bar);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--ink);
+    font: 700 15px var(--font-cond);
+    letter-spacing: 0.06em;
+    text-indent: 0.06em;
+    cursor: pointer;
+}
+
+.cm .btn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.cm .btn.ok {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: var(--onacc);
+}
+
+.cm .btn.no {
+    color: var(--no);
+    border-color: var(--no);
+}
+
+.cm .seg {
+    display: flex;
+    gap: 2px;
+    margin: 10px 14px 6px;
+    padding: 2px;
+    background: var(--chip);
+    border-radius: 2px;
+}
+
+.cm .seg b {
+    flex: 1;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    font: 700 14px var(--font-cond);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.cm .seg b.on {
+    background: var(--accent);
+    color: var(--onacc);
+}
+
+.cm .field {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 14px;
+    padding: 0 10px;
+    background: var(--chip);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    color: var(--dim);
+    font-size: 13px;
+}
+
+.cm .field svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.cm .cm-input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font: 500 13px var(--font-ui);
+}
+
+.cm .cm-input::placeholder {
+    color: var(--dim);
+}
+
+.cm .cm-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.cm .cm-legs {
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 6px 14px 6px 0;
+}
+
+.cm .cm-leg {
+    position: relative;
+    display: grid;
+    grid-template-columns: 72px 1fr 44px;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding-left: 34px;
+}
+
+.cm .cm-leg::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    background: var(--bar);
+    z-index: 1;
+}
+
+.cm .cm-leg::after {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    bottom: -50%;
+    width: 2px;
+    background: var(--hair);
+}
+
+.cm .cm-leg:last-child::after {
+    display: none;
+}
+
+.cm .cm-leg.next::before {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.cm .cm-leg.next .eta {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.cm .via {
+    font: 700 14px var(--font-cond);
+    letter-spacing: 0.04em;
+}
+
+.cm .via.p-dct {
+    font-weight: 500;
+}
+
+.cm .pts {
+    display: grid;
+    grid-template-columns: 52px 32px 1fr;
+    align-items: center;
+    font: 500 15px var(--font-cond);
+    letter-spacing: 0.03em;
+}
+
+.cm .pts em {
+    font-style: normal;
+    color: var(--dim);
+    text-align: right;
+}
+
+.cm .pts i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dim);
+}
+
+.cm .pts i svg {
+    width: 16px;
+    height: 10px;
+    margin: 0;
+}
+
+.cm .pts b {
+    font-weight: 700;
+}
+
+.cm .eta {
+    text-align: right;
+    font: 600 14px var(--font-cond);
+    font-variant-numeric: tabular-nums;
+    color: var(--dim);
+}
+
+.cm .cm-kv {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 6px 14px 10px;
+}
+
+.cm .cm-kv h3 {
+    margin: 10px 0 4px;
+    font: 600 13px var(--font-ui);
+}
+
+.cm .cm-kv .r {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 28px;
+    border-bottom: 1px solid var(--hair);
+    font-size: 13px;
+}
+
+.cm .cm-kv .r span:first-child {
+    color: var(--dim);
+}
+
+.cm .cm-kv .r span:last-child {
+    text-align: right;
+    font: 600 14px var(--font-cond);
+    letter-spacing: 0.03em;
+}
+
+.cm-menu {
+    position: fixed;
+    z-index: 10000;
+}
+
+.cm .mi svg.off {
+    opacity: 0;
+}
+
+.cm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}

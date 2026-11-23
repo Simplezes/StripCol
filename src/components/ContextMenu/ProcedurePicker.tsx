@@ -1,98 +1,143 @@
-import { useAssetsStore } from '../../stores/assetsStore'
 import { useState } from 'react'
-import { ApproachTypeView } from './ApproachTypeView'
-import { BackButton } from './MenuParts'
-import { ProcedureListView } from './ProcedureListView'
-import type { ProceduresJson } from './procedureHelpers'
+import { useAssetsStore } from '../../stores/assetsStore'
+import { usePanelStore } from '../../stores/panelStore'
+import { Icon } from './Icon'
+import { Field, Group, Item } from './MenuParts'
+import {
+  APPROACH_LABELS,
+  applyProcedure,
+  detectApproachTypes,
+  groupProcedures,
+  type ProcGroup,
+  type ProceduresJson,
+} from './procedureHelpers'
 
-export function ProcedurePicker({
-  airport,
-  procType,
-  stripId,
-  panelName,
-  onBack,
-  onClose,
-}: {
+interface ProcedurePickerProps {
   airport: string
   procType: 'SID' | 'STAR'
   stripId: string
   panelName: string
-  onBack: () => void
   onClose: () => void
-}) {
-  const [selectedRunway, setSelectedRunway] = useState<string | null>(null)
+}
+
+function currentRunway(stripId: string, procType: 'SID' | 'STAR'): string | null {
+  const flight = usePanelStore.getState().getStrip(stripId)?.flightPlan
+  const rwy = procType === 'SID' ? flight?.departureRwy : flight?.arrivalRwy
+  return rwy ? String(rwy) : null
+}
+
+function currentProcedure(stripId: string, procType: 'SID' | 'STAR'): string | null {
+  const flight = usePanelStore.getState().getStrip(stripId)?.flightPlan
+  const name = procType === 'SID' ? flight?.sid : flight?.star
+  return name ? String(name) : null
+}
+
+function matchesType(name: string, type: string): boolean {
+  return new RegExp(`(?:^|x)${type}(?:x|$)`, 'i').test(name)
+}
+
+export function ProcedurePicker({ airport, procType, stripId, panelName, onClose }: ProcedurePickerProps) {
   const procedures = useAssetsStore.getState().procedures as Record<string, ProceduresJson>
-  const airportData = procedures?.[airport]?.[procType]
-
-  if (!airportData) {
-    return (
-      <div className="proc-picker">
-        <BackButton onBack={onBack} />
-        <div className="proc-picker-empty">No {procType} found for {airport}</div>
-      </div>
-    )
-  }
-
-  if (selectedRunway !== null) {
-    const procMap = airportData[selectedRunway] as Record<string, unknown> ?? {}
-    if (procType === 'STAR') {
-      return (
-        <ApproachTypeView
-          procMap={procMap}
-          runway={selectedRunway}
-          stripId={stripId}
-          panelName={panelName}
-          onBack={() => setSelectedRunway(null)}
-          onClose={onClose}
-        />
-      )
-    }
-    return (
-      <ProcedureListView
-        procMap={procMap}
-        runway={selectedRunway}
-        procType={procType}
-        stripId={stripId}
-        panelName={panelName}
-        onBack={() => setSelectedRunway(null)}
-        onClose={onClose}
-      />
-    )
-  }
-
-  const procedureIcon = procType === 'SID' ? 'flight_takeoff' : 'flight_land'
-  const runways = Object.keys(airportData).sort((a, b) =>
+  const airportData = procedures?.[airport]?.[procType] as Record<string, Record<string, unknown>> | undefined
+  const runways = Object.keys(airportData ?? {}).sort((a, b) =>
     a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
   )
 
+  const [runway, setRunway] = useState<string>(() => {
+    const preferred = currentRunway(stripId, procType)
+    return preferred && runways.includes(preferred) ? preferred : (runways[0] ?? '')
+  })
+  const [search, setSearch] = useState('')
+  const [approach, setApproach] = useState('ALL')
+  const [group, setGroup] = useState<ProcGroup | null>(null)
+
+  if (!airportData || runways.length === 0) {
+    return (
+      <div className="cm w300" role="menu">
+        <Group label={`No ${procType} found for ${airport}`} />
+      </div>
+    )
+  }
+
+  const procMap = airportData[runway] ?? {}
+  const approachTypes = procType === 'STAR' ? detectApproachTypes(procMap) : []
+  const typeFiltered =
+    approach === 'ALL'
+      ? procMap
+      : Object.fromEntries(Object.entries(procMap).filter(([name]) => matchesType(name, approach)))
+  const query = search.trim().toLowerCase()
+  const groups = groupProcedures(typeFiltered).filter((g) => !query || g.baseName.toLowerCase().includes(query))
+  const current = currentProcedure(stripId, procType)?.split('x')[0]
+
+  const apply = (name: string) => applyProcedure(stripId, panelName, procType, runway, name, onClose)
+
   return (
-    <div className="proc-picker">
-      <div className="proc-picker-hero">
-        <div className="proc-picker-hero-airport">{airport}</div>
-        <span className={`proc-type-badge proc-type-${procType.toLowerCase()}`}>
-          <span className="material-icons">{procedureIcon}</span>
-          {procType}
-        </span>
+    <div className="cm w300" role="menu">
+      <div className="seg">
+        {runways.map((rwy) => (
+          <b
+            key={rwy}
+            className={rwy === runway ? 'on' : ''}
+            onClick={() => {
+              setRunway(rwy)
+              setGroup(null)
+              setApproach('ALL')
+            }}
+          >
+            {rwy}
+          </b>
+        ))}
       </div>
-      <div className="proc-context-bar proc-context-bar-top">
-        <span className="material-icons">connecting_airports</span>
-        Select runway
-      </div>
-      <div className="proc-rwy-grid">
-        {runways.map((rwy) => {
-          const count = Object.keys(airportData[rwy] as Record<string, unknown>).length
-          return (
-            <div key={rwy} className="proc-rwy-card" onClick={() => setSelectedRunway(rwy)}>
-              <span className="proc-rwy-num">{rwy}</span>
-              <span className="proc-rwy-count">{count}</span>
-            </div>
-          )
-        })}
-      </div>
-      <div className="proc-picker-footer">
-        <span className="material-icons">arrow_back</span>
-        <span onClick={onBack} style={{ cursor: 'pointer' }}>Back to menu</span>
-      </div>
+
+      {approachTypes.length > 0 && (
+        <div className="seg">
+          {['ALL', ...approachTypes].map((type) => (
+            <b key={type} className={type === approach ? 'on' : ''} onClick={() => setApproach(type)}>
+              {type === 'ALL' ? 'All' : (APPROACH_LABELS[type] ?? type)}
+            </b>
+          ))}
+        </div>
+      )}
+
+      {group ? (
+        <>
+          <Item label={`‹ ${group.baseName}`} onClick={() => setGroup(null)} />
+          {group.base && <Item label={group.base} value="Direct" onClick={() => apply(group.base as string)} />}
+          {[...group.transitions].sort().map((key) => (
+            <Item key={key} label={group.baseName} value={`via ${key.slice(key.indexOf('x') + 1)}`} onClick={() => apply(key)} />
+          ))}
+        </>
+      ) : (
+        <>
+          <Field>
+            <Icon name="search" />
+            <input
+              className="cm-input"
+              placeholder={`Search ${procType}s at ${airport}`}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onMouseDown={(e) => e.stopPropagation()}
+              autoFocus
+            />
+          </Field>
+          <div className="cm-scroll">
+            {groups.length === 0 && <Group label={`No results for "${search}"`} />}
+            {groups.map((g) => {
+              const count = g.transitions.length
+              return (
+                <Item
+                  key={g.baseName}
+                  label={g.baseName}
+                  value={count > 0 ? `${count} ${count === 1 ? 'transition' : 'transitions'}` : undefined}
+                  current={current === g.baseName}
+                  chevron={count > 0 && current !== g.baseName}
+                  onClick={() => (count > 0 ? setGroup(g) : g.base && apply(g.base))}
+                />
+              )
+            })}
+          </div>
+        </>
+      )}
     </div>
   )
 }

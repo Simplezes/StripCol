@@ -17,3 +17,11 @@ export function positionSafely(el: HTMLElement, x: number, y: number) {
     el.style.visibility = 'visible'
   })
 }
+
+export type MenuView =
+  | { type: 'none' }
+  | { type: 'route' }
+  | { type: 'typemenu' }
+  | { type: 'transfer' }
+  | { type: 'flightinfo' }
+  | { type: 'procedure'; airport: string; procType: 'SID' | 'STAR' }

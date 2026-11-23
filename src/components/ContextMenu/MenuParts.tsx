@@ -1,44 +1,84 @@
-export function MenuItem({
-  icon,
-  label,
-  sublabel,
-  onClick,
-  variant = 'default',
-  chevron = false,
-}: {
-  icon: string
+import type { ReactNode } from 'react'
+import type { FlightPlan } from '../../types'
+import { RoleIcon } from '../StatusBar/RoleIcon'
+import { Arrow, Icon } from './Icon'
+
+interface ItemProps {
   label: string
-  sublabel?: string
-  onClick: () => void
-  variant?: 'default' | 'success' | 'danger'
+  icon?: string
+  role?: string
+  value?: string
+  frequency?: string
+  tone?: 'ok' | 'no'
   chevron?: boolean
-}) {
+  current?: boolean
+  swatch?: string
+  hot?: boolean
+  onClick?: () => void
+}
+
+export function Item({ label, icon, role, value, frequency, tone, chevron, current, swatch, hot, onClick }: ItemProps) {
+  const classes = ['mi']
+  if (tone) classes.push(tone)
+  if (current) classes.push('cur')
+  if (hot) classes.push('hot')
+  if (swatch) classes.push(swatch)
+
   return (
-    <div className={`menu-item menu-item-${variant}`} onClick={onClick}>
-      <span className="material-icons menu-item-icon">{icon}</span>
-      <span className="menu-item-content">
-        <span className="menu-item-label">{label}</span>
-        {sublabel && <span className="menu-item-sublabel">{sublabel}</span>}
-      </span>
-      {chevron && <span className="material-icons menu-item-arrow">chevron_right</span>}
+    <div className={classes.join(' ')} role="menuitem" onClick={onClick}>
+      {icon && <Icon name={icon} />}
+      {role && <RoleIcon role={role} />}
+      {swatch && <span className="sw" />}
+      <span className="l">{label}</span>
+      {value && <span className="v">{value}</span>}
+      {frequency && <span className="fq">{frequency}</span>}
+      {current && <Icon name="check" className="c acc" />}
+      {chevron && <Icon name="chev" className="c" />}
     </div>
   )
 }
 
-export function MenuSection({ label, icon }: { label: string; icon?: string }) {
-  return (
-    <div className="menu-section">
-      {icon && <span className="material-icons">{icon}</span>}
-      {label}
-    </div>
-  )
+export function Group({ label }: { label: string }) {
+  return <div className="grp">{label}</div>
 }
 
-export function BackButton({ onBack }: { onBack: () => void }) {
+export function Sep() {
+  return <div className="sep" />
+}
+
+export function Field({ children }: { children: ReactNode }) {
+  return <div className="field">{children}</div>
+}
+
+interface HeaderProps {
+  flight: FlightPlan
+  pill: string
+  pillClass?: string
+  chips?: string[]
+}
+
+export function MenuHeader({ flight, pill, pillClass = '', chips = [] }: HeaderProps) {
   return (
-    <div className="menu-back-btn" onClick={onBack}>
-      <span className="material-icons">arrow_back</span>
-      Back
+    <div className="mh">
+      <div className="row">
+        <span className="cs">{flight.callsign}</span>
+        <span className={`pill ${pillClass}`}>{pill}</span>
+      </div>
+      <div className="rt">
+        {flight.departure || '????'}
+        <Arrow />
+        {flight.arrival || '????'}
+        {flight.aircraftType ? ` · ${flight.aircraftType}` : ''}
+      </div>
+      {chips.length > 0 && (
+        <div className="chips">
+          {chips.map((chip) => (
+            <span className="cchip" key={chip}>
+              {chip}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
