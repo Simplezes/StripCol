@@ -1,17 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import appIcon from '../../assets/app-icon.png'
 import { useConnectionStore } from '../../stores/connectionStore'
 import { usePanelStore } from '../../stores/panelStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useUIStore } from '../../stores/uiStore'
+import { BOARD_TITLES, BoardMenu } from './BoardMenu'
 import { closeWindow, isDesktop, isWindowMaximized, minimizeWindow, toggleMaximizeWindow } from '../../platform/desktop'
-
-const FACILITY_TITLES: Record<string, string> = {
-  del: 'Delivery board',
-  ground: 'Ground board',
-  tower: 'Tower board',
-  approach: 'Approach board',
-  center: 'Centre board',
-}
 
 function useZuluTime(showSeconds: boolean): string {
   const [time, setTime] = useState('')
@@ -70,8 +64,6 @@ function WindowControls() {
 }
 
 export function SystemBar() {
-  const isConnected = useConnectionStore((s) => s.isConnected)
-  const isPaired = useConnectionStore((s) => s.isPaired)
   const facilityType = useConnectionStore((s) => s.facilityType)
   const showSeconds = useSettingsStore((s) => s.settings.showSeconds)
   const searchQuery = useUIStore((s) => s.searchQuery)
@@ -85,13 +77,16 @@ export function SystemBar() {
     (s) => s.panels.flatMap((p) => p.strips).filter((st) => st.type === 'transfer').length,
   )
 
+  const boardOverride = useConnectionStore((s) => s.boardOverride)
+  const boardRef = useRef<HTMLButtonElement>(null)
+  const [boardAnchor, setBoardAnchor] = useState<DOMRect | null>(null)
+
   const zuluTime = useZuluTime(showSeconds)
-  const statusClass = isPaired ? 'paired' : isConnected ? 'online' : 'offline'
 
   return (
     <header className="bar" data-tauri-drag-region>
       <div className="brand" data-tauri-drag-region>
-        <i className={statusClass} />
+        <img src={appIcon} alt="StripCol" draggable={false} />
       </div>
 
       <div className="ttl" data-tauri-drag-region>
@@ -99,7 +94,20 @@ export function SystemBar() {
         <svg width="8" height="12" viewBox="0 0 8 12" aria-hidden="true">
           <path d="M1.5 1l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <h1>{FACILITY_TITLES[facilityType] ?? 'Board'}</h1>
+        <button
+          ref={boardRef}
+          className="boardbtn"
+          aria-haspopup="menu"
+          title="Change board layout"
+          onClick={() => setBoardAnchor(boardRef.current?.getBoundingClientRect() ?? null)}
+        >
+          <h1>{BOARD_TITLES[facilityType] ?? 'Board'}</h1>
+          {boardOverride && <small>Manual</small>}
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        {boardAnchor && <BoardMenu anchor={boardAnchor} onClose={() => setBoardAnchor(null)} />}
       </div>
 
       <div className="chips" data-tauri-drag-region>

@@ -3,7 +3,8 @@ import { usePanelStore } from '../stores/panelStore'
 import { useConnectionStore } from '../stores/connectionStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useAssetsStore } from '../stores/assetsStore'
-import { buildInitialValues } from './stripValues'
+import { useFlightStore } from '../stores/flightStore'
+import { buildInitialValues, CUSTOM_BOX_KEYS } from './stripValues'
 
 export function panelNameToStripType(panelName: string): StripType | null {
   const n = panelName.toLowerCase()
@@ -107,4 +108,35 @@ export function autoMoveOnC12(
     const pendingPanel = store.panels.find((p) => p.name === 'Pending')
     if (pendingPanel) store.moveStrip(currentPanelName, 'Pending', stripId)
   }
+}
+
+export function rebuildBoard(panelNames: string[]): void {
+  const store = usePanelStore.getState()
+  const previous = store.panels.flatMap((p) => p.strips)
+
+  store.clearAllStrips()
+  store.resetToLayout(panelNames)
+
+  const { aircraftMap } = useFlightStore.getState()
+
+  previous.forEach((old) => {
+    const callsign = old.flightPlan?.callsign
+    if (!old.euroscope || !callsign) {
+      usePanelStore.getState().addStrip(panelNames[0], old)
+      return
+    }
+
+    renderAircraftAsStrip(aircraftMap[callsign] ?? old.flightPlan!)
+
+    const custom: Record<string, string> = {}
+    CUSTOM_BOX_KEYS.forEach((key) => {
+      if (old.values[key]) custom[key] = old.values[key]
+    })
+    if (Object.keys(custom).length === 0) return
+
+    const current = usePanelStore.getState()
+    const panel = current.panels.find((p) => p.strips.some((s) => s.id === old.id))
+    const rebuilt = panel?.strips.find((s) => s.id === old.id)
+    if (panel && rebuilt) current.updateStrip(panel.name, old.id, { values: { ...rebuilt.values, ...custom } })
+  })
 }

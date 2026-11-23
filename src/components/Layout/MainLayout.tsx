@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useConnectionStore } from '../../stores/connectionStore'
 import { usePanelStore } from '../../stores/panelStore'
+import { rebuildBoard } from '../../utils/stripActions'
 import type { StripData } from '../../types'
 import { Section } from './Section'
 import { PanelContextMenu } from './PanelContextMenu'
@@ -86,7 +87,7 @@ export function MainLayout() {
   const previousTransfers = useRef<number | null>(null)
 
   useEffect(() => {
-    usePanelStore.getState().resetToLayout(defs.map(getPanelName))
+    rebuildBoard(defs.map(getPanelName))
     setHandoverCollapsed(loadHandoverCollapsed(layoutMode))
     previousTransfers.current = null
   }, [facilityType, defs, layoutMode])
