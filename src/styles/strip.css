@@ -58,7 +58,7 @@ body.dark-strips .strip {
     outline: none;
     background: transparent;
     color: inherit;
-    font: 600 clamp(10px, 1.7cqw, 14px) var(--font-cond);
+    font: 600 clamp(10px, calc(var(--cqw) * 1.7), 14px) var(--font-cond);
     text-align: center;
     text-overflow: clip;
 }
@@ -92,7 +92,7 @@ body.dark-strips .strip {
     grid-row: 1;
     color: var(--tc);
     font-weight: 700;
-    font-size: clamp(12px, 2.6cqw, 18px);
+    font-size: clamp(12px, calc(var(--cqw) * 2.6), 18px);
     letter-spacing: 0.02em;
 }
 
@@ -105,14 +105,14 @@ body.dark-strips .strip {
     grid-column: 3 / 5;
     grid-row: 1;
     font-weight: 700;
-    font-size: clamp(11px, 2.4cqw, 17px);
+    font-size: clamp(11px, calc(var(--cqw) * 2.4), 17px);
 }
 
 .c7 {
     grid-column: 5 / 7;
     grid-row: 1;
     font-weight: 700;
-    font-size: clamp(11px, 2.4cqw, 17px);
+    font-size: clamp(11px, calc(var(--cqw) * 2.4), 17px);
 }
 
 .c8 {
@@ -151,7 +151,7 @@ body.dark-strips .strip {
     grid-column: 7;
     grid-row: 1;
     font-weight: 700;
-    font-size: clamp(11px, 2.4cqw, 17px);
+    font-size: clamp(11px, calc(var(--cqw) * 2.4), 17px);
 }
 
 .c14 { grid-column: 7; grid-row: 2; }
@@ -338,13 +338,4 @@ body.dark-strips .strip {
 .sact .no:hover {
     background: var(--no);
     color: var(--onacc);
-}
-
-.strip-drag-overlay {
-    width: 800px;
-    max-width: none;
-    opacity: 0.92;
-    z-index: 9999;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-    cursor: grabbing;
 }

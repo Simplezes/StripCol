@@ -15,6 +15,7 @@ import {
 
 const COLLAPSED_KEY = 'handoverCollapsed'
 const NO_STRIPS: StripData[] = []
+const SECTION_CHROME_WIDTH = 18
 
 function loadHandoverCollapsed(layoutMode: LayoutMode): boolean {
   try {
@@ -42,6 +43,7 @@ function useAdaptiveWidth(laneRef: React.RefObject<HTMLDivElement | null>) {
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const width = entry.contentRect.width
+        el.style.setProperty('--cqw', `${Math.max(0, width - SECTION_CHROME_WIDTH) / 100}px`)
         let mode = 'full'
         if (width < 180) mode = 'compact-1'
         else if (width < 260) mode = 'compact-2'
