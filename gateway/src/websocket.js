@@ -1,6 +1,7 @@
 const { WebSocketServer } = require('ws');
 const { sessions, broadcastToSession } = require('./state');
 const { sendRpcUpdate } = require('./discordBridge');
+const { normalizeAddress } = require('./network');
 
 function buildControllerData(message) {
   return {
@@ -21,9 +22,10 @@ function detachFromPreviousSession(previousCode, socket) {
   }
 }
 
-function createSession(socket, controller) {
+function createSession(socket, controller, address) {
   return {
     ws: socket,
+    address,
     clients: new Set(),
     aircraft: new Map(),
     atcList: [],
@@ -35,7 +37,7 @@ function createSession(socket, controller) {
   };
 }
 
-function handleRegister(socket, message, currentCode) {
+function handleRegister(socket, message, currentCode, address) {
   const code = message.code.toUpperCase();
   if (currentCode && currentCode !== code) detachFromPreviousSession(currentCode, socket);
 
@@ -46,10 +48,11 @@ function handleRegister(socket, message, currentCode) {
 
   if (existingSession) {
     existingSession.ws = socket;
+    existingSession.address = address;
     existingSession.controller = controller;
     existingSession.lastActivity = Date.now();
   } else {
-    sessions.set(code, createSession(socket, controller));
+    sessions.set(code, createSession(socket, controller, address));
   }
 
   if (!wasConnected || controller.positionId !== previousPositionId) {
@@ -97,15 +100,16 @@ function handleClose(socket, code) {
 function attachWebSocketServer(httpServer) {
   const wss = new WebSocketServer({ server: httpServer });
 
-  wss.on('connection', (socket) => {
+  wss.on('connection', (socket, request) => {
     let currentCode = null;
+    const address = normalizeAddress(request.socket.remoteAddress);
 
     socket.on('message', (rawMessage) => {
       try {
         const message = JSON.parse(rawMessage.toString());
 
         if (message.type === 'register' && message.code) {
-          currentCode = handleRegister(socket, message, currentCode);
+          currentCode = handleRegister(socket, message, currentCode, address);
         } else if (message.type === 'ping') {
           return;
         } else if (currentCode && message.type) {

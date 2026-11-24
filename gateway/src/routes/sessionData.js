@@ -1,4 +1,5 @@
 const { sessions } = require('../state');
+const { normalizeAddress } = require('../network');
 
 function findSession(request, response) {
   const { code } = request.query;
@@ -25,6 +26,17 @@ function registerSessionDataRoutes(app) {
 
     session.lastActivity = Date.now();
     response.json({ success: true, message: 'Paired', controller: session.controller });
+  });
+
+  app.get('/api/discover', (request, response) => {
+    const requester = normalizeAddress(request.socket.remoteAddress);
+    const found = [];
+    sessions.forEach((session, code) => {
+      if (session.ws && session.address === requester) {
+        found.push({ code, controller: session.controller });
+      }
+    });
+    response.json(found);
   });
 
   app.get('/api/assumed', (request, response) => {
