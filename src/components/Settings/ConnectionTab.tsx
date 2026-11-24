@@ -80,10 +80,10 @@ export function ConnectionTab({ s, update }: Props) {
     isConnected ? { tone: 'ok', text: 'Gateway reachable' } : null,
   )
   const [pairMessage, setPairMessage] = useState<Message>(
-    isPaired ? { tone: 'ok', text: 'Paired successfully' } : null,
+    isPaired ? { tone: 'ok', text: 'Plugin linked' } : null,
   )
 
-  const statusText = isPaired ? 'Paired' : isConnected ? 'Online' : 'Offline'
+  const statusText = isPaired ? 'Plugin linked' : isConnected ? 'Waiting for plugin' : 'Gateway offline'
   const statusClass = isPaired ? '' : isConnected ? 'w' : 'bad'
 
   const handleRestart = () => {
@@ -106,7 +106,7 @@ export function ConnectionTab({ s, update }: Props) {
       const res = await apiFetch(`/api/pair/${code}`)
       const result = await res.json()
       if (result.success) {
-        setPairMessage({ tone: 'ok', text: 'Paired successfully' })
+        setPairMessage({ tone: 'ok', text: 'Code accepted' })
         update({ linkCode: code })
         triggerReconnect()
       } else {

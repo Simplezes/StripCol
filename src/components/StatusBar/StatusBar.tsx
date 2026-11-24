@@ -9,6 +9,7 @@ import { StationsPanel } from './StationsPanel'
 import { NearbyPanel } from './NearbyPanel'
 import { AddStripPanel } from './AddStripPanel'
 import { FiltersPanel } from './FiltersPanel'
+import { LinkPanel } from './LinkPanel'
 
 const TOOLS: Array<{ id: StatusPanel; label: string; icon: ReactNode }> = [
   {
@@ -65,7 +66,12 @@ export function StatusBar() {
   }, [statusPanel, closePanel])
 
   const statusClass = isPaired ? 'paired' : isConnected ? 'online' : 'offline'
-  const statusText = isPaired ? 'PAIRED' : isConnected ? 'ONLINE' : 'OFFLINE'
+  const statusText = isPaired ? 'PLUGIN LINKED' : isConnected ? 'WAITING FOR PLUGIN' : 'GATEWAY OFFLINE'
+  const statusHint = isPaired
+    ? 'Gateway reachable and the EuroScope plugin is connected'
+    : isConnected
+      ? 'Gateway reachable, but the EuroScope plugin is not connected to this link code'
+      : 'Cannot reach the gateway. Retrying automatically'
 
   const renderPanel = (id: StatusPanel) => {
     switch (id) {
@@ -77,6 +83,8 @@ export function StatusBar() {
         return <AddStripPanel onDone={closePanel} />
       case 'filters':
         return <FiltersPanel />
+      case 'link':
+        return <LinkPanel onDone={closePanel} />
     }
   }
 
@@ -111,7 +119,7 @@ export function StatusBar() {
         ))}
       </div>
       <div className="sbg r">
-        <span id="wsStatus" className="sbi sbs">
+        <span id="wsStatus" className="sbi sbs" title={statusHint}>
           <i className={statusClass} />
           {statusText}
         </span>
@@ -123,6 +131,7 @@ export function StatusBar() {
         )}
         {items.version && version && <span className="sbi sbs opt1">v{version}</span>}
       </div>
+      {statusPanel === 'link' && renderPanel('link')}
       {menuAt && <StatusBarMenu x={menuAt.x} y={menuAt.y} onClose={() => setMenuAt(null)} />}
     </footer>
   )

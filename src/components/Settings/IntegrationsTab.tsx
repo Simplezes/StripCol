@@ -133,7 +133,7 @@ export function IntegrationsTab({ s, update }: Props) {
             </div>
             <div>
               <dt>Status</dt>
-              <dd className={isPaired ? 'okc' : ''}>{isPaired ? 'Paired' : 'Waiting'}</dd>
+              <dd className={isPaired ? 'okc' : ''}>{isPaired ? 'Plugin linked' : 'Waiting for plugin'}</dd>
             </div>
           </dl>
         </article>
