@@ -1,6 +1,7 @@
 import type { Settings } from '../../types'
 import { Toggle } from '../ui/Toggle'
 import { SettingRow } from '../ui/SettingRow'
+import { ColorPicker } from '../ui/ColorPicker'
 import { useUIStore } from '../../stores/uiStore'
 
 interface Props {
@@ -90,19 +91,7 @@ export function AppearanceTab({ s, update }: Props) {
                   <i style={{ background: colorOf(key, token) }} />
                   {label}
                 </label>
-                <div className="pk">
-                  <input
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    type="color"
-                    value={colorOf(key, token)}
-                    aria-label={`${label.toLowerCase()} colour`}
-                    onChange={(e) => update({ [key]: e.target.value })}
-                  />
-                  <code>{colorOf(key, token).toUpperCase()}</code>
-                </div>
+                <ColorPicker value={colorOf(key, token)} label={label} onChange={(hex) => update({ [key]: hex })} />
               </div>
             ))}
           </div>
