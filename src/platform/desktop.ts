@@ -23,6 +23,22 @@ export async function restartGateway(serverIp: string): Promise<void> {
   await invoke('restart_gateway', { serverIp })
 }
 
+export async function pickScreenColor(onHover: (hex: string) => void): Promise<string | null> {
+  if (!isDesktop) {
+    const EyeDropper = (window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } }).EyeDropper
+    if (!EyeDropper) return null
+    return (await new EyeDropper().open()).sRGBHex
+  }
+  const { invoke } = await import('@tauri-apps/api/core')
+  const { listen } = await import('@tauri-apps/api/event')
+  const stopListening = await listen<string>('screen-color-hover', (event) => onHover(event.payload))
+  try {
+    return await invoke<string | null>('pick_screen_color')
+  } finally {
+    stopListening()
+  }
+}
+
 export async function openExternal(url: string): Promise<void> {
   if (!isDesktop) {
     window.open(url, '_blank')

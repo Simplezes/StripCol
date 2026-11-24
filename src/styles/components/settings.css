@@ -376,39 +376,7 @@
 }
 
 .settings .ps {
-    display: grid;
-    grid-template-columns: repeat(13, 1fr);
-    grid-template-rows: repeat(3, 28px);
-    background: var(--strip);
-    border: 1px solid var(--line);
-    border-left: 8px solid var(--tc);
-    border-radius: 2px;
-    font: 600 14px var(--font-cond);
-}
-
-.settings .ps div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    white-space: nowrap;
-    border-right: 1px solid var(--hair);
-    border-bottom: 1px solid var(--hair);
-}
-
-.settings .ps div:nth-child(13n) {
-    border-right: none;
-}
-
-.settings .ps div:nth-last-child(-n + 13) {
-    border-bottom: none;
-}
-
-.settings .ps .cs {
-    grid-column: span 3;
-    color: var(--tc);
-    font-weight: 700;
-    font-size: 17px;
+    pointer-events: none;
 }
 
 .settings .themes {
@@ -496,30 +464,50 @@
 
 .settings .cp {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.settings .cp code {
-    font: 500 13px monospace;
 }
 
 .settings .cp-trigger {
-    width: 44px;
-    height: 34px;
-    padding: 3px;
-    background: none;
+    width: 100%;
+    height: 36px;
+    padding: 0 10px 0 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 2px;
+    color: var(--ink);
     cursor: pointer;
 }
 
+.settings .cp-trigger:hover,
+.settings .cp-trigger[aria-expanded='true'] {
+    border-color: var(--accent);
+}
+
 .settings .cp-trigger i {
-    display: block;
-    width: 100%;
-    height: 100%;
+    flex-shrink: 0;
+    width: 36px;
+    height: 24px;
     border-radius: 1px;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+}
+
+.settings .cp-trigger code {
+    flex: 1;
+    text-align: left;
+    font: 500 13px monospace;
+    letter-spacing: 0.04em;
+}
+
+.settings .cp-trigger svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: var(--dim);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .settings .cp-pop {
@@ -545,6 +533,7 @@
     background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, var(--hue));
     cursor: crosshair;
     touch-action: none;
+    user-select: none;
 }
 
 .settings .cp-knob {
@@ -606,10 +595,18 @@
     background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
     cursor: pointer;
     touch-action: none;
+    user-select: none;
 }
 
 .settings .cp-hue .cp-knob {
     top: 50%;
+}
+
+.settings .cp-hint {
+    margin: 0;
+    font: 500 12px var(--font-ui);
+    text-align: center;
+    color: var(--accent);
 }
 
 .settings .cp-fields {
