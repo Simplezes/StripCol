@@ -1,5 +1,6 @@
 import type { Settings } from '../../types'
 import { playNotificationSound } from '../../utils/sound'
+import { applyClearanceAutoMoveToBoard } from '../../utils/stripActions'
 import { Toggle } from '../ui/Toggle'
 import { SettingRow } from '../ui/SettingRow'
 
@@ -12,9 +13,9 @@ function Stage({ label, active = false }: { label: string; active?: boolean }) {
   return <span className={`fs${active ? ' go' : ''}`}>{label}</span>
 }
 
-function Arrow({ label, back = false }: { label: string; back?: boolean }) {
+function Arrow({ label, back = false, on }: { label: string; back?: boolean; on: boolean }) {
   return (
-    <span className={`fa${back ? ' back' : ''}`}>
+    <span className={`fa${back ? ' back' : ''}${on ? '' : ' off'}`}>
       <span>{label}</span>
       <svg viewBox="0 0 24 24">
         <path d="M8 4l8 8-8 8" />
@@ -26,6 +27,11 @@ function Arrow({ label, back = false }: { label: string; back?: boolean }) {
 export function GeneralTab({ s, update }: Props) {
   const stepMinutes = (delta: number) =>
     update({ cleanupMinutes: Math.min(60, Math.max(1, s.cleanupMinutes + delta)) })
+
+  const updateAutoMove = (patch: Partial<Settings>) => {
+    update(patch)
+    applyClearanceAutoMoveToBoard()
+  }
 
   return (
     <>
@@ -54,16 +60,17 @@ export function GeneralTab({ s, update }: Props) {
         <div className="card">
           <div className="flow" aria-hidden="true">
             <Stage label="Pending" />
-            <Arrow label="flightplan cleared" />
+            <span className="fl">
+              <Arrow label="flightplan cleared" on={s.autoMoveClearance} />
+              <Arrow label="clearance removed" back on={s.autoMoveClearance && s.autoMoveRevert} />
+            </span>
             <Stage label="Clearance" active />
-            <Arrow label="clearance removed" back />
-            <Stage label="Pending" />
           </div>
           <SettingRow title="Auto-move to Clearance" description="Move a strip as soon as its flightplan is cleared.">
-            <Toggle label="Auto-move to Clearance" checked={s.autoMoveClearance} onChange={(v) => update({ autoMoveClearance: v })} />
+            <Toggle label="Auto-move to Clearance" checked={s.autoMoveClearance} onChange={(v) => updateAutoMove({ autoMoveClearance: v })} />
           </SettingRow>
           <SettingRow title="Revert to Pending" description="Send the strip back when the cleared flag is removed." disabled={!s.autoMoveClearance}>
-            <Toggle label="Revert to Pending" checked={s.autoMoveRevert} onChange={(v) => update({ autoMoveRevert: v })} />
+            <Toggle label="Revert to Pending" checked={s.autoMoveRevert} onChange={(v) => updateAutoMove({ autoMoveRevert: v })} />
           </SettingRow>
         </div>
       </section>

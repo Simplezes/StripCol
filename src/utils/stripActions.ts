@@ -151,6 +151,14 @@ export function autoMoveOnClearance(
   }
 }
 
+export function applyClearanceAutoMoveToBoard(): void {
+  usePanelStore.getState().panels.forEach((panel) => {
+    panel.strips.forEach((strip) => {
+      if (strip.flightPlan) autoMoveOnClearance(strip.id, panel.name, !!strip.flightPlan.clearanceReceived)
+    })
+  })
+}
+
 export function rebuildBoard(panelNames: string[]): void {
   const store = usePanelStore.getState()
   const previous = store.panels.flatMap((p) => p.strips)
