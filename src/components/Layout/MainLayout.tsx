@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useConnectionStore } from '../../stores/connectionStore'
-import { usePanelStore } from '../../stores/panelStore'
 import { useUIStore } from '../../stores/uiStore'
 import { rebuildBoard } from '../../utils/stripActions'
-import type { StripData } from '../../types'
 import { Section } from './Section'
 import { PanelContextMenu } from './PanelContextMenu'
 import {
@@ -15,7 +13,6 @@ import {
 } from './panelDefs'
 
 const COLLAPSED_KEY = 'handoverCollapsed'
-const NO_STRIPS: StripData[] = []
 const SECTION_CHROME_WIDTH = 18
 
 function loadHandoverCollapsed(layoutMode: LayoutMode): boolean {
@@ -87,35 +84,16 @@ export function MainLayout() {
   const defs = FACILITY_PANEL_MAP[facilityType]
   const layoutMode = facilityToLayoutMode(facilityType)
   const [handoverCollapsed, setHandoverCollapsed] = useState(() => loadHandoverCollapsed(layoutMode))
-  const previousTransfers = useRef<number | null>(null)
 
   useEffect(() => {
     rebuildBoard(defs.map(getPanelName))
     setHandoverCollapsed(loadHandoverCollapsed(layoutMode))
-    previousTransfers.current = null
   }, [facilityType, defs, layoutMode])
 
-  const handoverDef = defs.find((d) => d.key === 'handover')
-  const handoverCollapsible = Boolean(handoverDef && !handoverDef.noCollapse)
-  const handoverStrips = usePanelStore((s) => s.getPanel('Handover')?.strips ?? NO_STRIPS)
-
-  const setCollapsed = useCallback(
-    (next: boolean) => {
-      setHandoverCollapsed(next)
-      saveHandoverCollapsed(layoutMode, next)
-    },
-    [layoutMode],
-  )
-
-  useEffect(() => {
-    if (!handoverCollapsible) return
-    const transfers = handoverStrips.filter((s) => s.type === 'transfer').length
-    const before = previousTransfers.current
-    previousTransfers.current = transfers
-
-    if (transfers > 0 && handoverCollapsed) setCollapsed(false)
-    else if (before && transfers === 0 && !handoverCollapsed) setCollapsed(true)
-  }, [handoverStrips, handoverCollapsible, handoverCollapsed, setCollapsed])
+  const setCollapsed = (next: boolean) => {
+    setHandoverCollapsed(next)
+    saveHandoverCollapsed(layoutMode, next)
+  }
 
   const lanes = [1, 2, 3]
     .map((col) => defs.filter((d) => d.col === col))
