@@ -165,7 +165,7 @@ export function CellPickerLayer() {
 
   return createPortal(
     <>
-      <div className="cm-backdrop" onMouseDown={close} />
+      <div className="cm-backdrop" onMouseDown={(e) => e.detail < 4 && close()} />
       <div
         ref={stackRef}
         className="cm-stack"
