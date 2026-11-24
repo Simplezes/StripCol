@@ -3,6 +3,7 @@ import { Toggle } from '../ui/Toggle'
 import { SettingRow } from '../ui/SettingRow'
 import { ColorPicker } from '../ui/ColorPicker'
 import { useUIStore } from '../../stores/uiStore'
+import { CELL_CLASSES } from '../Strips/Strip'
 
 interface Props {
   s: Settings
@@ -17,22 +18,28 @@ const COLORS: Array<{ key: ColorKey; label: string; token: string }> = [
   { key: 'overflyColor', label: 'OVERFLY', token: '--ovf' },
 ]
 
-const PREVIEW_CELLS = ['TUMA2A', '4521', '350', 'A320', '13R', '250', '1435', 'H', 'RWY', 'SKCL']
+const PREVIEW_CELLS: Record<string, string> = {
+  c6: 'A320',
+  c7: 'M',
+  c8: 'SKBO',
+  c9: '350',
+  c10: 'TUMA2A',
+  c11: '13R',
+  c12: '250',
+}
 
 function themeColor(token: string): string {
   return getComputedStyle(document.body).getPropertyValue(token).trim()
 }
 
-function PreviewStrip({ callsign, color }: { callsign: string; color: string }) {
+function PreviewStrip({ callsign, type }: { callsign: string; type: string }) {
   return (
-    <div className="ps" style={{ ['--tc' as string]: color }} aria-hidden="true">
-      <div className="cs">{callsign}</div>
-      {PREVIEW_CELLS.map((cell, i) => (
-        <div key={i}>{cell}</div>
-      ))}
-      {Array.from({ length: 26 }, (_, i) => (
-        <div key={`e${i}`} />
-      ))}
+    <div className="strip ps" data-type={type} style={{ ['--cqw' as string]: '8px' }} aria-hidden="true">
+      {CELL_CLASSES.map((cls) => {
+        const key = cls.split(' ')[0]
+        return <input key={key} className={`box ${cls}`} value={key === 'c1' ? callsign : PREVIEW_CELLS[key] ?? ''} readOnly tabIndex={-1} />
+      })}
+      <div className="box c33 ri_ot bt_ot" />
     </div>
   )
 }
@@ -53,8 +60,8 @@ export function AppearanceTab({ s, update }: Props) {
 
       <div className="pv">
         <h3>Live preview</h3>
-        {COLORS.map(({ key, token }, i) => (
-          <PreviewStrip key={key} callsign={['AVA9021', 'LAN2564', 'CMP318'][i]} color={`var(--user-${key.replace('Color', '')}-color, var(${token}))`} />
+        {COLORS.map(({ key }, i) => (
+          <PreviewStrip key={key} callsign={['AVA9021', 'LAN2564', 'CMP318'][i]} type={key.replace('Color', '')} />
         ))}
       </div>
 

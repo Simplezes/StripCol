@@ -17,7 +17,7 @@ import { useCellHint } from './useCellHint'
 import { useCellPickerStore } from '../../stores/cellPickerStore'
 import { isPickableCell } from './pickers/pickerData'
 
-const CELL_CLASSES: string[] = [
+export const CELL_CLASSES: string[] = [
   'c1 al_ot',
   'c2 le_ot ri_ot bt_ot',
   'c3 ri_ot bt_ot',
