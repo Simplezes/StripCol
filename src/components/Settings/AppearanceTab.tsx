@@ -115,6 +115,15 @@ export function AppearanceTab({ s, update }: Props) {
       </section>
 
       <section className="grp">
+        <h3>Notifications</h3>
+        <div className="card">
+          <SettingRow title="Pop-up notifications" description="Show a pop-up when a handover is offered or accepted.">
+            <Toggle label="Pop-up notifications" checked={s.toastsEnabled} onChange={(v) => update({ toastsEnabled: v })} />
+          </SettingRow>
+        </div>
+      </section>
+
+      <section className="grp">
         <h3>Title bar</h3>
         <div className="card">
           <SettingRow title="Seconds on the Zulu clock" description="Shows 14:32:07 instead of 14:32.">
