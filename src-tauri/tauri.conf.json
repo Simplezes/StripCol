@@ -21,7 +21,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ipc: http://ipc.localhost ws: http://*:3000; img-src 'self' data: asset: http://asset.localhost; object-src 'none'",
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ipc: http://ipc.localhost ws: http://*:3000 https://metar.vatsim.net; img-src 'self' data: asset: http://asset.localhost; object-src 'none'",
       "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ipc: http://ipc.localhost ws: wss: http: https:; img-src 'self' data: asset: http://asset.localhost; object-src 'none'"
     }
   },
