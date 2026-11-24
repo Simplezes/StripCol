@@ -494,23 +494,157 @@
     border-radius: 1px;
 }
 
-.settings .pk {
+.settings .cp {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.settings .pk input {
+.settings .cp code {
+    font: 500 13px monospace;
+}
+
+.settings .cp-trigger {
     width: 44px;
     height: 34px;
-    padding: 0;
+    padding: 3px;
     background: none;
     border: 1px solid var(--line);
     border-radius: 2px;
+    cursor: pointer;
 }
 
-.settings .pk code {
+.settings .cp-trigger i {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 1px;
+}
+
+.settings .cp-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    width: 240px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--body);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+.settings .cp-area {
+    position: relative;
+    height: 140px;
+    border-radius: 2px;
+    background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, var(--hue));
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.settings .cp-knob {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    transform: translate(-50%, -50%);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.6);
+    pointer-events: none;
+}
+
+.settings .cp-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings .cp-eye {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.settings .cp-eye svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: var(--dim);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.settings .cp-eye:hover svg {
+    stroke: var(--ink);
+}
+
+.settings .cp-preview {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+}
+
+.settings .cp-hue {
+    position: relative;
+    flex: 1;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+    cursor: pointer;
+    touch-action: none;
+}
+
+.settings .cp-hue .cp-knob {
+    top: 50%;
+}
+
+.settings .cp-fields {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr 1fr 1fr;
+    gap: 6px;
+}
+
+.settings .cp .cp-fields label {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    font: 600 11px var(--font-ui);
+    letter-spacing: 0.08em;
+    text-align: center;
+    color: var(--dim);
+}
+
+.settings .cp-fields input {
+    width: 100%;
+    min-width: 0;
+    height: 30px;
+    padding: 0 4px;
+    text-align: center;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    color: var(--ink);
     font: 500 13px monospace;
+    outline: none;
+}
+
+.settings .cp-fields input:focus {
+    border-color: var(--accent);
 }
 
 .settings .flow {
