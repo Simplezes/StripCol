@@ -1,0 +1,9 @@
+name: Notify running apps of new release
+on:
+  release:
+    types: [published]
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -d "${{ github.event.release.tag_name }}" https://ntfy.sh/stripcol-releases-x7q2
