@@ -52,9 +52,18 @@ body.dark-strips .strip {
     --strip: #262c33;
     --sel: #1c3a68;
     --selline: #6aa4ff;
-    --ink: #eef2f6;
+    --ink: #c9d1d9;
     --hair: #353d45;
     --line: #47505a;
+}
+
+body.dark-strips .strip .box {
+    font-weight: 400;
+    letter-spacing: 0.03em;
+}
+
+body.dark-strips .strip :is(.c6, .c7, .c8, .c10, .c13) {
+    color: #e3e8ee;
 }
 
 .box {
