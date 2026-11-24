@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { usePanelContextMenuStore } from '../../stores/panelContextMenuStore'
 import { usePanelStore } from '../../stores/panelStore'
 import { useFlightStore } from '../../stores/flightStore'
+import { useUIStore } from '../../stores/uiStore'
+import { CELL_CLASSES } from '../Strips/Strip'
 import { apiFetch } from '../../utils/api'
 import type { StripType } from '../../types'
 import { Icon } from '../ContextMenu/Icon'
@@ -18,12 +20,17 @@ const STRIP_TYPES: Array<{ type: StripType; label: string; swatch: string }> = [
 ]
 
 function AddStripFlyout({ panelName, onClose }: { panelName: string; onClose: () => void }) {
-  const handleAdd = (type: StripType) => {
+  const devMode = useUIStore((s) => s.devMode)
+
+  const handleAdd = (type: StripType, showCellIds = false) => {
     const id = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const values = showCellIds
+      ? Object.fromEntries(CELL_CLASSES.map((cls) => cls.split(' ')[0]).map((key) => [key, key]))
+      : {}
     usePanelStore.getState().addStrip(panelName, {
       id,
       type,
-      values: {},
+      values,
       euroscope: false,
       flightPlan: null,
       lastUpdate: Date.now(),
@@ -36,6 +43,7 @@ function AddStripFlyout({ panelName, onClose }: { panelName: string; onClose: ()
       {STRIP_TYPES.map(({ type, label, swatch }) => (
         <Item key={type} label={label} swatch={swatch} onClick={() => handleAdd(type)} />
       ))}
+      {devMode && <Item icon="plus" label="Cell ID strip" value="Dev" onClick={() => handleAdd('departure', true)} />}
     </div>
   )
 }
