@@ -7,7 +7,7 @@ import { useUIStore } from '../../stores/uiStore'
 import { hpaToInHg, useQnh } from '../../hooks/useQnh'
 import { AirportMenu } from './AirportMenu'
 import { BOARD_TITLES, BoardMenu } from './BoardMenu'
-import { closeWindow, isDesktop, isWindowMaximized, minimizeWindow, toggleMaximizeWindow } from '../../platform/desktop'
+import { closeWindow, isDesktop, isWindowMaximized, minimizeWindow, startWindowDrag, toggleMaximizeWindow } from '../../platform/desktop'
 
 function useZuluTime(showSeconds: boolean): string {
   const [time, setTime] = useState('')
@@ -96,7 +96,15 @@ export function SystemBar() {
   const [airportAnchor, setAirportAnchor] = useState<DOMRect | null>(null)
 
   return (
-    <header className="bar" data-tauri-drag-region>
+    <header
+      className="bar"
+      data-tauri-drag-region
+      onMouseDown={(e) => {
+        const target = e.target as HTMLElement
+        if (e.button !== 0 || e.detail > 1 || target.closest('button, input, a')) return
+        startWindowDrag().catch(() => {})
+      }}
+    >
       <div className="brand" data-tauri-drag-region>
         <img src={appIcon} alt="StripCol" draggable={false} />
       </div>
