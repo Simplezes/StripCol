@@ -128,7 +128,7 @@ export function StationsPanel({ onDone }: { onDone: () => void }) {
         <button className={`go2${flight && target ? '' : ' dis'}`} disabled={!flight || !target} onClick={transfer}>
           {target ? `Transfer to ${target.label}` : 'Select a station'}
         </button>
-        <small>{flight && target ? `${flight.callsign} will appear in their Handover.` : 'Tap a station above.'}</small>
+        <small>{flight && target ? `${flight.callsign} will appear on their board.` : 'Tap a station above.'}</small>
       </div>
     </div>
   )

@@ -29,7 +29,7 @@ const SECTION_SORTS: Record<string, SectionSortConfig> = {
   'Ground Movement': { default: 'ETOT', options: ['ETOT', ...COMMON, 'MANUAL'] },
   'Holding Point': { default: 'ETOT', options: ['ETOT', ...COMMON, 'MANUAL'] },
   Sequence: { default: 'SEQ', options: ['SEQ', 'ETA', ...COMMON] },
-  Handover: { default: 'TIME', options: ['TIME', 'CALLSIGN', 'DEST', 'TYPE'] },
+  'Handed Off': { default: 'TIME', options: ['TIME', 'CALLSIGN', 'DEST', 'TYPE'] },
 }
 
 const FALLBACK: SectionSortConfig = { default: 'MANUAL', options: ['ALT', 'ETA', ...COMMON, 'MANUAL'] }

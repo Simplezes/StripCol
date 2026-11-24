@@ -1,5 +1,7 @@
 import type { FacilityType } from '../../types'
 
+export const HANDED_OFF_PANEL = 'Handed Off'
+
 export interface PanelDef {
   key: string
   defaultName: string
@@ -11,7 +13,7 @@ export interface PanelDef {
 export const DELIVERY_PANELS: PanelDef[] = [
   { key: 'del-pending',   defaultName: 'Pending',   cssClass: 'panel-pending',   col: 1 },
   { key: 'del-clearance', defaultName: 'Clearance', cssClass: 'panel-clearance', col: 2 },
-  { key: 'handover',      defaultName: 'Handover',  cssClass: 'panel-handover',  col: 3, noCollapse: true },
+  { key: 'handover',      defaultName: 'Handed Off', cssClass: 'panel-handover', col: 3, noCollapse: true },
 ]
 
 export const GROUND_PANELS: PanelDef[] = [
@@ -19,7 +21,7 @@ export const GROUND_PANELS: PanelDef[] = [
   { key: 'gnd-clearance', defaultName: 'Clearance',       cssClass: 'panel-clearance',col: 2 },
   { key: 'gnd-pushback',  defaultName: 'Pushback',        cssClass: 'panel-pushback', col: 2 },
   { key: 'gnd-movement',  defaultName: 'Ground Movement', cssClass: 'panel-ground',   col: 3 },
-  { key: 'handover',      defaultName: 'Handover',        cssClass: 'panel-handover', col: 3 },
+  { key: 'handover',      defaultName: 'Handed Off',      cssClass: 'panel-handover', col: 3 },
 ]
 
 export const TOWER_PANELS: PanelDef[] = [
@@ -29,7 +31,7 @@ export const TOWER_PANELS: PanelDef[] = [
   { key: 'twr-movement',  defaultName: 'Ground Movement', cssClass: 'panel-ground',   col: 2 },
   { key: 'twr-holding',   defaultName: 'Holding Point',   cssClass: 'panel-hp-rwy',   col: 2 },
   { key: 'twr-sequence',  defaultName: 'Sequence',        cssClass: 'panel-sequence', col: 3 },
-  { key: 'handover',      defaultName: 'Handover',        cssClass: 'panel-handover', col: 3 },
+  { key: 'handover',      defaultName: 'Handed Off',      cssClass: 'panel-handover', col: 3 },
 ]
 
 export const RADAR_PANELS: PanelDef[] = [
@@ -37,7 +39,7 @@ export const RADAR_PANELS: PanelDef[] = [
   { key: 'arrivals',   defaultName: 'Arrivals',   cssClass: 'panel-arrivals',   col: 2 },
   { key: 'overfly',    defaultName: 'Overfly',    cssClass: 'panel-overfly',    col: 3 },
   { key: 'holding',    defaultName: 'Holding',    cssClass: 'panel-holding',    col: 3 },
-  { key: 'handover',   defaultName: 'Handover',   cssClass: 'panel-handover',   col: 3 },
+  { key: 'handover',   defaultName: 'Handed Off', cssClass: 'panel-handover',   col: 3 },
 ]
 
 export const FACILITY_PANEL_MAP: Record<FacilityType, PanelDef[]> = {
@@ -56,5 +58,5 @@ export function facilityToLayoutMode(facilityType: FacilityType): LayoutMode {
 }
 
 export function getPanelName(def: PanelDef): string {
-  return def.key === 'handover' ? 'Handover' : def.defaultName
+  return def.key === 'handover' ? HANDED_OFF_PANEL : def.defaultName
 }
