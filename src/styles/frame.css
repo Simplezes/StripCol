@@ -263,6 +263,10 @@ body.resizing {
 
 #zuluTime {
     display: inline-block;
+    min-width: 5ch;
+}
+
+#zuluTime.with-seconds {
     min-width: 8ch;
 }
 

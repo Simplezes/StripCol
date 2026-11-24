@@ -191,7 +191,7 @@ export function SystemBar() {
             {hpa !== null && <i>{qnhInHg ? hpa : hpaToInHg(hpa)}</i>}
           </button>
         <span className="wx-item">
-          <b id="zuluTime">{zuluTime}</b>
+          <b id="zuluTime" className={showSeconds ? 'with-seconds' : undefined}>{zuluTime}</b>
           <small>ZULU</small>
         </span>
       </div>
