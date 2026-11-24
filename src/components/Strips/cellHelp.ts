@@ -1,5 +1,5 @@
 import type { ControllerMode } from '../../types'
-import { isClearanceFlagCell } from '../../utils/stripValues'
+import { hasRunwayInCell18, isClearanceFlagCell } from '../../utils/stripValues'
 
 export interface CellHelp {
   title: string
@@ -38,12 +38,10 @@ const FIXED: Record<string, CellHelp> = {
     title: 'Cleared altitude',
     text: 'Level the aircraft is cleared to. Use CA to climb at pilot discretion or VA for a visual approach clearance. Editing it updates EuroScope.',
   },
-  c18: { title: 'Runway', text: 'Assigned runway. Changing it also switches the SID or STAR to one valid for that runway.' },
   c24: pointEta(1),
   c25: pointEta(2),
   c26: pointEta(3),
   c27: pointEta(4),
-  c32: { title: 'Estimated arrival', text: 'Estimated time of arrival at the destination.' },
   c33: { title: 'Last update', text: 'Date and time (UTC) this strip was last updated.' },
 }
 
@@ -66,6 +64,12 @@ export function describeCell(key: string, mode: ControllerMode, type: string): C
       return radar || type !== 'departure'
         ? { title: 'Assigned heading', text: 'Heading assigned to the aircraft. Editing it updates EuroScope.' }
         : { title: 'Departure runway', text: 'Runway assigned for departure.' }
+    case 'c18':
+      return hasRunwayInCell18(mode, type)
+        ? { title: 'Runway', text: 'Assigned runway. Changing it also switches the SID or STAR to one valid for that runway.' }
+        : NOTE
+    case 'c32':
+      return type === 'arrival' ? { title: 'Estimated arrival', text: 'Estimated time of arrival at the destination.' } : NOTE
     case 'c19':
     case 'c20':
     case 'c21':

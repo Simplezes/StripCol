@@ -8,8 +8,8 @@ export interface PointOption {
   eta: string
 }
 
-const ANY_MODE_CELLS = ['c6', 'c7', 'c13', 'c14']
-const RADAR_ONLY_CELLS = ['c9', 'c12']
+const ANY_MODE_CELLS = ['c6', 'c7', 'c9', 'c13', 'c14']
+const RADAR_ONLY_CELLS = ['c12']
 const POINT_CELLS = ['c19', 'c20', 'c21', 'c22']
 
 export function isPickableCell(key: string, mode: ControllerMode, type: string): boolean {
