@@ -14,6 +14,7 @@ import {
 import { buildInitialValues } from '../utils/stripValues'
 import { playNotificationSound } from '../utils/sound'
 import type { FlightPlan } from '../types'
+import { HANDED_OFF_PANEL } from '../components/Layout/panelDefs'
 
 const INITIAL_RETRY_DELAY = 1000
 const MAX_RETRY_DELAY = 10_000
@@ -61,20 +62,20 @@ export function useSSE(): void {
       usePanelStore.getState().clearAllStrips()
     }
 
-    function moveStripToHandover(callsign: string) {
+    function moveStripToHandedOff(callsign: string) {
       const id = `strip-${callsign}`
       const panels = usePanelStore.getState().panels
       let sourcePanelName: string | undefined
 
       panels.forEach((p) => {
-        if (p.name !== 'Handover' && p.strips.some((s) => s.id === id)) {
+        if (p.name !== HANDED_OFF_PANEL && p.strips.some((s) => s.id === id)) {
           sourcePanelName = p.name
         }
       })
 
       if (sourcePanelName) {
-        usePanelStore.getState().moveStrip(sourcePanelName, 'Handover', id)
-        usePanelStore.getState().updateStrip('Handover', id, { euroscope: false })
+        usePanelStore.getState().moveStrip(sourcePanelName, HANDED_OFF_PANEL, id)
+        usePanelStore.getState().updateStrip(HANDED_OFF_PANEL, id, { euroscope: false })
       }
     }
 
@@ -207,11 +208,22 @@ export function useSSE(): void {
           src.addEventListener('aircraft', (e) => {
             const flight: FlightPlan = JSON.parse((e as MessageEvent).data)
             flight.transfer = false
-            if (useFlightStore.getState().aircraftMap[flight.callsign]) {
-              deleteStripByCallsign(flight.callsign)
-            }
+            const id = `strip-${flight.callsign}`
+            const releasedIn = usePanelStore
+              .getState()
+              .panels.find((p) => p.strips.some((s) => s.id === id && !s.euroscope))?.name
+            const wasTracked = !!useFlightStore.getState().aircraftMap[flight.callsign]
             useFlightStore.getState().addAircraft(flight.callsign, flight)
-            renderAircraftAsStrip(flight)
+
+            if (releasedIn && releasedIn !== HANDED_OFF_PANEL) {
+              usePanelStore.getState().updateStrip(releasedIn, id, { euroscope: true })
+              updateStripByCallsign(flight)
+            } else {
+              if (releasedIn || wasTracked) {
+                deleteStripByCallsign(flight.callsign)
+              }
+              renderAircraftAsStrip(flight)
+            }
             if (
               useSettingsStore.getState().settings.audioEnabled &&
               Date.now() - connectedAt > 3000
@@ -227,7 +239,7 @@ export function useSSE(): void {
           src.addEventListener('release', (e) => {
             const { callsign } = JSON.parse((e as MessageEvent).data)
             useFlightStore.getState().removeAircraft(callsign)
-            moveStripToHandover(callsign)
+            moveStripToHandedOff(callsign)
           })
 
           src.addEventListener('transfer', (e) => {
@@ -294,6 +306,7 @@ export function useSSE(): void {
       startSSE()
     }
     registerReconnect(reconnectRef.current)
+    startSSE()
 
     return () => {
       stopPolling()

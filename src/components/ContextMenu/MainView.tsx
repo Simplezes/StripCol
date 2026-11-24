@@ -1,6 +1,6 @@
 import { usePanelStore } from '../../stores/panelStore'
 import { apiFetch } from '../../utils/api'
-import { deleteStripByCallsign, renderAircraftAsStrip, toggleClearance } from '../../utils/stripActions'
+import { assumeAircraft, deleteStripByCallsign, renderAircraftAsStrip, toggleClearance } from '../../utils/stripActions'
 import { PLAN_TYPE_LABELS } from './FlightInfoView'
 import { Icon } from './Icon'
 import { Item, MenuHeader, Sep } from './MenuParts'
@@ -89,23 +89,14 @@ export function MainView({ stripId, panelName, view, setView, onClose }: MainVie
   }
 
   if (!euroscope || !fp) {
-    const assumeAircraft = async () => {
-      if (!fp) return
-      try {
-        const res = await apiFetch('/api/assume-aircraft', {
-          method: 'POST',
-          body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign, panel: panelName }),
-        })
-        if (res.ok) deleteStripByCallsign(fp.callsign)
-      } catch (err) {
-        console.error('Assume aircraft failed:', err)
-      }
+    const assume = () => {
+      if (fp) assumeAircraft(fp.callsign)
       onClose()
     }
 
     return (
       <div className="cm" role="menu">
-        {fp && <Item icon="free" label="Assume aircraft" tone="ok" onClick={assumeAircraft} />}
+        {fp && <Item icon="free" label="Assume aircraft" tone="ok" onClick={assume} />}
         {fp && <Sep />}
         {removeItem}
       </div>

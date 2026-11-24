@@ -5,6 +5,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { useAssetsStore } from '../stores/assetsStore'
 import { useFlightStore } from '../stores/flightStore'
 import { apiFetch } from './api'
+import { showToast } from './toast'
 import { buildInitialValues, CUSTOM_BOX_KEYS } from './stripValues'
 
 export function panelNameToStripType(panelName: string): StripType | null {
@@ -16,7 +17,10 @@ export function panelNameToStripType(panelName: string): StripType | null {
 }
 
 export function resolveStripType(flight: FlightPlan): StripType {
-  if (flight.transfer) return 'transfer'
+  return flight.transfer ? 'transfer' : resolveTrafficType(flight)
+}
+
+function resolveTrafficType(flight: FlightPlan): StripType {
   const { controllerMode, positionId, localIcao } = useConnectionStore.getState()
   const dep = (flight.departure ?? '').toUpperCase()
   const arr = (flight.arrival ?? '').toUpperCase()
@@ -40,7 +44,7 @@ export function resolveTargetPanel(
   facilityType: string,
   controllerMode: string,
 ): string {
-  if (flight.transfer) return 'Handover'
+  if (type === 'transfer') type = resolveTrafficType(flight)
 
   if (controllerMode === 'approach' || controllerMode === 'center') {
     if (type === 'departure') return 'Departures'
@@ -86,6 +90,28 @@ export function deleteStripByCallsign(callsign: string): void {
       if (matchId) store.removeStrip(p.name, matchId)
     }
   })
+}
+
+const ASSUME_CONFIRM_MS = 5000
+
+export async function assumeAircraft(callsign: string): Promise<void> {
+  const { linkCode } = useSettingsStore.getState().settings
+  try {
+    const res = await apiFetch('/api/assume-aircraft', {
+      method: 'POST',
+      body: JSON.stringify({ code: linkCode, callsign }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  } catch (err) {
+    console.error('Assume aircraft failed:', err)
+    showToast(`Could not assume ${callsign}`, 'warning')
+    return
+  }
+
+  setTimeout(() => {
+    const strip = usePanelStore.getState().getStrip(`strip-${callsign}`)
+    if (strip && !strip.euroscope) showToast(`Could not assume ${callsign}`, 'warning')
+  }, ASSUME_CONFIRM_MS)
 }
 
 export async function toggleClearance(flight: FlightPlan): Promise<void> {

@@ -6,9 +6,7 @@ import { useDragStore } from '../../stores/dragStore'
 import { activeSort, isOrdered, sortStrips, type SortKey } from '../Layout/sectionSort'
 import { useConnectionStore } from '../../stores/connectionStore'
 import { buildInitialValues } from '../../utils/stripValues'
-import { panelNameToStripType } from '../../utils/stripActions'
-import { apiFetch } from '../../utils/api'
-import { getLinkCode } from '../ContextMenu/menuHelpers'
+import { assumeAircraft, panelNameToStripType } from '../../utils/stripActions'
 import type { StripData } from '../../types'
 import { useStripPointerSensor } from './useStripPointerSensor'
 
@@ -57,18 +55,6 @@ function reorderInPanel(panelName: string, activeId: string, index: number) {
   if (isOrdered(sortKeyOf(panelName))) useUIStore.getState().setSectionSort(panelName, 'MANUAL')
 }
 
-async function assumeReleasedStrip(stripId: string, callsign: string, panelName: string) {
-  try {
-    const res = await apiFetch('/api/assume-aircraft', {
-      method: 'POST',
-      body: JSON.stringify({ code: getLinkCode(), callsign }),
-    })
-    if (res.ok) usePanelStore.getState().updateStrip(panelName, stripId, { euroscope: true })
-  } catch (err) {
-    console.error('Assume aircraft failed:', err)
-  }
-}
-
 function handleDragStart({ draggableId, source }: DragStart) {
   useDragStore.getState().start(draggableId, source.droppableId)
   document.body.classList.add('dragging')
@@ -92,7 +78,7 @@ function handleDragEnd({ draggableId, source, destination }: DropResult) {
   } else {
     moveToPanel(strip, source.droppableId, destination.droppableId, destination.index)
     if (!strip.euroscope && strip.flightPlan && strip.type !== 'transfer') {
-      assumeReleasedStrip(strip.id, strip.flightPlan.callsign, destination.droppableId)
+      assumeAircraft(strip.flightPlan.callsign)
     }
   }
 
