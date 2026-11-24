@@ -208,32 +208,102 @@ body.resizing {
     color: var(--dim);
 }
 
-.clock {
+.wx {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 26px;
+    padding: 0 14px 0 20px;
     line-height: 1;
-    font: 700 20px var(--font-cond);
-    letter-spacing: 0.06em;
     font-variant-numeric: tabular-nums;
 }
 
-.clock small {
-    font: 600 12px var(--font-ui);
-    color: var(--dim);
+.wx-airport,
+.wx-item {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: var(--font-cond);
+}
+
+.wx-airport {
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    margin: 0 -8px;
+    border-radius: 3px;
+    font-size: 22px;
+    font-weight: 700;
     letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.wx-airport svg {
+    color: var(--dim);
+}
+
+.wx-airport:hover {
+    background: var(--chip);
+}
+
+.wx small {
+    font: 700 11px var(--font-cond);
+    letter-spacing: 0.14em;
+    color: var(--dim);
+}
+
+.wx b {
+    font: 700 22px var(--font-cond);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+}
+
+#zuluTime {
+    display: inline-block;
+    min-width: 8ch;
+}
+
+.wx i {
+    font: 600 16px var(--font-cond);
+    font-variant-numeric: tabular-nums;
+    font-style: normal;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+}
+
+.wx-qnh {
+    cursor: pointer;
+}
+
+.wx-qnh b,
+.wx-qnh i {
+    display: inline-block;
+    min-width: 5ch;
+}
+
+.wx-qnh:disabled {
+    cursor: default;
+}
+
+.wx-qnh:not(:disabled):hover i {
+    color: var(--ink);
 }
 
 .tgl,
 .gear {
     position: relative;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
+    margin-left: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
     border: none;
+    border-radius: 50%;
     color: var(--dim);
     cursor: pointer;
     flex-shrink: 0;

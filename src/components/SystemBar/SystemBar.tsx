@@ -4,6 +4,8 @@ import { useConnectionStore } from '../../stores/connectionStore'
 import { usePanelStore } from '../../stores/panelStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useUIStore } from '../../stores/uiStore'
+import { hpaToInHg, useQnh } from '../../hooks/useQnh'
+import { AirportMenu } from './AirportMenu'
 import { BOARD_TITLES, BoardMenu } from './BoardMenu'
 import { closeWindow, isDesktop, isWindowMaximized, minimizeWindow, toggleMaximizeWindow } from '../../platform/desktop'
 
@@ -82,6 +84,16 @@ export function SystemBar() {
   const [boardAnchor, setBoardAnchor] = useState<DOMRect | null>(null)
 
   const zuluTime = useZuluTime(showSeconds)
+  const localIcao = useConnectionStore((s) => s.localIcao)
+  const metars = useConnectionStore((s) => s.metars)
+  const extraAirports = useConnectionStore((s) => s.extraAirports)
+  const [pickedIcao, setPickedIcao] = useState('')
+  const airports = [...new Set([localIcao, ...extraAirports, ...Object.keys(metars)].filter(Boolean))].sort()
+  const icao = airports.includes(pickedIcao) ? pickedIcao : localIcao || airports[0] || ''
+  const hpa = useQnh(icao)
+  const [qnhInHg, setQnhInHg] = useState(false)
+  const airportRef = useRef<HTMLButtonElement>(null)
+  const [airportAnchor, setAirportAnchor] = useState<DOMRect | null>(null)
 
   return (
     <header className="bar" data-tauri-drag-region>
@@ -135,9 +147,45 @@ export function SystemBar() {
         />
       </div>
 
-      <div className="clock">
-        <small>ZULU</small>
-        <span id="zuluTime">{zuluTime}</span>
+      <div className="wx">
+          <button
+            ref={airportRef}
+            className="wx-airport"
+            aria-haspopup="menu"
+            title="Choose airport"
+            onClick={() => setAirportAnchor(airportRef.current?.getBoundingClientRect() ?? null)}
+          >
+            {icao || '----'}
+            <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true">
+              <path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          {airportAnchor && (
+            <AirportMenu
+              anchor={airportAnchor}
+              airports={airports}
+              selected={icao}
+              onSelect={(next) => {
+                setPickedIcao(next)
+                setAirportAnchor(null)
+              }}
+              onClose={() => setAirportAnchor(null)}
+            />
+          )}
+          <button
+            className="wx-item wx-qnh"
+            title="Switch between hPa and inHg"
+            disabled={hpa === null}
+            onClick={() => setQnhInHg((v) => !v)}
+          >
+            <small>QNH</small>
+            <b>{hpa === null ? '----' : qnhInHg ? hpaToInHg(hpa) : hpa}</b>
+            {hpa !== null && <i>{qnhInHg ? hpa : hpaToInHg(hpa)}</i>}
+          </button>
+        <span className="wx-item">
+          <b id="zuluTime">{zuluTime}</b>
+          <small>ZULU</small>
+        </span>
       </div>
 
       <button
