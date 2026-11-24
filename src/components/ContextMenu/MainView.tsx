@@ -1,9 +1,8 @@
 import { usePanelStore } from '../../stores/panelStore'
 import { apiFetch } from '../../utils/api'
 import { acceptHandoff, assumeAircraft, deleteStripByCallsign, toggleClearance } from '../../utils/stripActions'
-import { PLAN_TYPE_LABELS } from './FlightInfoView'
 import { Icon } from './Icon'
-import { Item, MenuHeader, Sep } from './MenuParts'
+import { Group, Item, MenuHeader, Sep } from './MenuParts'
 import { getLinkCode, type MenuView } from './menuHelpers'
 
 interface MainViewProps {
@@ -94,18 +93,10 @@ export function MainView({ stripId, panelName, view, setView, onClose }: MainVie
   const procType = type === 'departure' ? 'SID' : 'STAR'
   const currentProc = type === 'departure' ? (fp.sid as string | undefined) : (fp.star as string | undefined)
   const currentRwy = type === 'departure' ? (fp.departureRwy as string | undefined) : (fp.arrivalRwy as string | undefined)
-  const procValue = currentProc ? `${currentProc}${currentRwy ? ` · ${currentRwy}` : ''}` : 'Not assigned'
-
   const chips = [
     currentProc ? `${currentProc}${currentRwy ? ` · RWY ${currentRwy}` : ''}` : '',
     fp.squawk ? String(fp.squawk) : '',
   ].filter(Boolean)
-
-  const routeValue = fp.route ? `${(fp.route as string).trim().split(/\s+/).slice(0, 3).join(' ')}…` : undefined
-  const detailsValue =
-    [fp.wtc, fp.planType ? (PLAN_TYPE_LABELS[fp.planType as string] ?? (fp.planType as string)) : null, fp.alternate ? `ALT ${fp.alternate as string}` : null]
-      .filter(Boolean)
-      .join(' · ') || undefined
 
   const freeAircraft = async () => {
     try {
@@ -129,25 +120,29 @@ export function MainView({ stripId, panelName, view, setView, onClose }: MainVie
   return (
     <div className="cm" role="menu" data-type={type}>
       <MenuHeader flight={fp} pill={type} chips={chips} />
+      <Group label="Actions" />
       {type === 'departure' && (
         <Item icon="check" label={cleared ? 'Remove clearance' : 'Clearance received'} onClick={toggleFlag} />
       )}
-      <Item icon="route" label="Show route" value={routeValue} chevron hot={view.type === 'route'} onClick={() => open({ type: 'route' })} />
-      <Item icon="info" label="Flight details" value={detailsValue} chevron hot={view.type === 'flightinfo'} onClick={() => open({ type: 'flightinfo' })} />
+      <Item icon="xfer" label="Transfer to…" chevron hot={view.type === 'transfer'} onClick={() => open({ type: 'transfer' })} />
+      <Item icon="free" label="Free aircraft" tone="ok" onClick={freeAircraft} />
+      <Sep />
+      <Group label="View" />
+      <Item icon="route" label="Route" chevron hot={view.type === 'route'} onClick={() => open({ type: 'route' })} />
+      <Item icon="info" label="Flight details" chevron hot={view.type === 'flightinfo'} onClick={() => open({ type: 'flightinfo' })} />
+      <Sep />
+      <Group label="Edit" />
       {showProcedure && (
         <Item
           icon="plane"
-          label={`Change ${procType}`}
-          value={procValue}
+          label={procType}
+          value={currentProc ?? 'None'}
           chevron
           hot={view.type === 'procedure'}
           onClick={() => open({ type: 'procedure', airport, procType })}
         />
       )}
-      <Item icon="swap" label="Change strip type" value={capitalise(type)} chevron hot={view.type === 'typemenu'} onClick={() => open({ type: 'typemenu' })} />
-      <Sep />
-      <Item icon="xfer" label="Transfer" chevron hot={view.type === 'transfer'} onClick={() => open({ type: 'transfer' })} />
-      <Item icon="free" label="Free aircraft" tone="ok" onClick={freeAircraft} />
+      <Item icon="swap" label="Strip type" value={capitalise(type)} chevron hot={view.type === 'typemenu'} onClick={() => open({ type: 'typemenu' })} />
       <Sep />
       {removeItem}
     </div>
