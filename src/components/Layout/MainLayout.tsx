@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useConnectionStore } from '../../stores/connectionStore'
 import { usePanelStore } from '../../stores/panelStore'
+import { useUIStore } from '../../stores/uiStore'
 import { rebuildBoard } from '../../utils/stripActions'
 import type { StripData } from '../../types'
 import { Section } from './Section'
@@ -122,7 +123,15 @@ export function MainLayout() {
 
   return (
     <>
-      <main className="board" id="mainLayout" data-layout={layoutMode} style={{ ['--lanes' as string]: lanes.length }}>
+      <main
+        className="board"
+        id="mainLayout"
+        data-layout={layoutMode}
+        style={{ ['--lanes' as string]: lanes.length }}
+        onMouseDown={(e) => {
+          if (!(e.target as HTMLElement).closest('.strip')) useUIStore.getState().selectStrip(null)
+        }}
+      >
         {lanes.map((laneDefs) => (
           <Lane
             key={laneDefs[0].key}
