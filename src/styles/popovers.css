@@ -392,3 +392,19 @@
 .fch:not(.on) {
     opacity: 0.55;
 }
+
+.pop.sug {
+    left: auto;
+    right: 0;
+}
+
+.pop .linkedit {
+    flex: 1;
+    width: auto;
+    height: 28px;
+}
+
+.pop form.fgrid {
+    flex-direction: row;
+    gap: 8px;
+}

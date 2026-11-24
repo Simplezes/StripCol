@@ -1,69 +1,34 @@
-import { useRef, useState } from 'react'
-import { triggerReconnect } from '../../stores/connectionStore'
+import { useEffect, useRef } from 'react'
+import { useDiscoveredSession } from '../../hooks/useDiscoveredSession'
 import { useSettingsStore } from '../../stores/settingsStore'
-import { apiFetch } from '../../utils/api'
-import { showToast } from '../../utils/toast'
+import { useUIStore } from '../../stores/uiStore'
 
 export function LinkCodePill() {
   const linkCode = useSettingsStore((s) => s.settings.linkCode)
-  const [editing, setEditing] = useState(false)
-  const [inputVal, setInputVal] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const isOpen = useUIStore((s) => s.statusPanel === 'link')
+  const toggle = useUIStore((s) => s.toggleStatusPanel)
+  const found = useDiscoveredSession()
+  const announced = useRef<string | null>(null)
 
-  const startEdit = () => {
-    setInputVal(linkCode || '')
-    setEditing(true)
-    setTimeout(() => inputRef.current?.focus(), 0)
-  }
+  const foundCode = found?.code ?? null
 
-  const saveCode = async () => {
-    const code = inputVal.trim().toUpperCase()
-    setEditing(false)
-    if (code.length !== 5) return
-    try {
-      const res = await apiFetch(`/api/pair/${code}`)
-      const result = await res.json()
-      if (result.success) {
-        useSettingsStore.getState().update({ linkCode: code })
-        triggerReconnect()
-        showToast('Linked successfully!', 'success')
-      } else {
-        showToast(`Pairing failed: ${result.message}`, 'error')
-      }
-    } catch {
-      showToast('Connection failed', 'error')
-    }
-  }
+  useEffect(() => {
+    if (!foundCode || foundCode === announced.current) return
+    announced.current = foundCode
+    useUIStore.setState({ statusPanel: 'link' })
+  }, [foundCode])
 
   return (
-    <span
-      className="sbi sbs link opt2"
+    <button
+      className={`sbi sbs link opt2${isOpen ? ' on' : ''}`}
       id="linkCodeStatus"
-      onDoubleClick={startEdit}
-      title="Double-click to enter a link code"
+      aria-haspopup="dialog"
+      aria-expanded={isOpen}
+      onClick={() => toggle('link')}
+      title="Link to EuroScope"
     >
       LINK
-      {editing ? (
-        <input
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          ref={inputRef}
-          className="linkedit"
-          type="text"
-          maxLength={5}
-          value={inputVal}
-          onChange={(e) => setInputVal(e.target.value.toUpperCase())}
-          onBlur={saveCode}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') inputRef.current?.blur()
-            if (e.key === 'Escape') setEditing(false)
-          }}
-        />
-      ) : (
-        <b>{linkCode || '-----'}</b>
-      )}
-    </span>
+      <b>{linkCode || '-----'}</b>
+    </button>
   )
 }

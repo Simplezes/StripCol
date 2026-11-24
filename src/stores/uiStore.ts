@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { StripType } from '../types'
 
-export type StatusPanel = 'stations' | 'nearby' | 'add' | 'filters'
+export type StatusPanel = 'stations' | 'nearby' | 'add' | 'filters' | 'link'
 
 export type StatusItemKey = 'stations' | 'nearby' | 'add' | 'filters' | 'position' | 'link' | 'version'
 
