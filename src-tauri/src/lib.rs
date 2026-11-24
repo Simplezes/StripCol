@@ -17,7 +17,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::save_settings,
             commands::restart_gateway,
-            commands::pick_screen_color
+            commands::pick_screen_color,
+            commands::open_devtools
         ])
         .setup(|app| {
             let handle = app.handle().clone();

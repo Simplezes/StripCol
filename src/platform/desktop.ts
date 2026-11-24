@@ -79,3 +79,9 @@ export async function closeWindow(): Promise<void> {
   const { getCurrentWindow } = await import('@tauri-apps/api/window')
   await getCurrentWindow().close()
 }
+
+export async function openDevtools(): Promise<void> {
+  if (!isDesktop) return
+  const { invoke } = await import('@tauri-apps/api/core')
+  await invoke('open_devtools')
+}

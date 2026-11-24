@@ -111,3 +111,8 @@ pub fn restart_gateway(app: AppHandle, state: State<AppState>, server_ip: String
     }
     gateway::start(&app, &server_ip);
 }
+
+#[tauri::command]
+pub fn open_devtools(window: WebviewWindow) {
+    window.open_devtools();
+}
