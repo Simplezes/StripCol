@@ -258,7 +258,6 @@ export function useSSE(): void {
           src.onopen = () => {
             console.log('Gateway Link: Established')
             useConnectionStore.getState().setConnected(true)
-            useConnectionStore.getState().setPaired(true)
             isConnecting = false
             retryDelay = INITIAL_RETRY_DELAY
             connectedAt = Date.now()
