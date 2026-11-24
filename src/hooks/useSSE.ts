@@ -199,6 +199,11 @@ export function useSSE(): void {
             }
           })
 
+          src.addEventListener('metar', (e) => {
+            const { station, metar } = JSON.parse((e as MessageEvent).data)
+            useConnectionStore.getState().setMetar(station, metar)
+          })
+
           src.addEventListener('aircraft', (e) => {
             const flight: FlightPlan = JSON.parse((e as MessageEvent).data)
             flight.transfer = false

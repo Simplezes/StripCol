@@ -45,6 +45,25 @@ function saveBoardOverride(board: FacilityType | null): void {
   }
 }
 
+const AIRPORTS_KEY = 'extraAirports'
+
+function loadExtraAirports(): string[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AIRPORTS_KEY) ?? '[]')
+    return Array.isArray(saved) ? saved.filter((v) => typeof v === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function saveExtraAirports(airports: string[]): void {
+  try {
+    localStorage.setItem(AIRPORTS_KEY, JSON.stringify(airports))
+  } catch {
+    return
+  }
+}
+
 let _reconnectFn: (() => void) | null = null
 
 export function registerReconnect(fn: () => void): void {
@@ -67,6 +86,8 @@ interface ConnectionState {
   positionId: string
   localIcao: string
   controllerCallsign: string
+  metars: Record<string, string>
+  extraAirports: string[]
 
   setSyncing: (value: boolean) => void
   setBoardOverride: (board: FacilityType | null) => void
@@ -74,6 +95,9 @@ interface ConnectionState {
   setPaired: (value: boolean) => void
   setPluginLinked: (value: boolean) => void
   setControllerInfo: (data: ControllerData) => void
+  setMetar: (station: string, metar: string) => void
+  addAirport: (icao: string) => void
+  clearExtraAirports: () => void
   resetConnection: () => void
 }
 
@@ -97,10 +121,13 @@ const DEFAULT_STATE = {
   positionId: '',
   localIcao: '',
   controllerCallsign: '',
+  metars: {} as Record<string, string>,
+  extraAirports: [] as string[],
 }
 
 export const useConnectionStore = create<ConnectionState>((set, get) => ({
   ...DEFAULT_STATE,
+  extraAirports: loadExtraAirports(),
   boardOverride: loadBoardOverride(),
   ...boardState(loadBoardOverride(), DEFAULT_STATE.detectedFacility),
 
@@ -144,8 +171,21 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     })
   },
 
+  setMetar: (station, metar) => set((s) => ({ metars: { ...s.metars, [station]: metar } })),
+
+  addAirport: (icao) => {
+    const extra = [...new Set([...get().extraAirports, icao])]
+    saveExtraAirports(extra)
+    set({ extraAirports: extra })
+  },
+
+  clearExtraAirports: () => {
+    saveExtraAirports([])
+    set({ extraAirports: [] })
+  },
+
   resetConnection: () => {
     const override = get().boardOverride
-    set({ ...DEFAULT_STATE, boardOverride: override, ...boardState(override, DEFAULT_STATE.detectedFacility) })
+    set({ ...DEFAULT_STATE, extraAirports: get().extraAirports, boardOverride: override, ...boardState(override, DEFAULT_STATE.detectedFacility) })
   },
 }))
