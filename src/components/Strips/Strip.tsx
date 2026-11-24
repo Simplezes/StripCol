@@ -365,7 +365,10 @@ export function Strip({ stripId, panelName, index }: StripProps) {
 
   const showMenu = useContextMenuStore((s) => s.show)
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
+    useUIStore.getState().selectStrip(stripId)
+    if (e.detail !== 3) return
+
     const cell = (e.target as HTMLElement).closest<HTMLElement>('[data-cell]')
     const key = cell?.dataset.cell
     if (!cell || !key) return
@@ -428,8 +431,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
           data-euroscope={strip.euroscope ? 'true' : 'false'}
           data-panel={panelName}
           onContextMenu={handleContextMenu}
-          onClick={() => useUIStore.getState().selectStrip(stripId)}
-          onDoubleClick={handleDoubleClick}
+          onClick={handleClick}
           {...cellHint}
           {...provided.draggableProps}
           {...provided.dragHandleProps}

@@ -55,7 +55,7 @@ export function describeCell(key: string, mode: ControllerMode, type: string): C
       return { title: 'Procedure', text: 'Departure or arrival procedure.' }
     case 'c12':
       if (isClearanceFlagCell(key, mode, type)) {
-        return { title: 'Clearance flag', text: 'Shows Ⓑ once the clearance is received. Double-click to set or remove it in EuroScope.' }
+        return { title: 'Clearance flag', text: 'Shows Ⓑ once the clearance is received. Triple-click to set or remove it in EuroScope.' }
       }
       return radar
         ? { title: 'Direct to', text: 'Fix the aircraft is cleared direct to. Clearing it also resets the assigned heading.' }
