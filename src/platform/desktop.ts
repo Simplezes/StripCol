@@ -32,6 +32,12 @@ export async function openExternal(url: string): Promise<void> {
   await openUrl(url)
 }
 
+export async function startWindowDrag(): Promise<void> {
+  if (!isDesktop) return
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  await getCurrentWindow().startDragging()
+}
+
 export async function minimizeWindow(): Promise<void> {
   if (!isDesktop) return
   const { getCurrentWindow } = await import('@tauri-apps/api/window')
