@@ -68,6 +68,8 @@ function applySessionUpdate(session, message) {
     if (payload.callsign) session.aircraft.delete(payload.callsign);
   } else if (message.type === 'sector-data') {
     session.sectorData = message.data || null;
+  } else if (message.type === 'metar') {
+    if (payload.station) session.metars = { ...session.metars, [payload.station]: payload };
   } else if (message.type === 'atclist') {
     session.atcList = message.data || message.atclist || message.atcList || (Array.isArray(message) ? message : []);
   }

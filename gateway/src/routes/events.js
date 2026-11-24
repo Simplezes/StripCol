@@ -41,6 +41,13 @@ function registerEventRoutes(app) {
       response.write(`event: sector-data\ndata: ${JSON.stringify(session.sectorData)}\n\n`);
     }
 
+    Object.values(session.metars || {}).forEach((metar) => {
+      response.write(`event: metar
+data: ${JSON.stringify(metar)}
+
+`);
+    });
+
     requestSync(session);
 
     request.on('close', () => {
