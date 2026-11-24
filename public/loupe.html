@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { margin: 0; background: transparent; overflow: hidden; font-family: 'Segoe UI', sans-serif; user-select: none; }
+  body { width: 150px; height: 180px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 5px; }
+  #lens {
+    position: relative; width: 140px; height: 140px; box-sizing: border-box; overflow: hidden;
+    border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #000;
+  }
+  #lens canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  #lens .lines {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(0, 0, 0, 0.45) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 1px, transparent 1px);
+    background-size: calc(100% / 11) calc(100% / 11);
+  }
+  #lens .mid {
+    position: absolute; left: calc(100% * 5 / 11); top: calc(100% * 5 / 11);
+    width: calc(100% / 11); height: calc(100% / 11); box-sizing: border-box;
+    border: 2px solid #fff; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000;
+  }
+  #hex {
+    padding: 2px 10px; border-radius: 10px; background: rgba(20, 24, 28, 0.92); color: #fff;
+    font: 600 12px monospace; letter-spacing: 0.05em; border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+</style>
+</head>
+<body>
+<div id="lens"><canvas id="canvas" width="11" height="11"></canvas><div class="lines"></div><div class="mid"></div></div>
+<div id="hex"></div>
+<script>
+  const context = document.getElementById('canvas').getContext('2d')
+  const image = context.createImageData(11, 11)
+  const hex = document.getElementById('hex')
+  window.render = (pixels) => {
+    for (let i = 0; i < 121; i++) {
+      const offset = i * 6
+      image.data[i * 4] = parseInt(pixels.substr(offset, 2), 16)
+      image.data[i * 4 + 1] = parseInt(pixels.substr(offset + 2, 2), 16)
+      image.data[i * 4 + 2] = parseInt(pixels.substr(offset + 4, 2), 16)
+      image.data[i * 4 + 3] = 255
+    }
+    context.putImageData(image, 0, 0)
+    hex.textContent = '#' + pixels.substr(60 * 6, 6).toUpperCase()
+  }
+</script>
+</body>
+</html>

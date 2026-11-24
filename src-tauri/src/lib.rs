@@ -1,6 +1,7 @@
 mod commands;
 mod discord;
 mod gateway;
+mod screen_color;
 mod settings;
 mod state;
 
@@ -15,7 +16,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             commands::save_settings,
-            commands::restart_gateway
+            commands::restart_gateway,
+            commands::pick_screen_color
         ])
         .setup(|app| {
             let handle = app.handle().clone();
