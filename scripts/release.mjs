@@ -138,9 +138,13 @@ async function publish(tag, version, artifacts, manifestPath) {
   }
 
   const isDraft = !options.has('--publish')
-  const release = await createRelease(tag, version, token, isDraft)
+  // Always upload into a draft, then publish: the release-published webhook must not fire before latest.json exists.
+  const release = await createRelease(tag, version, token, true)
   for (const filePath of [artifacts.installerPath, artifacts.signaturePath, manifestPath]) {
     await uploadAsset(release, filePath, token)
+  }
+  if (!isDraft) {
+    await githubRequest(release.url, token, { method: 'PATCH', body: JSON.stringify({ draft: false }) })
   }
   console.log(isDraft ? `Draft release created: ${release.html_url}` : `Release published: ${release.html_url}`)
 }

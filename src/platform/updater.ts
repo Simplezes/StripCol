@@ -56,3 +56,21 @@ export async function installDownloadedUpdate(): Promise<void> {
   const { relaunch } = await import('@tauri-apps/plugin-process')
   await relaunch()
 }
+
+// Public ntfy.sh topic, pinged by .github/workflows/notify-release.yml when a release is published.
+// Anyone can post to it, but a ping only triggers a signature-verified check(), so spoofing is harmless.
+const RELEASE_TOPIC_URL = 'https://ntfy.sh/stripcol-releases-x7q2/sse'
+
+export function watchForReleases(handlers: UpdateHandlers): void {
+  if (!isDesktop) return
+  const check = (retry: boolean) => {
+    if (hasDownloadedUpdate()) return
+    checkForUpdates({
+      ...handlers,
+      // shortcut: GitHub's /latest/download redirect can serve a stale latest.json for a few minutes; one retry covers it
+      onUpToDate: () => { if (retry) setTimeout(() => check(false), 5 * 60_000) },
+    })
+  }
+  // EventSource reconnects on its own after sleep/network loss; the startup check covers anything missed meanwhile.
+  new EventSource(RELEASE_TOPIC_URL).onmessage = () => setTimeout(() => check(true), 30_000)
+}

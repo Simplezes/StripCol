@@ -4,16 +4,18 @@ import App from './App'
 import './styles/index.css'
 import { useSettingsStore } from './stores/settingsStore'
 import { useUIStore } from './stores/uiStore'
-import { checkForUpdates } from './platform/updater'
+import { checkForUpdates, watchForReleases } from './platform/updater'
 import { showToast } from './utils/toast'
 
 useSettingsStore.getState().load()
-checkForUpdates({
-  onAvailable: (version) => {
+const updateHandlers = {
+  onAvailable: (version: string) => {
     useUIStore.getState().setHasUpdate(true)
     showToast(`Update available: V${version}`, 'update-available')
   },
-})
+}
+checkForUpdates(updateHandlers)
+watchForReleases(updateHandlers)
 
 document.addEventListener('keydown', (e) => {
   if (
