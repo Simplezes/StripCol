@@ -1,4 +1,5 @@
 import { useSSE } from './hooks/useSSE'
+import { useStripCleanup } from './hooks/useStripCleanup'
 import { AppShell } from './components/Layout/AppShell'
 import { MainLayout } from './components/Layout/MainLayout'
 import { SystemBar } from './components/SystemBar/SystemBar'
@@ -13,6 +14,7 @@ import { StripDndProvider } from './components/Strips/StripDndProvider'
 
 export default function App() {
   useSSE()
+  useStripCleanup()
 
   return (
     <StripDndProvider>
