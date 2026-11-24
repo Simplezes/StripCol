@@ -408,6 +408,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
   if (!strip) return null
 
   const c33 = formatC33(strip.lastUpdate)
+  const locked = !strip.euroscope && !!strip.flightPlan
 
   const isHidden = typeHidden || searchQuery.length > 0 && (() => {
     const q = searchQuery.toLowerCase()
@@ -425,7 +426,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
             provided.innerRef(node)
             stripRef.current = node
           }}
-          className={`strip draggable${isSelected ? ' sel' : ''}${snapshot.isDragging ? ' dragging-strip' : ''}${landed ? ' landed' : ''}`}
+          className={`strip draggable${isSelected ? ' sel' : ''}${snapshot.isDragging ? ' dragging-strip' : ''}${landed ? ' landed' : ''}${locked ? ' locked' : ''}`}
           data-strip-id={stripId}
           data-type={strip.type}
           data-euroscope={strip.euroscope ? 'true' : 'false'}
@@ -442,7 +443,8 @@ export function Strip({ stripId, panelName, index }: StripProps) {
               key={key}
               className={`box ${CELL_CLASSES[i]}`}
               value={localValues[key] ?? ''}
-              readOnly={isClearanceFlagCell(key, controllerMode, strip.type)}
+              readOnly={locked || isClearanceFlagCell(key, controllerMode, strip.type)}
+              tabIndex={locked ? -1 : undefined}
               onChange={(e) => handleChange(key, e.target.value)}
               onBlur={(e) => handleBlur(key, e.currentTarget.value)}
               data-cell={key}

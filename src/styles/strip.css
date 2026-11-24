@@ -33,6 +33,15 @@
     --tc: var(--user-overfly-color, var(--ovf));
 }
 
+.strip.locked {
+    background-image: repeating-linear-gradient(-45deg, transparent 0 8px, rgb(0 0 0 / 0.05) 8px 16px);
+}
+
+.strip.locked .box {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 .strip.sel {
     background: var(--sel);
     outline: 2px solid var(--selline);
@@ -283,8 +292,7 @@ body.dark-strips .strip {
 
 .sact {
     display: flex;
-    flex-direction: column;
-    width: 64px;
+    width: 128px;
     flex-shrink: 0;
     overflow: hidden;
     border: 1px solid var(--line);
@@ -299,7 +307,7 @@ body.dark-strips .strip {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 5px;
     border: none;
     background: none;
     cursor: pointer;
@@ -327,7 +335,7 @@ body.dark-strips .strip {
 
 .sact .no {
     color: var(--no);
-    border-top: 1px solid var(--hair);
+    border-left: 1px solid var(--hair);
 }
 
 .sact .ok:hover {
