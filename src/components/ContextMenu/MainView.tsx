@@ -89,8 +89,24 @@ export function MainView({ stripId, panelName, view, setView, onClose }: MainVie
   }
 
   if (!euroscope || !fp) {
+    const assumeAircraft = async () => {
+      if (!fp) return
+      try {
+        const res = await apiFetch('/api/assume-aircraft', {
+          method: 'POST',
+          body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign, panel: panelName }),
+        })
+        if (res.ok) deleteStripByCallsign(fp.callsign)
+      } catch (err) {
+        console.error('Assume aircraft failed:', err)
+      }
+      onClose()
+    }
+
     return (
       <div className="cm" role="menu">
+        {fp && <Item icon="free" label="Assume aircraft" tone="ok" onClick={assumeAircraft} />}
+        {fp && <Sep />}
         {removeItem}
       </div>
     )
