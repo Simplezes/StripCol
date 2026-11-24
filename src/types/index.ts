@@ -12,6 +12,7 @@ export interface FlightPlan {
   speed?: string
   remarks?: string
   transfer?: boolean
+  transferFrom?: string
   positionId?: string
   sid?: string
   star?: string
@@ -73,6 +74,8 @@ export interface PanelData {
 
 export interface Settings {
   audioEnabled: boolean
+  mutedSounds: string[]
+  toastsEnabled: boolean
   cleanupEnabled: boolean
   cleanupMinutes: number
   showSeconds: boolean
@@ -87,6 +90,7 @@ export interface Settings {
   autohideHeader: boolean
   autoMoveClearance: boolean
   autoMoveRevert: boolean
+  autoAcceptTransfers: boolean
 }
 
 export type ControllerMode = 'aerodrome' | 'approach' | 'center' | ''

@@ -10,15 +10,19 @@ import {
   renderAircraftAsStrip,
   deleteStripByCallsign,
   autoMoveOnClearance,
+  acceptHandoff,
+  resolveControllerCallsign,
 } from '../utils/stripActions'
 import { buildInitialValues } from '../utils/stripValues'
-import { playNotificationSound } from '../utils/sound'
+import { playNotificationSound, type NotificationSound } from '../utils/sound'
+import { showToast } from '../utils/toast'
 import type { FlightPlan } from '../types'
 import { HANDED_OFF_PANEL } from '../components/Layout/panelDefs'
 
 const INITIAL_RETRY_DELAY = 1000
 const MAX_RETRY_DELAY = 10_000
 const HUB_POLL_INTERVAL = 5000
+const CONNECT_GRACE_MS = 3000
 
 export function useSSE(): void {
   const reconnectRef = useRef<() => void>(() => {})
@@ -34,6 +38,7 @@ export function useSSE(): void {
     let lastFetchTime = 0
     let currentSessionCode: string | null = null
     let connectedAt = 0
+    const lastSoundByCallsign = new Map<string, NotificationSound>()
 
     function closeSource() {
       evtSource?.close()
@@ -60,6 +65,25 @@ export function useSSE(): void {
       useFlightStore.getState().clearAll()
       useConnectionStore.getState().setPaired(false)
       usePanelStore.getState().clearAllStrips()
+      lastSoundByCallsign.clear()
+    }
+
+    function isLiveEvent() {
+      return Date.now() - connectedAt > CONNECT_GRACE_MS
+    }
+
+    function notify(kind: NotificationSound, callsign: string) {
+      if (kind !== 'cleared') {
+        if (lastSoundByCallsign.get(callsign) === kind) return
+        lastSoundByCallsign.set(callsign, kind)
+      }
+      const { audioEnabled, mutedSounds } = useSettingsStore.getState().settings
+      if (!audioEnabled || mutedSounds.includes(kind) || !isLiveEvent()) return
+      playNotificationSound(kind)
+    }
+
+    function notifyToast(message: string, type: 'info' | 'success') {
+      if (useSettingsStore.getState().settings.toastsEnabled) showToast(message, type)
     }
 
     function moveStripToHandedOff(callsign: string) {
@@ -105,6 +129,7 @@ export function useSSE(): void {
 
         if (!!strip.flightPlan?.clearanceReceived !== !!flight.clearanceReceived) {
           autoMoveOnClearance(id, p.name, !!flight.clearanceReceived)
+          if (flight.clearanceReceived) notify('cleared', flight.callsign)
         }
       })
     }
@@ -224,12 +249,7 @@ export function useSSE(): void {
               }
               renderAircraftAsStrip(flight)
             }
-            if (
-              useSettingsStore.getState().settings.audioEnabled &&
-              Date.now() - connectedAt > 3000
-            ) {
-              playNotificationSound()
-            }
+            notify('assumed', flight.callsign)
           })
 
           src.addEventListener('sector-data', (e) => {
@@ -240,13 +260,32 @@ export function useSSE(): void {
             const { callsign } = JSON.parse((e as MessageEvent).data)
             useFlightStore.getState().removeAircraft(callsign)
             moveStripToHandedOff(callsign)
+            notify('released', callsign)
           })
 
-          src.addEventListener('transfer', (e) => {
+          src.addEventListener('transfer', async (e) => {
             const flight: FlightPlan = JSON.parse((e as MessageEvent).data)
             flight.transfer = true
-            useFlightStore.getState().addAircraft(flight.callsign, flight)
-            renderAircraftAsStrip(flight)
+            const live = isLiveEvent()
+            flight.transferFrom = await resolveControllerCallsign(flight.trackingControllerId ?? '')
+            const from = flight.transferFrom ? ` from ${flight.transferFrom}` : ''
+
+            const offerHandover = () => {
+              useFlightStore.getState().addAircraft(flight.callsign, flight)
+              renderAircraftAsStrip(flight)
+              if (!live) return
+              notify('handover', flight.callsign)
+              notifyToast(`Handover offered${from}: ${flight.callsign}`, 'info')
+            }
+
+            if (!useSettingsStore.getState().settings.autoAcceptTransfers) {
+              offerHandover()
+              return
+            }
+
+            const accepted = await acceptHandoff(flight)
+            if (!accepted) offerHandover()
+            else if (live) notifyToast(`Handover accepted${from}: ${flight.callsign}`, 'success')
           })
 
           src.addEventListener('fpupdate', (e) => {
@@ -259,6 +298,7 @@ export function useSSE(): void {
               flight.transfer = false
               useFlightStore.getState().addAircraft(flight.callsign, flight)
               renderAircraftAsStrip(flight)
+              notify('flightplan', flight.callsign)
             }
           })
 

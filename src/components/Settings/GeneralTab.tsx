@@ -1,5 +1,5 @@
 import type { Settings } from '../../types'
-import { playNotificationSound } from '../../utils/sound'
+import { playNotificationSound, SOUND_LABELS, type NotificationSound } from '../../utils/sound'
 import { applyClearanceAutoMoveToBoard } from '../../utils/stripActions'
 import { Toggle } from '../ui/Toggle'
 import { SettingRow } from '../ui/SettingRow'
@@ -8,6 +8,8 @@ interface Props {
   s: Settings
   update: (p: Partial<Settings>) => void
 }
+
+const SOUND_KINDS = Object.keys(SOUND_LABELS) as NotificationSound[]
 
 function Stage({ label, active = false }: { label: string; active?: boolean }) {
   return <span className={`fs${active ? ' go' : ''}`}>{label}</span>
@@ -28,6 +30,9 @@ export function GeneralTab({ s, update }: Props) {
   const stepMinutes = (delta: number) =>
     update({ cleanupMinutes: Math.min(60, Math.max(1, s.cleanupMinutes + delta)) })
 
+  const toggleSound = (kind: NotificationSound, on: boolean) =>
+    update({ mutedSounds: on ? s.mutedSounds.filter((k) => k !== kind) : [...s.mutedSounds, kind] })
+
   const updateAutoMove = (patch: Partial<Settings>) => {
     update(patch)
     applyClearanceAutoMoveToBoard()
@@ -43,14 +48,37 @@ export function GeneralTab({ s, update }: Props) {
       <section className="grp">
         <h3>Alerts</h3>
         <div className="card">
-          <SettingRow title="Audio notifications" description="Play a chime when a new aircraft arrives or a handover is offered.">
-            <button className="btn" onClick={playNotificationSound}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 4l14 8-14 8z" />
-              </svg>
-              Test sound
-            </button>
+          <SettingRow title="Audio notifications" description="Play a distinct chime for each strip event. Only one chime plays at a time.">
             <Toggle label="Audio notifications" checked={s.audioEnabled} onChange={(v) => update({ audioEnabled: v })} />
+          </SettingRow>
+          {SOUND_KINDS.map((kind) => (
+            <SettingRow
+              key={kind}
+              title={SOUND_LABELS[kind].title}
+              description={SOUND_LABELS[kind].description}
+              disabled={!s.audioEnabled}
+            >
+              <button className="btn" onClick={() => playNotificationSound(kind)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 4l14 8-14 8z" />
+                </svg>
+                Test
+              </button>
+              <Toggle
+                label={SOUND_LABELS[kind].title}
+                checked={!s.mutedSounds.includes(kind)}
+                onChange={(v) => toggleSound(kind, v)}
+              />
+            </SettingRow>
+          ))}
+        </div>
+      </section>
+
+      <section className="grp">
+        <h3>Handovers</h3>
+        <div className="card">
+          <SettingRow title="Auto-accept handovers" description="Accept incoming handovers automatically. Falls back to a handover strip if accepting fails.">
+            <Toggle label="Auto-accept handovers" checked={s.autoAcceptTransfers} onChange={(v) => update({ autoAcceptTransfers: v })} />
           </SettingRow>
         </div>
       </section>

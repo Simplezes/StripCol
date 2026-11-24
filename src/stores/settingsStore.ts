@@ -6,6 +6,8 @@ const STORAGE_KEY = 'stripcol_settings'
 
 const DEFAULT_SETTINGS: Settings = {
   audioEnabled: true,
+  mutedSounds: [],
+  toastsEnabled: true,
   cleanupEnabled: false,
   cleanupMinutes: 15,
   showSeconds: true,
@@ -20,6 +22,7 @@ const DEFAULT_SETTINGS: Settings = {
   autohideHeader: false,
   autoMoveClearance: false,
   autoMoveRevert: false,
+  autoAcceptTransfers: false,
 }
 
 function loadFromStorage(): Settings {
