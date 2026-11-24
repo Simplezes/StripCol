@@ -7,7 +7,11 @@ import { useUIStore } from '../../stores/uiStore'
 import { hpaToInHg, useQnh } from '../../hooks/useQnh'
 import { AirportMenu } from './AirportMenu'
 import { BOARD_TITLES, BoardMenu } from './BoardMenu'
-import { closeWindow, isDesktop, isWindowMaximized, minimizeWindow, startWindowDrag, toggleMaximizeWindow } from '../../platform/desktop'
+import { closeWindow, isDesktop, isWindowMaximized, minimizeWindow, openDevtools, startWindowDrag, toggleMaximizeWindow } from '../../platform/desktop'
+import { showToast } from '../../utils/toast'
+
+const DEV_MODE_CLICKS = 5
+const DEV_MODE_CLICK_WINDOW_MS = 2000
 
 function useZuluTime(showSeconds: boolean): string {
   const [time, setTime] = useState('')
@@ -95,19 +99,43 @@ export function SystemBar() {
   const airportRef = useRef<HTMLButtonElement>(null)
   const [airportAnchor, setAirportAnchor] = useState<DOMRect | null>(null)
 
+  const devMode = useUIStore((s) => s.devMode)
+  const logoClicks = useRef<number[]>([])
+
+  const handleLogoClick = () => {
+    if (devMode) return
+    const now = Date.now()
+    logoClicks.current = [...logoClicks.current.filter((t) => now - t < DEV_MODE_CLICK_WINDOW_MS), now]
+    if (logoClicks.current.length < DEV_MODE_CLICKS) return
+    logoClicks.current = []
+    useUIStore.getState().enableDevMode()
+    showToast('Developer mode enabled. Press F12 for devtools.', 'dev-mode')
+  }
+
+  useEffect(() => {
+    if (!devMode) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'F12') return
+      e.preventDefault()
+      openDevtools().catch(() => {})
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [devMode])
+
   return (
     <header
       className="bar"
       data-tauri-drag-region
       onMouseDown={(e) => {
         const target = e.target as HTMLElement
-        if (e.button !== 0 || e.detail > 1 || target.closest('button, input, a')) return
+        if (e.button !== 0 || e.detail > 1 || !e.currentTarget.contains(target) || target.closest('button, input, a')) return
         startWindowDrag().catch(() => {})
       }}
     >
-      <div className="brand" data-tauri-drag-region>
-        <img src={appIcon} alt="StripCol" draggable={false} />
-      </div>
+      <button className="brand" aria-label="StripCol" onClick={handleLogoClick}>
+        <img src={appIcon} alt="" draggable={false} />
+      </button>
 
       <div className="ttl" data-tauri-drag-region>
         <span className="crumb">StripCol</span>
@@ -131,6 +159,7 @@ export function SystemBar() {
       </div>
 
       <div className="chips" data-tauri-drag-region>
+        {devMode && <span className="chip" title="Press F12 for devtools">Dev mode</span>}
         <span className="chip">{stripCount} strips</span>
         {handoverCount > 0 && (
           <span className="chip hot">

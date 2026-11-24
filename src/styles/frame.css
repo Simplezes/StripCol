@@ -77,6 +77,12 @@ body.resizing {
     justify-content: center;
     border-right: 1px solid var(--hair);
     flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border-top: 0;
+    border-bottom: 0;
+    border-left: 0;
+    cursor: default;
 }
 
 .brand img {

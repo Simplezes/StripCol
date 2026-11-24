@@ -91,6 +91,9 @@ interface UIState {
   hasUpdate: boolean
   setHasUpdate: (v: boolean) => void
 
+  devMode: boolean
+  enableDevMode: () => void
+
   selectedStripId: string | null
   selectStrip: (id: string | null) => void
 
@@ -130,6 +133,9 @@ export const useUIStore = create<UIState>((set) => ({
 
   hasUpdate: false,
   setHasUpdate: (v) => set({ hasUpdate: v }),
+
+  devMode: false,
+  enableDevMode: () => set({ devMode: true }),
 
   selectedStripId: null,
   selectStrip: (id) => set({ selectedStripId: id }),
