@@ -1,6 +1,6 @@
 import type { StripData } from '../../types'
 
-export type SortKey = 'EOBT' | 'ETOT' | 'SEQ' | 'TIME' | 'CALLSIGN' | 'ALT' | 'ETA' | 'DEST' | 'TYPE' | 'MANUAL'
+export type SortKey = 'EOBT' | 'ETOT' | 'SEQ' | 'TIME' | 'CALLSIGN' | 'CFL' | 'RFL' | 'ETA' | 'DEST' | 'TYPE' | 'MANUAL'
 
 export const SORT_LABELS: Record<SortKey, string> = {
   EOBT: 'EOBT',
@@ -8,7 +8,8 @@ export const SORT_LABELS: Record<SortKey, string> = {
   SEQ: 'SEQ',
   TIME: 'Last update',
   CALLSIGN: 'Callsign',
-  ALT: 'Altitude',
+  CFL: 'Cleared level',
+  RFL: 'Final level',
   ETA: 'ETA',
   DEST: 'Destination',
   TYPE: 'Aircraft type',
@@ -32,7 +33,7 @@ const SECTION_SORTS: Record<string, SectionSortConfig> = {
   'Handed Off': { default: 'TIME', options: ['TIME', 'CALLSIGN', 'DEST', 'TYPE'] },
 }
 
-const FALLBACK: SectionSortConfig = { default: 'MANUAL', options: ['ALT', 'ETA', ...COMMON, 'MANUAL'] }
+const FALLBACK: SectionSortConfig = { default: 'MANUAL', options: ['CFL', 'RFL', 'ETA', ...COMMON, 'MANUAL'] }
 
 export function sortConfig(panelName: string): SectionSortConfig {
   return SECTION_SORTS[panelName] ?? FALLBACK
@@ -51,9 +52,15 @@ function departureTime(strip: StripData): string {
   return (strip.values.c7 ?? '').replace(/\D/g, '')
 }
 
-function altitudeOf(strip: StripData): number {
-  const value = Number(strip.flightPlan?.altitude)
-  return Number.isFinite(value) ? value : -1
+function finalLevelOf(strip: StripData): number {
+  const value = Number(strip.flightPlan?.finalAltitude)
+  return Number.isFinite(value) && value > 0 ? value : -1
+}
+
+function clearedLevelOf(strip: StripData): number {
+  const value = Number(strip.flightPlan?.clearedAltitude)
+  if (!Number.isFinite(value) || value === 0) return finalLevelOf(strip)
+  return value
 }
 
 function compareText(a: string, b: string): number {
@@ -82,8 +89,10 @@ export function sortStrips(strips: StripData[], key: SortKey): StripData[] {
       return sorted.sort((a, b) =>
         compareText((a.flightPlan?.estimatedArrival ?? '').replace(/\D/g, ''), (b.flightPlan?.estimatedArrival ?? '').replace(/\D/g, '')),
       )
-    case 'ALT':
-      return sorted.sort((a, b) => altitudeOf(b) - altitudeOf(a))
+    case 'RFL':
+      return sorted.sort((a, b) => finalLevelOf(b) - finalLevelOf(a))
+    case 'CFL':
+      return sorted.sort((a, b) => clearedLevelOf(b) - clearedLevelOf(a))
     default:
       return sorted
   }
