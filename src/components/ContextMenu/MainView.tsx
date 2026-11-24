@@ -1,6 +1,6 @@
 import { usePanelStore } from '../../stores/panelStore'
 import { apiFetch } from '../../utils/api'
-import { assumeAircraft, deleteStripByCallsign, renderAircraftAsStrip, toggleClearance } from '../../utils/stripActions'
+import { acceptHandoff, assumeAircraft, deleteStripByCallsign, toggleClearance } from '../../utils/stripActions'
 import { PLAN_TYPE_LABELS } from './FlightInfoView'
 import { Icon } from './Icon'
 import { Item, MenuHeader, Sep } from './MenuParts'
@@ -36,21 +36,7 @@ export function MainView({ stripId, panelName, view, setView, onClose }: MainVie
 
   if (isTransfer && fp) {
     const accept = async () => {
-      try {
-        const res = await apiFetch('/api/accept-handoff', {
-          method: 'POST',
-          body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
-        })
-        if (res.ok) {
-          deleteStripByCallsign(fp.callsign)
-          renderAircraftAsStrip({ ...fp, transfer: false })
-        } else {
-          usePanelStore.getState().removeStrip(panelName, stripId)
-        }
-      } catch (err) {
-        console.error('Accept handoff failed:', err)
-        usePanelStore.getState().removeStrip(panelName, stripId)
-      }
+      if (!(await acceptHandoff(fp))) usePanelStore.getState().removeStrip(panelName, stripId)
       onClose()
     }
 

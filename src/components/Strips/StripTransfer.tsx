@@ -3,7 +3,7 @@ import { usePanelStore } from '../../stores/panelStore'
 import { useFlightStore } from '../../stores/flightStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { apiFetch } from '../../utils/api'
-import { deleteStripByCallsign, renderAircraftAsStrip } from '../../utils/stripActions'
+import { acceptHandoff, deleteStripByCallsign } from '../../utils/stripActions'
 
 interface StripTransferProps {
   stripId: string
@@ -25,23 +25,7 @@ export function StripTransfer({ stripId, panelName, index }: StripTransferProps)
 
   const handleAccept = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    try {
-      const res = await apiFetch('/api/accept-handoff', {
-        method: 'POST',
-        body: JSON.stringify({ code: getLinkCode(), callsign: fp.callsign }),
-      })
-      if (res.ok) {
-        deleteStripByCallsign(fp.callsign)
-        useFlightStore.getState().removeAircraft(fp.callsign)
-        const accepted = { ...fp, transfer: false }
-        useFlightStore.getState().addAircraft(fp.callsign, accepted)
-        renderAircraftAsStrip(accepted)
-      } else {
-        usePanelStore.getState().removeStrip(panelName, stripId)
-      }
-    } catch (err) {
-      console.error('Accept handoff failed:', err)
-    }
+    if (!(await acceptHandoff(fp))) usePanelStore.getState().removeStrip(panelName, stripId)
   }
 
   const handleRefuse = async (e: React.MouseEvent) => {
@@ -78,7 +62,7 @@ export function StripTransfer({ stripId, panelName, index }: StripTransferProps)
             data-euroscope={strip.euroscope ? 'true' : 'false'}
             data-panel={panelName}
           >
-            <span className="tag">Handover</span>
+            <span className="tag">{fp.transferFrom ? `Handover from ${fp.transferFrom}` : 'Handover'}</span>
             <h3>{fp.callsign}</h3>
             <span>
               {fp.departure} → {fp.arrival} · {fp.aircraftType || '---'}

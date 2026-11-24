@@ -92,6 +92,38 @@ export function deleteStripByCallsign(callsign: string): void {
   })
 }
 
+export async function resolveControllerCallsign(positionId: string): Promise<string> {
+  if (!positionId) return ''
+  const { linkCode } = useSettingsStore.getState().settings
+  try {
+    const res = await apiFetch(`/api/ATC-list?code=${linkCode}`)
+    const controllers: Array<{ callsign: string; positionId: string }> = await res.json()
+    return controllers.find((c) => c.positionId === positionId)?.callsign ?? positionId
+  } catch {
+    return positionId
+  }
+}
+
+export async function acceptHandoff(flight: FlightPlan): Promise<boolean> {
+  const { linkCode } = useSettingsStore.getState().settings
+  try {
+    const res = await apiFetch('/api/accept-handoff', {
+      method: 'POST',
+      body: JSON.stringify({ code: linkCode, callsign: flight.callsign }),
+    })
+    if (!res.ok) return false
+  } catch (err) {
+    console.error('Accept handoff failed:', err)
+    return false
+  }
+
+  deleteStripByCallsign(flight.callsign)
+  const accepted = { ...flight, transfer: false }
+  useFlightStore.getState().addAircraft(flight.callsign, accepted)
+  renderAircraftAsStrip(accepted)
+  return true
+}
+
 const ASSUME_CONFIRM_MS = 5000
 
 export async function assumeAircraft(callsign: string): Promise<void> {
@@ -104,13 +136,13 @@ export async function assumeAircraft(callsign: string): Promise<void> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
   } catch (err) {
     console.error('Assume aircraft failed:', err)
-    showToast(`Could not assume ${callsign}`, 'warning')
+    showToast(`Could not assume ${callsign}`, 'assume-failed')
     return
   }
 
   setTimeout(() => {
     const strip = usePanelStore.getState().getStrip(`strip-${callsign}`)
-    if (strip && !strip.euroscope) showToast(`Could not assume ${callsign}`, 'warning')
+    if (strip && !strip.euroscope) showToast(`Could not assume ${callsign}`, 'assume-failed')
   }, ASSUME_CONFIRM_MS)
 }
 
