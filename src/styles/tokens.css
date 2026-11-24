@@ -33,6 +33,19 @@
     --p-proc: #f0a367;
     --p-rwy: #ff8a7a;
 
+    --t-handover-offered: #f0a367;
+    --t-handover-accepted: #58d68d;
+    --t-assume-failed: #f0b75a;
+    --t-runway-unavailable: #ff9fc6;
+    --t-procedure-unavailable: #c4a1f5;
+    --t-pairing-failed: #ff8a7a;
+    --t-linked: #4fd1c5;
+    --t-connection-failed: #f07ae0;
+    --t-server-restarting: #9aa4ae;
+    --t-update-available: #6aa4ff;
+    --t-update-ready: #5fc8f0;
+    --t-dev-mode: #d4e157;
+
     --dark-bar: #10151a;
     --dark-bar-line: #1d252c;
     --dark-bar-ink: #c9d3dc;
@@ -99,4 +112,17 @@ body.theme-light {
     --p-vor: #1e6e3e;
     --p-proc: #a35200;
     --p-rwy: #a32a1f;
+
+    --t-handover-offered: #7d3f12;
+    --t-handover-accepted: #1d6b3c;
+    --t-assume-failed: #9a5b00;
+    --t-runway-unavailable: #a3245e;
+    --t-procedure-unavailable: #6b3fa0;
+    --t-pairing-failed: #a32a1f;
+    --t-linked: #0f6e66;
+    --t-connection-failed: #8a1f7c;
+    --t-server-restarting: #4a535c;
+    --t-update-available: #0b57d0;
+    --t-update-ready: #0a6a8e;
+    --t-dev-mode: #5f6b00;
 }

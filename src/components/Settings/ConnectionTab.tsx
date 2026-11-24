@@ -92,7 +92,7 @@ export function ConnectionTab({ s, update }: Props) {
     restartGateway(trimmed).catch(() => {})
     triggerReconnect()
     setGatewayMessage({ tone: 'wait', text: 'Restarting…' })
-    showToast('Server restarting…', 'info')
+    showToast('Server restarting…', 'server-restarting')
   }
 
   const handlePair = async () => {

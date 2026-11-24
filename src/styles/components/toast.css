@@ -44,16 +44,52 @@
    color: var(--toast);
 }
 
-.atm-toast.success {
-   --toast: var(--ok);
+.atm-toast.toast-handover-offered {
+   --toast: var(--t-handover-offered);
 }
 
-.atm-toast.error {
-   --toast: var(--no);
+.atm-toast.toast-handover-accepted {
+   --toast: var(--t-handover-accepted);
 }
 
-.atm-toast.warning {
-   --toast: var(--warn);
+.atm-toast.toast-assume-failed {
+   --toast: var(--t-assume-failed);
+}
+
+.atm-toast.toast-runway-unavailable {
+   --toast: var(--t-runway-unavailable);
+}
+
+.atm-toast.toast-procedure-unavailable {
+   --toast: var(--t-procedure-unavailable);
+}
+
+.atm-toast.toast-pairing-failed {
+   --toast: var(--t-pairing-failed);
+}
+
+.atm-toast.toast-linked {
+   --toast: var(--t-linked);
+}
+
+.atm-toast.toast-connection-failed {
+   --toast: var(--t-connection-failed);
+}
+
+.atm-toast.toast-server-restarting {
+   --toast: var(--t-server-restarting);
+}
+
+.atm-toast.toast-update-available {
+   --toast: var(--t-update-available);
+}
+
+.atm-toast.toast-update-ready {
+   --toast: var(--t-update-ready);
+}
+
+.atm-toast.toast-dev-mode {
+   --toast: var(--t-dev-mode);
 }
 
 .atm-toast.hiding {

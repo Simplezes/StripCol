@@ -286,7 +286,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
       if (newRunway && newRunway !== oldRunway && airport) {
         const runwaysObj = procedures?.[airport]?.[procType] ?? procedures?.[airport.toUpperCase()]?.[procType] ?? procedures?.[airport.toLowerCase()]?.[procType]
         if (!runwaysObj || !runwaysObj[newRunway]) {
-          showToast(`Runway ${newRunway} not available at ${airport}`, 'warning')
+          showToast(`Runway ${newRunway} not available at ${airport}`, 'runway-unavailable')
           const reverted = { ...localValues, [runwayKey]: oldRunway }
           setLocalValues(reverted)
           syncToStore(reverted)
@@ -300,7 +300,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
           })
 
           if (!matchedKey && baseProcName) {
-            showToast(`${baseProcName} not available on runway ${newRunway} at ${airport}`, 'warning')
+            showToast(`${baseProcName} not available on runway ${newRunway} at ${airport}`, 'procedure-unavailable')
             const reverted = { ...localValues, [runwayKey]: oldRunway }
             setLocalValues(reverted)
             syncToStore(reverted)

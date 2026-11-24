@@ -1,10 +1,30 @@
-type ToastType = 'info' | 'success' | 'error' | 'warning'
+export type ToastKind =
+  | 'handover-offered'
+  | 'handover-accepted'
+  | 'assume-failed'
+  | 'runway-unavailable'
+  | 'procedure-unavailable'
+  | 'pairing-failed'
+  | 'linked'
+  | 'connection-failed'
+  | 'server-restarting'
+  | 'update-available'
+  | 'update-ready'
+  | 'dev-mode'
 
-const ICONS: Record<ToastType, string> = {
-  info: 'info',
-  success: 'check_circle',
-  error: 'error',
-  warning: 'warning',
+const ICONS: Record<ToastKind, string> = {
+  'handover-offered': 'call_received',
+  'handover-accepted': 'done_all',
+  'assume-failed': 'block',
+  'runway-unavailable': 'flight_takeoff',
+  'procedure-unavailable': 'alt_route',
+  'pairing-failed': 'link_off',
+  linked: 'link',
+  'connection-failed': 'cloud_off',
+  'server-restarting': 'restart_alt',
+  'update-available': 'system_update_alt',
+  'update-ready': 'download_done',
+  'dev-mode': 'code',
 }
 
 function getOrCreateContainer(): HTMLElement {
@@ -17,15 +37,15 @@ function getOrCreateContainer(): HTMLElement {
   return container
 }
 
-export function showToast(message: string, type: ToastType = 'info'): void {
+export function showToast(message: string, kind: ToastKind): void {
   const container = getOrCreateContainer()
 
   const toast = document.createElement('div')
-  toast.className = `atm-toast ${type}`
+  toast.className = `atm-toast toast-${kind}`
 
   const icon = document.createElement('span')
   icon.className = 'material-icons toast-icon'
-  icon.textContent = ICONS[type]
+  icon.textContent = ICONS[kind]
 
   const msg = document.createElement('span')
   msg.className = 'toast-message'

@@ -15,7 +15,7 @@ import {
 } from '../utils/stripActions'
 import { buildInitialValues } from '../utils/stripValues'
 import { playNotificationSound, type NotificationSound } from '../utils/sound'
-import { showToast } from '../utils/toast'
+import { showToast, type ToastKind } from '../utils/toast'
 import type { FlightPlan } from '../types'
 import { HANDED_OFF_PANEL } from '../components/Layout/panelDefs'
 
@@ -82,8 +82,8 @@ export function useSSE(): void {
       playNotificationSound(kind)
     }
 
-    function notifyToast(message: string, type: 'info' | 'success') {
-      if (useSettingsStore.getState().settings.toastsEnabled) showToast(message, type)
+    function notifyToast(message: string, kind: ToastKind) {
+      if (useSettingsStore.getState().settings.toastsEnabled) showToast(message, kind)
     }
 
     function moveStripToHandedOff(callsign: string) {
@@ -275,7 +275,7 @@ export function useSSE(): void {
               renderAircraftAsStrip(flight)
               if (!live) return
               notify('handover', flight.callsign)
-              notifyToast(`Handover offered${from}: ${flight.callsign}`, 'info')
+              notifyToast(`Handover offered${from}: ${flight.callsign}`, 'handover-offered')
             }
 
             if (!useSettingsStore.getState().settings.autoAcceptTransfers) {
@@ -285,7 +285,7 @@ export function useSSE(): void {
 
             const accepted = await acceptHandoff(flight)
             if (!accepted) offerHandover()
-            else if (live) notifyToast(`Handover accepted${from}: ${flight.callsign}`, 'success')
+            else if (live) notifyToast(`Handover accepted${from}: ${flight.callsign}`, 'handover-accepted')
           })
 
           src.addEventListener('fpupdate', (e) => {

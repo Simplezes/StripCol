@@ -8,15 +8,15 @@ export async function pairWithCode(code: string): Promise<boolean> {
     const res = await apiFetch(`/api/pair/${code}`)
     const result = await res.json()
     if (!result.success) {
-      showToast(`Pairing failed: ${result.message}`, 'error')
+      showToast(`Pairing failed: ${result.message}`, 'pairing-failed')
       return false
     }
     useSettingsStore.getState().update({ linkCode: code })
     triggerReconnect()
-    showToast('Linked successfully!', 'success')
+    showToast('Linked successfully!', 'linked')
     return true
   } catch {
-    showToast('Connection failed', 'error')
+    showToast('Connection failed', 'connection-failed')
     return false
   }
 }

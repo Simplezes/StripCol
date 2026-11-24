@@ -84,7 +84,7 @@ export function AboutTab() {
     await checkForUpdates({
       onAvailable: (availableVersion) => {
         useUIStore.getState().setHasUpdate(true)
-        showToast(`Update available: V${availableVersion}`, 'info')
+        showToast(`Update available: V${availableVersion}`, 'update-available')
         setStatus({
           kind: 'download',
           download: { version: availableVersion, percent: 0, downloadedBytes: 0, totalBytes: 0, ready: false },
@@ -98,7 +98,7 @@ export function AboutTab() {
         )
       },
       onReady: (readyVersion) => {
-        showToast(`Update V${readyVersion} ready to install.`, 'success')
+        showToast(`Update V${readyVersion} ready to install.`, 'update-ready')
         setStatus((current) =>
           current.kind === 'download'
             ? { kind: 'download', download: { ...current.download, ready: true } }

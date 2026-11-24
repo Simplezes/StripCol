@@ -11,7 +11,7 @@ useSettingsStore.getState().load()
 checkForUpdates({
   onAvailable: (version) => {
     useUIStore.getState().setHasUpdate(true)
-    showToast(`Update available: V${version}`, 'info')
+    showToast(`Update available: V${version}`, 'update-available')
   },
 })
 
