@@ -670,10 +670,20 @@
     color: var(--accent);
 }
 
+.settings .fl {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin: 0 8px;
+}
+
+.settings .fa.off {
+    opacity: 0.35;
+}
+
 .settings .fa {
     position: relative;
-    flex: 1;
-    height: 34px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -685,14 +695,22 @@
     content: '';
     position: absolute;
     left: 0;
-    right: 12px;
-    top: 50%;
+    right: 5px;
+    top: calc(50% - 1px);
     height: 2px;
     background: var(--line);
 }
 
 .settings .fa.back::before {
+    left: 5px;
+    right: 0;
     background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px);
+}
+
+.settings .fa.back svg {
+    left: 0;
+    right: auto;
+    transform: scaleX(-1);
 }
 
 .settings .fa span {
