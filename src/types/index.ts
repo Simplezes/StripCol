@@ -6,10 +6,8 @@ export interface FlightPlan {
   arrival: string
   aircraftType?: string
   route?: string
-  altitude?: string
   squawk?: string
   clearanceReceived?: boolean
-  speed?: string
   remarks?: string
   transfer?: boolean
   transferFrom?: string

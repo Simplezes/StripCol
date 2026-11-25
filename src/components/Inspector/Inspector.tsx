@@ -5,7 +5,7 @@ import { buildLegs, routeWordClass } from '../ContextMenu/routeLegs'
 import { useSelectedStrip } from './useSelectedStrip'
 
 function value(input: unknown): string {
-  if (input === undefined || input === null || input === '') return '---'
+  if (input === undefined || input === null || input === '' || input === 0) return '---'
   return String(input)
 }
 
@@ -18,11 +18,11 @@ function FlightFacts({ fp, rwy }: { fp: FlightPlan; rwy: string }) {
       </div>
       <div>
         <small>ALTITUDE</small>
-        <b>{value(fp.altitude)}</b>
+        <b>{value(fp.finalAltitude)}</b>
       </div>
       <div>
         <small>SPEED</small>
-        <b>{value(fp.speed)}</b>
+        <b>{value(fp.groundSpeed)}</b>
       </div>
       <div>
         <small>RUNWAY</small>
