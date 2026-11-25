@@ -26,37 +26,61 @@ function formatMegabytes(bytes: number): string {
   return (bytes / BYTES_PER_MEGABYTE).toFixed(2)
 }
 
-function UpdateCard({ status, onInstall }: { status: UpdateStatus; onInstall: () => void }) {
-  if (status.kind === 'checking') return <p className="note">Checking for updates…</p>
-  if (status.kind === 'upToDate') return <p className="note ok">You are up to date.</p>
-  if (status.kind === 'error') return <p className="note bad">Update error: {status.message}</p>
-  if (status.kind !== 'download') return null
+function describeStatus(status: UpdateStatus, version: string): { detail: string; tone: string } {
+  if (status.kind === 'checking') return { detail: 'Checking for updates…', tone: '' }
+  if (status.kind === 'upToDate') return { detail: `You are on the latest version (${version}).`, tone: 'ok' }
+  if (status.kind === 'error') return { detail: `Update failed: ${status.message}`, tone: 'bad' }
+  if (status.kind !== 'download') return { detail: `Installed version ${version}.`, tone: '' }
 
-  const { version, percent, downloadedBytes, totalBytes, ready } = status.download
-  const rounded = Math.round(percent)
+  const { version: nextVersion, percent, downloadedBytes, totalBytes, ready } = status.download
+  if (ready) return { detail: `Version ${nextVersion} is ready to install.`, tone: 'ok' }
+  const size = totalBytes > 0 ? ` · ${formatMegabytes(downloadedBytes)} / ${formatMegabytes(totalBytes)} MB` : ''
+  return { detail: `Downloading ${nextVersion} — ${Math.round(percent)}%${size}`, tone: '' }
+}
+
+function UpdateRow({
+  status,
+  version,
+  onCheck,
+  onInstall,
+}: {
+  status: UpdateStatus
+  version: string
+  onCheck: () => void
+  onInstall: () => void
+}) {
+  const { detail, tone } = describeStatus(status, version)
+  const download = status.kind === 'download' ? status.download : null
+  const busy = status.kind === 'checking' || (download !== null && !download.ready)
 
   return (
     <div className="card upd">
       <div className="row">
         <div className="tx">
-          <b>Update available — v{version}</b>
-          <small>{ready ? 'Download complete.' : 'Downloading in the background.'}</small>
+          <b>Software update</b>
+          <small className={tone}>{detail}</small>
         </div>
-        {ready && (
+        {download?.ready ? (
           <button className="btn pri" onClick={onInstall}>
             Restart and install
           </button>
+        ) : (
+          <button className="btn" onClick={onCheck} disabled={busy}>
+            {busy ? 'Please wait…' : 'Check for updates'}
+          </button>
         )}
       </div>
-      <div className="bar2" role="progressbar" aria-valuenow={ready ? 100 : rounded} aria-valuemin={0} aria-valuemax={100}>
-        <i style={{ width: `${ready ? 100 : rounded}%` }} />
-      </div>
-      <div className="mt">
-        <span>{ready ? '100%' : `${rounded}%`}</span>
-        <span>
-          {formatMegabytes(downloadedBytes)} MB / {formatMegabytes(totalBytes)} MB
-        </span>
-      </div>
+      {download && (
+        <div
+          className="updbar"
+          role="progressbar"
+          aria-valuenow={download.ready ? 100 : Math.round(download.percent)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <i style={{ width: `${download.ready ? 100 : download.percent}%` }} />
+        </div>
+      )}
     </div>
   )
 }
@@ -121,17 +145,17 @@ export function AboutTab() {
         <div className="hero">
           <img src={heroLogo} alt="StripCol" />
           <span>Electronic flight strips for Colombia</span>
-          <span>Version {version}</span>
+          <span className="ver">Version {version}</span>
+          <small>&copy; 2026 StripCol Project. Designed for VATSIM Colombia.</small>
         </div>
-        <div>
-          <UpdateCard status={status} onInstall={installDownloadedUpdate} />
+        <div className="abside">
+          <UpdateRow
+            status={status}
+            version={version}
+            onCheck={handleCheckForUpdates}
+            onInstall={installDownloadedUpdate}
+          />
           <div className="card lk">
-            <button onClick={handleCheckForUpdates} disabled={status.kind === 'checking'}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
-              </svg>
-              Check for updates
-            </button>
             <button onClick={() => openExternal('https://github.com/simplezes')}>
               <ExternalIcon />
               Developer
@@ -143,7 +167,6 @@ export function AboutTab() {
               <span>MIT</span>
             </button>
           </div>
-          <p className="note">&copy; 2026 StripCol Project. Designed for VATSIM Colombia.</p>
         </div>
       </div>
     </>

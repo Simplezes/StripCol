@@ -1144,6 +1144,7 @@
 .settings .ab {
     display: grid;
     grid-template-columns: 260px 1fr;
+    align-items: start;
     gap: 16px;
 }
 
@@ -1151,8 +1152,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 24px 16px;
+    gap: 6px;
+    padding: 24px 16px 18px;
     background: var(--strip);
     border: 1px solid var(--hair);
     border-radius: 2px;
@@ -1163,40 +1164,72 @@
 
 .settings .hero img {
     max-width: 180px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.settings .hero .ver {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.settings .hero small {
+    margin-top: 12px;
+    padding-top: 12px;
+    width: 100%;
+    border-top: 1px solid var(--hair);
+    font-size: 12px;
+}
+
+.settings .abside {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
 }
 
 .settings .upd {
-    margin-bottom: 16px;
-    padding: 16px;
+    position: relative;
+    overflow: hidden;
 }
 
 .settings .upd .row {
-    padding: 0;
-    min-height: 0;
-    border: none;
+    border-bottom: none;
 }
 
-.settings .bar2 {
-    height: 8px;
-    margin: 10px 0 6px;
+.settings .upd small {
     overflow: hidden;
-    background: var(--chip);
-    border: 1px solid var(--hair);
-    border-radius: 1px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.settings .bar2 i {
+.settings .upd small.ok {
+    color: var(--ok);
+}
+
+.settings .upd small.bad {
+    color: var(--no);
+}
+
+.settings .upd .btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+    border-color: var(--line);
+}
+
+.settings .updbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--chip);
+}
+
+.settings .updbar i {
     display: block;
     height: 100%;
     background: var(--accent);
-}
-
-.settings .mt {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: var(--dim);
+    transition: width 0.2s ease;
 }
 
 .settings .lk {
@@ -1242,20 +1275,6 @@
     font-weight: 500;
     font-size: 13px;
     color: var(--dim);
-}
-
-.settings .note {
-    margin: 12px 0 0;
-    font-size: 13px;
-    color: var(--dim);
-}
-
-.settings .note.ok {
-    color: var(--ok);
-}
-
-.settings .note.bad {
-    color: var(--no);
 }
 
 @container (max-width: 940px) {
