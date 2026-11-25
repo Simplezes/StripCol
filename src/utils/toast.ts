@@ -11,6 +11,8 @@ export type ToastKind =
   | 'update-available'
   | 'update-ready'
   | 'dev-mode'
+  | 'plugin-installed'
+  | 'plugin-install-failed'
 
 const ICONS: Record<ToastKind, string> = {
   'handover-offered': 'call_received',
@@ -25,6 +27,8 @@ const ICONS: Record<ToastKind, string> = {
   'update-available': 'system_update_alt',
   'update-ready': 'download_done',
   'dev-mode': 'code',
+  'plugin-installed': 'extension',
+  'plugin-install-failed': 'extension_off',
 }
 
 function getOrCreateContainer(): HTMLElement {

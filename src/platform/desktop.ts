@@ -80,6 +80,11 @@ export async function closeWindow(): Promise<void> {
   await getCurrentWindow().close()
 }
 
+export async function installPlugin(): Promise<string | null> {
+  const { invoke } = await import('@tauri-apps/api/core')
+  return invoke<string | null>('install_plugin')
+}
+
 export async function openDevtools(): Promise<void> {
   if (!isDesktop) return
   const { invoke } = await import('@tauri-apps/api/core')

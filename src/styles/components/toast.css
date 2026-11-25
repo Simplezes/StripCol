@@ -92,6 +92,14 @@
    --toast: var(--t-dev-mode);
 }
 
+.atm-toast.toast-plugin-installed {
+   --toast: var(--t-update-ready);
+}
+
+.atm-toast.toast-plugin-install-failed {
+   --toast: var(--t-assume-failed);
+}
+
 .atm-toast.hiding {
    animation: toast-fade-out 0.25s ease forwards;
 }

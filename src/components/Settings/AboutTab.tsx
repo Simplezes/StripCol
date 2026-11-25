@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import heroLogo from '../../assets/icon_name.png'
 import { useUIStore } from '../../stores/uiStore'
 import { showToast } from '../../utils/toast'
-import { getAppVersion, openExternal } from '../../platform/desktop'
+import { getAppVersion, installPlugin, isDesktop, openExternal } from '../../platform/desktop'
 import { checkForUpdates, installDownloadedUpdate } from '../../platform/updater'
 
 const BYTES_PER_MEGABYTE = 1048576
@@ -134,6 +134,15 @@ export function AboutTab() {
     })
   }
 
+  const handleInstallPlugin = async () => {
+    try {
+      const installedPath = await installPlugin()
+      if (installedPath) showToast(`Plugin saved to ${installedPath}`, 'plugin-installed')
+    } catch (error) {
+      showToast(String(error), 'plugin-install-failed')
+    }
+  }
+
   return (
     <>
       <div className="ph">
@@ -156,6 +165,15 @@ export function AboutTab() {
             onInstall={installDownloadedUpdate}
           />
           <div className="card lk">
+            {isDesktop && (
+              <button onClick={handleInstallPlugin}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+                </svg>
+                Load plugin on EuroScope
+                <span>StripCol.dll</span>
+              </button>
+            )}
             <button onClick={() => openExternal('https://github.com/simplezes')}>
               <ExternalIcon />
               Developer
