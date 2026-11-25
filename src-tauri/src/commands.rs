@@ -2,7 +2,10 @@ use crate::gateway;
 use crate::screen_color;
 use crate::settings::{self, Settings};
 use crate::state::AppState;
-use tauri::{AppHandle, Emitter, PhysicalPosition, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use std::fs;
+use tauri::path::BaseDirectory;
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri_plugin_dialog::DialogExt;
 
 #[tauri::command]
 pub fn save_settings(app: AppHandle, state: State<AppState>, settings: Settings) {
@@ -115,4 +118,40 @@ pub fn restart_gateway(app: AppHandle, state: State<AppState>, server_ip: String
 #[tauri::command]
 pub fn open_devtools(window: WebviewWindow) {
     window.open_devtools();
+}
+
+const PLUGIN_FILES: [&str; 2] = ["StripCol.dll", "data/procedures.json"];
+const WINDOWS_SHARING_VIOLATION: i32 = 32;
+
+#[tauri::command]
+pub async fn install_plugin(app: AppHandle) -> Result<Option<String>, String> {
+    let Some(picked) = app
+        .dialog()
+        .file()
+        .set_title("Choose the folder to install the StripCol plugin")
+        .blocking_pick_folder()
+    else {
+        return Ok(None);
+    };
+    let target = picked.into_path().map_err(|e| e.to_string())?;
+
+    for file in PLUGIN_FILES {
+        let source = app
+            .path()
+            .resolve(format!("plugin/{file}"), BaseDirectory::Resource)
+            .map_err(|e| e.to_string())?;
+        let destination = target.join(file);
+        if let Some(parent) = destination.parent() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        fs::copy(&source, &destination).map_err(|e| {
+            if e.raw_os_error() == Some(WINDOWS_SHARING_VIOLATION) {
+                format!("{file} is in use. Unload the plugin in EuroScope and try again.")
+            } else {
+                format!("Could not copy {file}: {e}")
+            }
+        })?;
+    }
+
+    Ok(Some(target.join(PLUGIN_FILES[0]).display().to_string()))
 }
