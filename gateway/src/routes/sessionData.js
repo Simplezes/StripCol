@@ -64,7 +64,11 @@ function registerSessionDataRoutes(app) {
     }
 
     const requestedNames = points ? points.split(',').map((name) => name.toUpperCase()) : [];
-    const allPoints = [...(aircraft.arrivalPoints || []), ...(aircraft.departurePoints || [])];
+    const allPoints = [
+      ...(aircraft.routePoints || []),
+      ...(aircraft.arrivalPoints || []),
+      ...(aircraft.departurePoints || []),
+    ];
     response.json(
       allPoints.filter(
         (point) => requestedNames.length === 0 || requestedNames.includes((point.name || '').toUpperCase()),

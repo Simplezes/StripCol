@@ -6,6 +6,7 @@ const ALLOWED_ACTIONS = new Set([
   'set-squawk',
   'set-clearance',
   'set-departureTime',
+  'set-eobt',
   'set-assigned-mach',
   'set-assigned-speed',
   'set-direct-point',
