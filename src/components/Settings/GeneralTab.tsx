@@ -100,6 +100,12 @@ export function GeneralTab({ s, update }: Props) {
           <SettingRow title="Revert to Pending" description="Send the strip back when the cleared flag is removed." disabled={!s.autoMoveClearance}>
             <Toggle label="Revert to Pending" checked={s.autoMoveRevert} onChange={(v) => updateAutoMove({ autoMoveRevert: v })} />
           </SettingRow>
+          <SettingRow
+            title="Auto-fill times"
+            description="Fill strip times as things happen: clearance, taxi, take-off, landing, first contact, transfer and times over points. Triple-click still stamps by hand."
+          >
+            <Toggle label="Auto-fill times" checked={s.autoFillTimes} onChange={(v) => update({ autoFillTimes: v })} />
+          </SettingRow>
         </div>
       </section>
 
