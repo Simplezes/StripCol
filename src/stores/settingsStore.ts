@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS: Settings = {
   autoMoveClearance: false,
   autoMoveRevert: false,
   autoAcceptTransfers: false,
+  autoFillTimes: true,
 }
 
 function loadFromStorage(): Settings {

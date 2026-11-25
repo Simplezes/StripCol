@@ -1,7 +1,6 @@
-import { useConnectionStore } from '../../stores/connectionStore'
 import { usePanelStore } from '../../stores/panelStore'
 import type { FlightPlan, StripType } from '../../types'
-import { buildInitialValues } from '../../utils/stripValues'
+import { freshStripValues } from '../../utils/stripActions'
 import { Item } from './MenuParts'
 
 export const TYPE_OPTIONS: Array<{ value: StripType; label: string; swatch: string }> = [
@@ -21,9 +20,8 @@ interface TypeViewProps {
 export function TypeView({ stripId, panelName, currentType, flight, onClose }: TypeViewProps) {
   const handleSelect = (newType: StripType) => {
     if (newType === currentType) return
-    const { controllerMode } = useConnectionStore.getState()
-    const values = flight ? buildInitialValues(flight, newType, controllerMode) : {}
-    usePanelStore.getState().updateStrip(panelName, stripId, { type: newType, values })
+    const fill = flight ? freshStripValues(flight, newType) : { values: {}, autoCells: [] }
+    usePanelStore.getState().updateStrip(panelName, stripId, { type: newType, ...fill })
     onClose()
   }
 

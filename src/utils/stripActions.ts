@@ -1,12 +1,13 @@
-import type { FlightPlan, StripData, StripType } from '../types'
+import type { ControllerMode, FlightPlan, StripData, StripType } from '../types'
 import { usePanelStore } from '../stores/panelStore'
-import { useConnectionStore } from '../stores/connectionStore'
+import { modeOfBoard, useConnectionStore } from '../stores/connectionStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useAssetsStore } from '../stores/assetsStore'
 import { useFlightStore } from '../stores/flightStore'
 import { apiFetch } from './api'
 import { showToast } from './toast'
-import { buildInitialValues, CUSTOM_BOX_KEYS } from './stripValues'
+import { buildStripValues, type FillOptions, type StripFill } from './stripFill'
+import { freeCells, layoutFor, unitOf, type Unit } from './stripLayout'
 
 export function panelNameToStripType(panelName: string): StripType | null {
   const n = panelName.toLowerCase()
@@ -57,7 +58,63 @@ export function resolveTargetPanel(
   return 'Pending'
 }
 
-export function renderAircraftAsStrip(flight: FlightPlan): void {
+const SUFFIX_MODES: Record<string, ControllerMode> = {
+  DEL: 'aerodrome',
+  GND: 'aerodrome',
+  TWR: 'aerodrome',
+  APP: 'approach',
+  DEP: 'approach',
+  CTR: 'center',
+  FSS: 'center',
+}
+
+function modeOfSuffix(suffix: string): ControllerMode {
+  return SUFFIX_MODES[suffix.toUpperCase()] ?? ''
+}
+
+export function stripFillOptions(assumed = false): FillOptions {
+  const { procedures, transfers, positions } = useAssetsStore.getState()
+  const { controllerMode, detectedFacility, positionId } = useConnectionStore.getState()
+  const boardUnit = unitOf(controllerMode)
+  const ownBoard = unitOf(modeOfBoard(detectedFacility)) === boardUnit && !!positionId
+  const unitPositions = positions
+    .filter((position) => {
+      const mode = modeOfSuffix(position.suffix)
+      return mode !== '' && unitOf(mode) === boardUnit
+    })
+    .map((position) => position.id)
+  return {
+    procedures,
+    transfers,
+    ownPositions: ownBoard ? [positionId] : unitPositions,
+    euroscopeTransfers: ownBoard,
+    autoTimes: useSettingsStore.getState().settings.autoFillTimes,
+    assumed,
+  }
+}
+
+function ownValues(strip: StripData, unit: Unit): Record<string, string> {
+  const own: Record<string, string> = {}
+  freeCells(layoutFor(unit, strip.type)).forEach((key) => {
+    if (strip.values[key] && !strip.autoCells?.includes(key)) own[key] = strip.values[key]
+  })
+  return own
+}
+
+function switchUnit(old: StripData, rebuilt: StripData, mode: ControllerMode): Partial<StripData> {
+  const unit = unitOf(mode)
+  const saved = { ...old.unitValues, [old.unit ?? unit]: ownValues(old, old.unit ?? unit) }
+  const restored = saved[unit] ?? {}
+  delete saved[unit]
+  const fill = buildStripValues(rebuilt.flightPlan!, rebuilt.type, mode, { values: restored, autoCells: [], flightPlan: null }, stripFillOptions())
+  return { ...fill, unitValues: saved }
+}
+
+export function freshStripValues(flight: FlightPlan, type: string): StripFill {
+  return buildStripValues(flight, type, useConnectionStore.getState().controllerMode, null, stripFillOptions())
+}
+
+export function renderAircraftAsStrip(flight: FlightPlan, assumed = false): void {
   if (!flight?.callsign) return
   const id = `strip-${flight.callsign}`
   if (usePanelStore.getState().getStrip(id)) return
@@ -69,7 +126,7 @@ export function renderAircraftAsStrip(flight: FlightPlan): void {
   const strip: StripData = {
     id,
     type,
-    values: buildInitialValues(flight, type, controllerMode),
+    ...buildStripValues(flight, type, controllerMode, null, stripFillOptions(assumed)),
     euroscope: true,
     flightPlan: flight,
     lastUpdate: Date.now(),
@@ -92,16 +149,39 @@ export function deleteStripByCallsign(callsign: string): void {
   })
 }
 
-export async function resolveControllerCallsign(positionId: string): Promise<string> {
-  if (!positionId) return ''
+interface ControllerEntry {
+  callsign: string
+  positionId: string
+  frequency: string
+}
+
+async function findController(positionId: string): Promise<ControllerEntry | undefined> {
+  if (!positionId) return undefined
   const { linkCode } = useSettingsStore.getState().settings
   try {
     const res = await apiFetch(`/api/ATC-list?code=${linkCode}`)
-    const controllers: Array<{ callsign: string; positionId: string }> = await res.json()
-    return controllers.find((c) => c.positionId === positionId)?.callsign ?? positionId
+    const controllers: ControllerEntry[] = await res.json()
+    return controllers.find((c) => c.positionId === positionId)
   } catch {
-    return positionId
+    return undefined
   }
+}
+
+export async function resolveControllerCallsign(positionId: string): Promise<string> {
+  if (!positionId) return ''
+  return (await findController(positionId))?.callsign ?? positionId
+}
+
+export async function fillTransferFrequency(stripId: string, positionId: string, cell: string): Promise<void> {
+  const controller = await findController(positionId)
+  const frequency = Number(controller?.frequency)
+  if (!Number.isFinite(frequency) || frequency <= 0) return
+
+  const store = usePanelStore.getState()
+  const panel = store.panels.find((p) => p.strips.some((s) => s.id === stripId))
+  const strip = panel?.strips.find((s) => s.id === stripId)
+  if (!panel || !strip || strip.values[cell]) return
+  store.updateStrip(panel.name, stripId, { values: { ...strip.values, [cell]: frequency.toFixed(3) } })
 }
 
 export async function acceptHandoff(flight: FlightPlan): Promise<boolean> {
@@ -209,15 +289,11 @@ export function rebuildBoard(panelNames: string[]): void {
 
     renderAircraftAsStrip(aircraftMap[callsign] ?? old.flightPlan!)
 
-    const custom: Record<string, string> = {}
-    CUSTOM_BOX_KEYS.forEach((key) => {
-      if (old.values[key]) custom[key] = old.values[key]
-    })
-    if (Object.keys(custom).length === 0) return
-
     const current = usePanelStore.getState()
     const panel = current.panels.find((p) => p.strips.some((s) => s.id === old.id))
     const rebuilt = panel?.strips.find((s) => s.id === old.id)
-    if (panel && rebuilt) current.updateStrip(panel.name, old.id, { values: { ...rebuilt.values, ...custom } })
+    if (panel && rebuilt?.flightPlan) {
+      current.updateStrip(panel.name, old.id, switchUnit(old, rebuilt, useConnectionStore.getState().controllerMode))
+    }
   })
 }

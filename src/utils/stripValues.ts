@@ -1,22 +1,14 @@
 import type { FlightPlan, ControllerMode } from '../types'
+import { layoutFor } from './stripLayout'
 
 export const CLEARANCE_FLAG_MARK = 'Ⓑ'
 
-export function isClearanceFlagCell(key: string, mode: ControllerMode, type: string): boolean {
-  return key === 'c12' && mode === 'aerodrome' && type === 'departure'
-}
-
-export function runwayCellKey(mode: ControllerMode, type: string): string {
-  return mode === 'aerodrome' && type === 'departure' ? 'c16' : 'c18'
-}
-
-export function hasRunwayInCell18(mode: ControllerMode, type: string): boolean {
-  if (mode === 'aerodrome') return type === 'arrival'
-  return type !== 'overfly'
+export function isTowerDeparture(mode: ControllerMode, type: string): boolean {
+  return mode === 'aerodrome' && type === 'departure'
 }
 
 export function formatTime(time: unknown): string {
-  if (time == null) return ''
+  if (time == null || time === '') return ''
   return String(time).padStart(4, '0')
 }
 
@@ -30,7 +22,7 @@ export function formatClearedAltitude(clearedAlt: unknown, finalAlt: unknown): s
   if (clearedAlt == 0) return ''
   if (parseInt(String(clearedAlt), 10) === parseInt(String(finalAlt), 10)) return ''
   if (clearedAlt == 1) return 'CA'
-  if (clearedAlt == 2) return 'VA'
+  if (clearedAlt == 2) return 'VAP'
   return formatAltitude(clearedAlt) || ''
 }
 
@@ -48,66 +40,45 @@ export function extractStatus(remarks: unknown): string {
   return match ? match[1] : match2 ? match2[1] : ''
 }
 
-export function buildInitialValues(
-  flight: FlightPlan,
-  type: string,
-  controllerMode: ControllerMode,
-): Record<string, string> {
-  const v: Record<string, string> = {}
-
-  const set = (key: string, value: string | undefined | null) => {
-    if (value !== undefined && value !== null && value !== '') v[key] = value
-  }
-
-  set('c1', flight.callsign)
-  set('c2', flight.aircraftType as string)
-  set('c3', flight.groundSpeed != null ? 'N' + String(flight.groundSpeed) : '')
-  set('c4', flight.departure)
-  set('c5', flight.arrival)
-  set('c6', flight.squawk ? 'A' + String(flight.squawk) : '')
-  set('c7', formatTime(flight.atd))
-
-  if (type === 'departure') set('c8', flight.sid as string)
-  else if (type === 'arrival') set('c8', flight.star as string)
-
-  set('c10', extractRegistration(flight.remarks))
-  const statusStr = extractStatus(flight.remarks)
-  if (statusStr) set('c11', 'STS/' + statusStr)
-
-  if (flight.finalAltitude != null) set('c13', 'F' + formatAltitude(flight.finalAltitude))
-  set('c14', formatClearedAltitude(flight.clearedAltitude, flight.finalAltitude))
-
-  if (controllerMode === 'aerodrome') {
-    if (type === 'departure') {
-      set('c12', flight.clearanceReceived ? CLEARANCE_FLAG_MARK : '')
-      set('c16', flight.departureRwy as string)
-    } else if (type === 'arrival') {
-      set('c18', flight.arrivalRwy as string)
-      set('c32', flight.estimatedArrival as string)
-    }
-  } else {
-    const spd =
-      (flight.assignedSpeed as number) === 0
-        ? (flight.assignedMach as number) === 0
-          ? ''
-          : String(flight.assignedMach)
-        : String(flight.assignedSpeed ?? '')
-    set('c9', spd)
-    set('c12', flight.directTo as string)
-    const hdg = (flight.assignedHeading as number) === 0 ? '' : String(flight.assignedHeading ?? '')
-    set('c16', hdg)
-
-    if (type === 'arrival') {
-      set('c18', flight.arrivalRwy as string)
-      set('c32', flight.estimatedArrival as string)
-    } else if (type === 'departure' && controllerMode === 'approach') {
-      set('c18', flight.departureRwy as string)
-    }
-  }
-
-  return v
+function procedureCell(flight: FlightPlan, type: string): string {
+  const procedure = type === 'arrival' ? flight.star : type === 'departure' ? flight.sid : ''
+  if (!procedure) return ''
+  return flight.clearanceReceived ? `${procedure} ${CLEARANCE_FLAG_MARK}` : procedure
 }
 
-export const CUSTOM_BOX_INDICES = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+function speedCell(flight: FlightPlan): string {
+  if (flight.assignedSpeed) return String(flight.assignedSpeed)
+  return flight.assignedMach ? String(flight.assignedMach) : ''
+}
 
-export const CUSTOM_BOX_KEYS = CUSTOM_BOX_INDICES.map((i) => `c${i + 1}`)
+export function dataValues(flight: FlightPlan, type: string, mode: ControllerMode): Record<string, string> {
+  const towerDeparture = isTowerDeparture(mode, type)
+  const status = extractStatus(flight.remarks)
+
+  const candidates: Record<string, string | undefined> = {
+    c1: flight.callsign,
+    c2: flight.aircraftType,
+    c3: flight.groundSpeed ? 'N' + String(flight.groundSpeed).padStart(4, '0') : '',
+    c4: flight.departure,
+    c5: flight.arrival,
+    c6: flight.squawk ? 'A' + String(flight.squawk) : '',
+    c7: formatTime(towerDeparture ? flight.estimatedDepartureTime : flight.atd),
+    c8: procedureCell(flight, type),
+    c9: speedCell(flight),
+    c10: extractRegistration(flight.remarks),
+    c11: status ? 'STS/' + status : '',
+    c12: flight.directTo,
+    c13: flight.finalAltitude != null ? formatAltitude(flight.finalAltitude) : '',
+    c14: formatClearedAltitude(flight.clearedAltitude, flight.finalAltitude),
+    c16: towerDeparture ? flight.departureRwy : flight.assignedHeading ? String(flight.assignedHeading) : '',
+    c18: type === 'arrival' ? flight.arrivalRwy : flight.departureRwy,
+    c32: flight.estimatedArrival,
+  }
+
+  const values: Record<string, string> = {}
+  layoutFor(mode, type).data.forEach((key) => {
+    const value = candidates[key]
+    if (value) values[key] = value
+  })
+  return values
+}

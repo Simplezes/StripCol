@@ -2,6 +2,7 @@ import { useConnectionStore } from '../../stores/connectionStore'
 import { usePanelStore } from '../../stores/panelStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { apiFetch } from '../../utils/api'
+import { layoutFor, pointCellsCleared } from '../../utils/stripLayout'
 
 export type ProceduresJson = Record<string, Record<string, Record<string, unknown>>>
 
@@ -53,12 +54,8 @@ export async function applyProcedure(
   const normalizedRunway = runway.trim().toUpperCase()
   const normalizedProcName = procName.split('/')[0].trim().toUpperCase()
 
-  let runwayKey: string | null = null
-  if (procType === 'STAR' || controllerMode === 'approach' || controllerMode === 'center') {
-    runwayKey = 'c18'
-  } else if (procType === 'SID' && controllerMode === 'aerodrome') {
-    runwayKey = 'c16'
-  }
+  const layout = layoutFor(controllerMode, strip.type)
+  const runwayKey = layout.runway
 
   if (code && callsign) {
     const fieldName = procType === 'STAR' ? 'star' : 'sid'
@@ -75,8 +72,7 @@ export async function applyProcedure(
     }
   }
 
-  const clearedNotifPoints: Record<string, string> = {}
-  for (let i = 19; i <= 27; i++) clearedNotifPoints[`c${i}`] = ''
+  const clearedNotifPoints = pointCellsCleared(layout)
 
   usePanelStore.getState().updateStrip(panelName, stripId, {
     values: {

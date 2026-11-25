@@ -27,6 +27,10 @@ const MODE_OF_BOARD: Record<FacilityType, ControllerMode> = {
   center: 'center',
 }
 
+export function modeOfBoard(board: FacilityType): ControllerMode {
+  return MODE_OF_BOARD[board]
+}
+
 function loadBoardOverride(): FacilityType | null {
   try {
     const saved = localStorage.getItem(BOARD_KEY) as FacilityType | null

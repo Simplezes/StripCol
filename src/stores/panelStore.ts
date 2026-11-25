@@ -36,6 +36,9 @@ function sanitizeStrip(s: unknown): StripData | null {
     euroscope: Boolean(o.euroscope),
     flightPlan: o.flightPlan && typeof o.flightPlan === 'object' ? (o.flightPlan as StripData['flightPlan']) : null,
     lastUpdate: typeof o.lastUpdate === 'number' ? o.lastUpdate : Date.now(),
+    autoCells: Array.isArray(o.autoCells) ? o.autoCells.filter((k): k is string => typeof k === 'string') : undefined,
+    unit: o.unit === 'aerodrome' || o.unit === 'approach' || o.unit === 'center' ? o.unit : undefined,
+    unitValues: o.unitValues && typeof o.unitValues === 'object' ? (o.unitValues as StripData['unitValues']) : undefined,
   }
 }
 

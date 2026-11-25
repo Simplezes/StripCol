@@ -5,15 +5,17 @@ import { useFlightStore } from '../stores/flightStore'
 import { usePanelStore, isFieldClearPending } from '../stores/panelStore'
 import { useAssetsStore } from '../stores/assetsStore'
 import { apiFetch, getGatewayUrl } from '../utils/api'
-import { CUSTOM_BOX_KEYS } from '../utils/stripValues'
 import {
   renderAircraftAsStrip,
   deleteStripByCallsign,
   autoMoveOnClearance,
   acceptHandoff,
+  fillTransferFrequency,
   resolveControllerCallsign,
+  stripFillOptions,
 } from '../utils/stripActions'
-import { buildInitialValues } from '../utils/stripValues'
+import { buildStripValues, startedHandoff } from '../utils/stripFill'
+import { layoutFor } from '../utils/stripLayout'
 import { playNotificationSound, type NotificationSound } from '../utils/sound'
 import { showToast, type ToastKind } from '../utils/toast'
 import type { FlightPlan } from '../types'
@@ -111,21 +113,15 @@ export function useSSE(): void {
         const strip = p.strips.find((s) => s.id === id)
         if (!strip) return
 
-        const newVals = buildInitialValues(flight, strip.type, controllerMode)
+        const fill = buildStripValues(flight, strip.type, controllerMode, strip, stripFillOptions())
+        if (isFieldClearPending(id, 'c12')) delete fill.values.c12
 
-        const preserved: Record<string, string> = {}
-        CUSTOM_BOX_KEYS.forEach((k) => {
-          if (strip.values[k]) preserved[k] = strip.values[k]
-        })
+        usePanelStore.getState().updateStrip(p.name, id, { flightPlan: flight, ...fill })
 
-        ;(['c12'] as const).forEach((k) => {
-          if (isFieldClearPending(id, k)) delete newVals[k]
-        })
-
-        usePanelStore.getState().updateStrip(p.name, id, {
-          flightPlan: flight,
-          values: { ...newVals, ...preserved },
-        })
+        const frequencyCell = layoutFor(controllerMode, strip.type).frequency
+        if (frequencyCell && useSettingsStore.getState().settings.autoFillTimes && startedHandoff(strip.flightPlan, flight)) {
+          fillTransferFrequency(id, flight.handoffTargetControllerId ?? '', frequencyCell)
+        }
 
         if (!!strip.flightPlan?.clearanceReceived !== !!flight.clearanceReceived) {
           autoMoveOnClearance(id, p.name, !!flight.clearanceReceived)
@@ -247,7 +243,7 @@ export function useSSE(): void {
               if (releasedIn || wasTracked) {
                 deleteStripByCallsign(flight.callsign)
               }
-              renderAircraftAsStrip(flight)
+              renderAircraftAsStrip(flight, isLiveEvent())
             }
             notify('assumed', flight.callsign)
           })

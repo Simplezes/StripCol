@@ -30,6 +30,7 @@ export interface FlightPlan {
   nextCopxPoint?: string
   departurePoints?: Array<{ name: string; eta?: string }>
   arrivalPoints?: Array<{ name: string; eta?: string }>
+  routePoints?: Array<{ name: string; eta?: string; ato?: string }>
   aircraftInfo?: string
   alternate?: string
   assignedCommunicationType?: string
@@ -65,6 +66,9 @@ export interface StripData {
   euroscope: boolean
   flightPlan: FlightPlan | null
   lastUpdate: number
+  autoCells?: string[]
+  unit?: 'aerodrome' | 'approach' | 'center'
+  unitValues?: Partial<Record<'aerodrome' | 'approach' | 'center', Record<string, string>>>
 }
 
 export interface PanelData {
@@ -91,6 +95,7 @@ export interface Settings {
   autoMoveClearance: boolean
   autoMoveRevert: boolean
   autoAcceptTransfers: boolean
+  autoFillTimes: boolean
 }
 
 export type ControllerMode = 'aerodrome' | 'approach' | 'center' | ''

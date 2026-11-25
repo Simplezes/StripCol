@@ -9,6 +9,23 @@ export interface SectorEntry {
 
 export type SectorsData = Record<string, SectorEntry>
 
+export interface SectorPosition {
+  callsign: string
+  frequency: string
+  id: string
+  suffix: string
+}
+
+export interface TransferPoint {
+  previous: string
+  departureRunway: string
+  fix: string
+  next: string
+  arrivalRunway: string
+  fromOwners: string[]
+  toOwners: string[]
+}
+
 const LOCAL_PROCEDURES = './assets/procedures.json'
 const LOCAL_SECTORS = './assets/sectors.json'
 
@@ -33,11 +50,13 @@ async function fetchSectors(): Promise<unknown> {
 interface AssetsState {
   procedures: ProceduresData
   sectors: SectorsData
+  transfers: TransferPoint[]
+  positions: SectorPosition[]
   loaded: boolean
   fromSectorFile: boolean
 
   load: () => Promise<void>
-  applySectorData: (data: { procedures?: ProceduresData; sectors?: SectorsData }) => void
+  applySectorData: (data: { procedures?: ProceduresData; sectors?: SectorsData; transfers?: TransferPoint[]; positions?: SectorPosition[] }) => void
 
   checkSector: (positionId: string, airportCode: string) => boolean
 }
@@ -45,6 +64,8 @@ interface AssetsState {
 export const useAssetsStore = create<AssetsState>((set, get) => ({
   procedures: {},
   sectors: {},
+  transfers: [],
+  positions: [],
   loaded: false,
   fromSectorFile: false,
 
@@ -74,6 +95,8 @@ export const useAssetsStore = create<AssetsState>((set, get) => ({
     set((state) => ({
       procedures: hasProcedures ? (data.procedures as ProceduresData) : state.procedures,
       sectors: data.sectors ?? state.sectors,
+      transfers: Array.isArray(data.transfers) ? data.transfers : state.transfers,
+      positions: Array.isArray(data.positions) ? data.positions : state.positions,
       fromSectorFile: hasProcedures || state.fromSectorFile,
     }))
   },

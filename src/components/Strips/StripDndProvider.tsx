@@ -4,9 +4,7 @@ import { usePanelStore } from '../../stores/panelStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useDragStore } from '../../stores/dragStore'
 import { activeSort, isOrdered, sortStrips, type SortKey } from '../Layout/sectionSort'
-import { useConnectionStore } from '../../stores/connectionStore'
-import { buildInitialValues } from '../../utils/stripValues'
-import { assumeAircraft, panelNameToStripType } from '../../utils/stripActions'
+import { assumeAircraft, freshStripValues, panelNameToStripType } from '../../utils/stripActions'
 import type { StripData } from '../../types'
 import { useStripPointerSensor } from './useStripPointerSensor'
 
@@ -35,11 +33,10 @@ function moveToPanel(strip: StripData, sourcePanel: string, targetPanel: string,
 
   const inferredType = panelNameToStripType(targetPanel)
   if (inferredType && inferredType !== strip.type && strip.type !== 'transfer') {
-    const { controllerMode } = useConnectionStore.getState()
-    const values = strip.flightPlan
-      ? buildInitialValues(strip.flightPlan, inferredType, controllerMode)
-      : { ...strip.values }
-    state.updateStrip(sourcePanel, strip.id, { type: inferredType, values })
+    const fill = strip.flightPlan
+      ? freshStripValues(strip.flightPlan, inferredType)
+      : { values: { ...strip.values }, autoCells: [] }
+    state.updateStrip(sourcePanel, strip.id, { type: inferredType, ...fill })
   }
 
   state.moveStrip(sourcePanel, targetPanel, strip.id, insertAt)
