@@ -46,10 +46,11 @@ function createSeaBlob(bundlePath) {
 async function applyWindowsIdentity(executablePath) {
   const packageJson = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'))
   await rcedit(executablePath, {
+    icon: join(projectRoot, 'src-tauri', 'icons', 'icon.ico'),
     'file-version': packageJson.version,
     'product-version': packageJson.version,
     'version-string': {
-      FileDescription: 'StripCol Gateway',
+      FileDescription: 'StripCol',
       ProductName: 'StripCol',
       CompanyName: packageJson.author,
       LegalCopyright: `Copyright (c) ${packageJson.author}`,
