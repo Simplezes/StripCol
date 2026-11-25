@@ -38,7 +38,8 @@
     ],
     "externalBin": ["binaries/gateway"],
     "resources": {
-      "../plugin/StripCol.dll": "plugin/StripCol.dll"
+      "../plugin/StripCol.dll": "plugin/StripCol.dll",
+      "../plugin/data/procedures.json": "plugin/data/procedures.json"
     },
     "windows": {
       "nsis": {
