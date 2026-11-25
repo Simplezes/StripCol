@@ -4,6 +4,8 @@ import { useConnectionStore } from '../../../stores/connectionStore'
 import { useCellPickerStore } from '../../../stores/cellPickerStore'
 import { usePanelStore } from '../../../stores/panelStore'
 import type { FlightPlan } from '../../../types'
+import { toggleClearance } from '../../../utils/stripActions'
+import { layoutFor } from '../../../utils/stripLayout'
 import { Group, Item, Sep } from '../../ContextMenu/MenuParts'
 import { ProcedurePicker } from '../../ContextMenu/ProcedurePicker'
 import { positionSafely } from '../../ContextMenu/menuHelpers'
@@ -116,10 +118,6 @@ const BODIES: Record<string, (props: BodyProps) => JSX.Element> = {
   c14: ClearedLevelBody,
   c16: HeadingBody,
   c18: RunwayBody,
-  c19: PointsBody,
-  c20: PointsBody,
-  c21: PointsBody,
-  c22: PointsBody,
 }
 
 export function CellPickerLayer() {
@@ -143,7 +141,9 @@ export function CellPickerLayer() {
   if (!open || !strip) return null
 
   const flight = strip.flightPlan
-  const runwayInHeadingCell = open.cell === 'c16' && mode === 'aerodrome'
+  const layout = layoutFor(mode, strip.type)
+  const spec = layout.cells[open.cell]
+  const runwayInHeadingCell = open.cell === 'c16' && layout.runway === 'c16'
   const current = strip.values[open.cell] ?? ''
   const pick = (value: string) => {
     applyCellValue(open.stripId, open.cell, value)
@@ -155,9 +155,22 @@ export function CellPickerLayer() {
       const isArrival = strip.type === 'arrival'
       const airport = (isArrival ? flight?.arrival : flight?.departure) ?? ''
       if (!flight || strip.type === 'overfly' || !airport) return <Group label="No procedure for this strip" />
-      return <ProcedurePicker airport={airport} procType={isArrival ? 'STAR' : 'SID'} stripId={open.stripId} panelName={open.panelName} onClose={close} />
+      const picker = <ProcedurePicker airport={airport} procType={isArrival ? 'STAR' : 'SID'} stripId={open.stripId} panelName={open.panelName} onClose={close} />
+      if (!strip.euroscope) return picker
+      const toggle = () => {
+        toggleClearance(flight)
+        close()
+      }
+      return (
+        <div className="cm-col">
+          <div className="cm w300" role="menu">
+            <Item icon="check" label={flight.clearanceReceived ? 'Remove clearance' : 'Clearance received'} onClick={toggle} />
+          </div>
+          {picker}
+        </div>
+      )
     }
-    const Body = runwayInHeadingCell ? RunwayBody : BODIES[open.cell]
+    const Body = runwayInHeadingCell ? RunwayBody : spec?.kind === 'point' ? PointsBody : BODIES[open.cell]
     return Body ? <Body flight={flight} type={strip.type} current={current} pick={pick} /> : null
   }
 
@@ -176,7 +189,7 @@ export function CellPickerLayer() {
       >
         {standalone ? (
           <div className="cm w240 pk-menu" role="menu" data-type={strip.type}>
-            <Group label={runwayInHeadingCell ? 'Departure runway' : (PICKER_TITLES[open.cell] ?? 'Choose')} />
+            <Group label={runwayInHeadingCell ? 'Departure runway' : (spec?.title ?? PICKER_TITLES[open.cell] ?? 'Choose')} />
             {renderBody()}
           </div>
         ) : (

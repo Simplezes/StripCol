@@ -6,6 +6,12 @@
     gap: 4px;
 }
 
+.cm-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .cm {
     --tc: var(--line);
     width: 288px;

@@ -167,8 +167,8 @@ function LevelBody({ current, pick, prefix, withTokens }: NumberBodyProps & { pr
           <button className={`pk-chip${current === 'CA' ? ' on' : ''}`} onClick={() => pick('CA')}>
             CA
           </button>
-          <button className={`pk-chip${current === 'VA' ? ' on' : ''}`} onClick={() => pick('VA')}>
-            VA
+          <button className={`pk-chip${current === 'VAP' ? ' on' : ''}`} onClick={() => pick('VAP')}>
+            VAP
           </button>
         </div>
       )}
@@ -184,7 +184,7 @@ export function ClearedLevelBody(props: NumberBodyProps) {
 }
 
 export function FinalLevelBody(props: NumberBodyProps) {
-  return <LevelBody {...props} prefix="F" withTokens={false} />
+  return <LevelBody {...props} prefix="" withTokens={false} />
 }
 
 function wrapHeading(value: number): number {

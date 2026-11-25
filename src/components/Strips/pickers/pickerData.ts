@@ -1,6 +1,6 @@
 import { useAssetsStore } from '../../../stores/assetsStore'
 import type { ControllerMode, FlightPlan } from '../../../types'
-import { hasRunwayInCell18 } from '../../../utils/stripValues'
+import { layoutFor } from '../../../utils/stripLayout'
 import { buildLegs } from '../../ContextMenu/routeLegs'
 
 export interface PointOption {
@@ -8,34 +8,27 @@ export interface PointOption {
   eta: string
 }
 
-const ANY_MODE_CELLS = ['c6', 'c7', 'c9', 'c13', 'c14']
-const RADAR_ONLY_CELLS = ['c12']
-const POINT_CELLS = ['c19', 'c20', 'c21', 'c22']
+const PICKABLE_DATA_CELLS = ['c6', 'c7', 'c9', 'c12', 'c13', 'c14', 'c16']
 
 export function isPickableCell(key: string, mode: ControllerMode, type: string): boolean {
-  const radar = mode !== 'aerodrome'
-  if (RADAR_ONLY_CELLS.includes(key)) return radar
-  if (key === 'c16') return radar || type === 'departure'
-  if (key === 'c18') return hasRunwayInCell18(mode, type)
-  if (key === 'c8') return type !== 'overfly'
-  if (POINT_CELLS.includes(key)) return radar || type === 'arrival'
-  return ANY_MODE_CELLS.includes(key)
+  const layout = layoutFor(mode, type)
+  if (layout.cells[key]?.kind === 'point') return true
+  if (!layout.data.includes(key)) return false
+  if (key === layout.runway) return true
+  if (key === 'c8') return type === 'departure' || type === 'arrival'
+  return PICKABLE_DATA_CELLS.includes(key)
 }
 
 export const PICKER_TITLES: Record<string, string> = {
   c6: 'Squawk',
   c7: 'Departure time',
   c8: 'Procedure',
-  c9: 'Assigned speed',
+  c9: 'Speed adjustment',
   c12: 'Direct to',
-  c13: 'Final altitude',
-  c14: 'Cleared altitude',
-  c16: 'Assigned heading',
+  c13: 'Final level',
+  c14: 'Cleared level',
+  c16: 'Heading',
   c18: 'Runway',
-  c19: 'Notification point 1',
-  c20: 'Notification point 2',
-  c21: 'Notification point 3',
-  c22: 'Notification point 4',
 }
 
 export const LEVELS = Array.from({ length: 46 }, (_, i) => String((i + 1) * 10).padStart(3, '0'))

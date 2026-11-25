@@ -1,81 +1,67 @@
 import type { ControllerMode } from '../../types'
-import { hasRunwayInCell18, isClearanceFlagCell } from '../../utils/stripValues'
+import { layoutFor, type CellSpec } from '../../utils/stripLayout'
+import { isTowerDeparture } from '../../utils/stripValues'
 
 export interface CellHelp {
   title: string
   text: string
 }
 
-const NOTE: CellHelp = { title: 'Free note', text: 'Free text for your own use. Kept on the strip, not sent to EuroScope.' }
-
-function pointNote(n: number): CellHelp {
-  return {
-    title: `Notification point ${n}`,
-    text: `Fix you want to be notified about. Its estimated time is shown in the ETA cell for point ${n}.`,
-  }
-}
-
-function pointEta(n: number): CellHelp {
-  return {
-    title: `ETA over point ${n}`,
-    text: `Estimated time over notification point ${n}. Filled in automatically when the point is set.`,
-  }
-}
+const NOTE: CellHelp = { title: 'Free box', text: 'Free text for your own use. Kept on the strip, not sent to EuroScope.' }
 
 const FIXED: Record<string, CellHelp> = {
   c1: { title: 'Callsign', text: 'Aircraft callsign.' },
   c2: { title: 'Aircraft type', text: 'ICAO aircraft type from the flight plan.' },
-  c3: { title: 'Ground speed', text: 'Current ground speed in knots, as seen by EuroScope.' },
+  c3: { title: 'Speed', text: 'Filed true airspeed in knots, four digits (N0450).' },
   c4: { title: 'Departure', text: 'Departure aerodrome.' },
-  c5: { title: 'Arrival', text: 'Destination aerodrome.' },
+  c5: { title: 'Destination', text: 'Destination aerodrome.' },
   c6: { title: 'Squawk', text: 'Transponder code. Editing it assigns the new squawk in EuroScope.' },
-  c7: { title: 'Departure time', text: 'Actual or estimated departure time in UTC (HHMM). Editing it updates EuroScope.' },
-  c9: { title: 'Assigned speed', text: 'Assigned speed in knots, or Mach when you type a decimal such as .78. Editing it updates EuroScope.' },
+  c7: { title: 'Departure time', text: 'Actual departure time in UTC (HHMM). Editing it updates EuroScope.' },
+  c9: { title: 'Speed adjustment', text: 'Assigned speed in knots, or Mach when you type a decimal such as .78. Editing it updates EuroScope.' },
   c10: { title: 'Registration', text: 'Aircraft registration, read from the REG/ remark of the flight plan.' },
   c11: { title: 'Status', text: 'Special status from the STS/ remark of the flight plan, such as HOSP or STATE.' },
-  c13: { title: 'Final altitude', text: 'Requested cruise level. Editing it changes the final altitude in EuroScope.' },
+  c12: { title: 'Direct to', text: 'Fix the aircraft is cleared direct to. Clearing it also resets the assigned heading.' },
+  c13: { title: 'Final level', text: 'Requested cruise level in hundreds of feet (350). Editing it changes the final level in EuroScope.' },
   c14: {
-    title: 'Cleared altitude',
-    text: 'Level the aircraft is cleared to. Use CA to climb at pilot discretion or VA for a visual approach clearance. Editing it updates EuroScope.',
+    title: 'Cleared level',
+    text: 'Level the aircraft is cleared to. CA clears it to the airport, VAP for a visual approach. Editing it updates EuroScope.',
   },
-  c24: pointEta(1),
-  c25: pointEta(2),
-  c26: pointEta(3),
-  c27: pointEta(4),
-  c33: { title: 'Last update', text: 'Date and time (UTC) this strip was last updated.' },
+  c16: { title: 'Heading', text: 'Assigned heading or radar vector. Editing it updates EuroScope.' },
+  c32: { title: 'ETA', text: 'Estimated time of arrival at the destination.' },
+  c33: { title: 'Print time', text: 'Date and time (UTC) this strip was created.' },
+}
+
+const RUNWAY: CellHelp = {
+  title: 'Runway',
+  text: 'Runway in use. Changing it also switches the SID or STAR to one valid for that runway.',
+}
+
+function describeSpec(spec: CellSpec): CellHelp {
+  if (spec.kind === 'time') {
+    return { title: spec.title, text: `${spec.text ?? 'Time in UTC.'} Triple-click to stamp the current UTC time.` }
+  }
+  if (spec.kind === 'point') {
+    return { title: spec.title, text: `${spec.text ?? 'Filled in from the route.'} Triple-click to pick another point.` }
+  }
+  return { title: spec.title, text: spec.text ?? NOTE.text }
 }
 
 export function describeCell(key: string, mode: ControllerMode, type: string): CellHelp {
-  const radar = mode !== 'aerodrome'
+  const layout = layoutFor(mode, type)
+  const spec = layout.cells[key]
+  if (spec) return describeSpec(spec)
+  if (key === layout.runway) return RUNWAY
 
-  switch (key) {
-    case 'c8':
-      if (type === 'arrival') return { title: 'STAR', text: 'Standard arrival route. Changing it from the right-click menu updates EuroScope.' }
-      if (type === 'departure') return { title: 'SID', text: 'Standard instrument departure. Changing it from the right-click menu updates EuroScope.' }
-      return { title: 'Procedure', text: 'Departure or arrival procedure.' }
-    case 'c12':
-      if (isClearanceFlagCell(key, mode, type)) {
-        return { title: 'Clearance flag', text: 'Shows Ⓑ once the clearance is received. Triple-click to set or remove it in EuroScope.' }
-      }
-      return radar
-        ? { title: 'Direct to', text: 'Fix the aircraft is cleared direct to. Clearing it also resets the assigned heading.' }
-        : { title: 'Clearance', text: 'Direct point or clearance note.' }
-    case 'c16':
-      return radar || type !== 'departure'
-        ? { title: 'Assigned heading', text: 'Heading assigned to the aircraft. Editing it updates EuroScope.' }
-        : { title: 'Departure runway', text: 'Runway assigned for departure.' }
-    case 'c18':
-      return hasRunwayInCell18(mode, type)
-        ? { title: 'Runway', text: 'Assigned runway. Changing it also switches the SID or STAR to one valid for that runway.' }
-        : NOTE
-    case 'c32':
-      return type === 'arrival' ? { title: 'Estimated arrival', text: 'Estimated time of arrival at the destination.' } : NOTE
-    case 'c19':
-    case 'c20':
-    case 'c21':
-    case 'c22':
-      return pointNote(Number(key.slice(1)) - 18)
-    default:
-      return FIXED[key] ?? NOTE
+  const towerDeparture = isTowerDeparture(mode, type)
+  if (key === 'c7' && towerDeparture) {
+    return { title: 'EOBT', text: 'Estimated off-block time from the flight plan (HHMM UTC). Editing it updates EuroScope.' }
   }
+  if (key === 'c8') {
+    const procedure = type === 'arrival' ? 'Route clearance (STAR)' : 'Clearance (SID)'
+    return {
+      title: procedure,
+      text: 'Ⓑ is added once the clearance is received. Triple-click to set the clearance or change the procedure.',
+    }
+  }
+  return FIXED[key] ?? NOTE
 }

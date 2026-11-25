@@ -7,10 +7,10 @@ import { useContextMenuStore } from '../../stores/contextMenuStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useDragStore } from '../../stores/dragStore'
 import { apiFetch } from '../../utils/api'
-import { CUSTOM_BOX_KEYS, isClearanceFlagCell, runwayCellKey } from '../../utils/stripValues'
-import { toggleClearance } from '../../utils/stripActions'
+import { isTowerDeparture } from '../../utils/stripValues'
+import { freeCells, layoutFor, pointCellsCleared, timeStamp } from '../../utils/stripLayout'
 import { useAssetsStore } from '../../stores/assetsStore'
-import { computeProcedurePoints, fetchPointETAs } from '../../utils/procedurePoints'
+import { fetchPointETAs } from '../../utils/procedurePoints'
 import { showToast } from '../../utils/toast'
 import { useFitText } from './useFitText'
 import { useCellHint } from './useCellHint'
@@ -73,7 +73,7 @@ function digitsOnly(raw: string): string {
   return raw.replace(/\D+/g, '')
 }
 
-async function syncFieldToGateway(key: string, rawValue: string, callsign: string): Promise<void> {
+async function syncFieldToGateway(key: string, rawValue: string, callsign: string, towerDeparture = false): Promise<void> {
   const code = useSettingsStore.getState().settings.linkCode
   if (!code) return
 
@@ -90,6 +90,13 @@ async function syncFieldToGateway(key: string, rawValue: string, callsign: strin
     }
     case 'c7': {
       const Dtime = digitsOnly(value).padStart(4, '0').slice(0, 4) || '0000'
+      if (towerDeparture) {
+        await apiFetch('/api/set-eobt', {
+          method: 'POST',
+          body: JSON.stringify({ code, callsign, eobt: Dtime }),
+        })
+        return
+      }
       await apiFetch('/api/set-departureTime', {
         method: 'POST',
         body: JSON.stringify({ code, callsign, Dtime }),
@@ -140,7 +147,7 @@ async function syncFieldToGateway(key: string, rawValue: string, callsign: strin
       let clearedAltitude: string
       if (value === 'CA') {
         clearedAltitude = '1'
-      } else if (value === 'VA') {
+      } else if (value === 'VA' || value === 'VAP') {
         clearedAltitude = '2'
       } else {
         const fl = Number.parseInt(digitsOnly(value), 10)
@@ -180,7 +187,6 @@ export function Strip({ stripId, panelName, index }: StripProps) {
   )
 
   const prevFlightPlan = useRef(strip?.flightPlan)
-  const phase4Cells = useRef<Set<string>>(new Set())
 
   const localValuesRef = useRef(localValues)
   localValuesRef.current = localValues
@@ -189,47 +195,14 @@ export function Strip({ stripId, panelName, index }: StripProps) {
     if (!strip) return
     if (prevFlightPlan.current !== strip.flightPlan) {
       const next = { ...strip.values }
-      CUSTOM_BOX_KEYS.forEach((k) => {
+      const autoCells = strip.autoCells ?? []
+      freeCells(layoutFor(useConnectionStore.getState().controllerMode, strip.type)).forEach((k) => {
+        if (autoCells.includes(k)) return
         if (localValuesRef.current[k] && strip.values[k] !== '') next[k] = localValuesRef.current[k]
       })
       setLocalValues(next)
     }
     prevFlightPlan.current = strip.flightPlan
-  }, [strip?.flightPlan])
-
-  useEffect(() => {
-    if (!strip?.euroscope || !strip.flightPlan) return
-    const flight = strip.flightPlan
-    const { controllerMode } = useConnectionStore.getState()
-    const procedures = useAssetsStore.getState().procedures
-    const needsPoints =
-      controllerMode === 'approach' ||
-      controllerMode === 'center' ||
-      (controllerMode === 'aerodrome' && strip.type === 'arrival')
-    if (!needsPoints) return
-
-    const guardValues = Object.fromEntries(
-      Object.entries(strip.values).filter(([k]) => !phase4Cells.current.has(k)),
-    )
-
-    let cancelled = false
-    computeProcedurePoints(flight, strip.type, controllerMode, procedures, guardValues).then(
-      (extra) => {
-        if (cancelled || !Object.keys(extra).length) return
-        phase4Cells.current = new Set(Object.keys(extra))
-        setLocalValues((prev) => {
-          const merged = { ...prev }
-          Object.entries(extra).forEach(([k, v]) => {
-            if (!(prev[k] || '').trim() || phase4Cells.current.has(k)) merged[k] = v
-          })
-          return merged
-        })
-        usePanelStore.getState().updateStrip(panelName, stripId, {
-          values: { ...strip.values, ...extra },
-        })
-      },
-    )
-    return () => { cancelled = true }
   }, [strip?.flightPlan])
 
   const saveTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -245,7 +218,9 @@ export function Strip({ stripId, panelName, index }: StripProps) {
     const value = rawValue.toUpperCase()
     const updated = { ...localValues, [key]: value }
     setLocalValues(updated)
-    phase4Cells.current.delete(key)
+    if (strip?.autoCells?.includes(key)) {
+      usePanelStore.getState().updateStrip(panelName, stripId, { autoCells: strip.autoCells.filter((k) => k !== key) })
+    }
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => syncToStore(updated), 200)
   }
@@ -254,10 +229,17 @@ export function Strip({ stripId, panelName, index }: StripProps) {
     clearTimeout(saveTimer.current)
     syncToStore(localValues)
 
-    if (isClearanceFlagCell(key, useConnectionStore.getState().controllerMode, strip?.type ?? '')) return
+    const controllerMode = useConnectionStore.getState().controllerMode
+    const layout = layoutFor(controllerMode, strip?.type ?? '')
+    const spec = layout.cells[key]
+    if (spec) {
+      if (spec.kind === 'point' && spec.eto) refreshPointEto(key, spec.eto)
+      return
+    }
 
+    const towerDeparture = isTowerDeparture(controllerMode, strip?.type ?? '')
     const effectiveValue = domValue !== undefined ? domValue.trim().toUpperCase() : (localValues[key] ?? '')
-    const runwayKey = runwayCellKey(useConnectionStore.getState().controllerMode, strip?.type ?? '')
+    const runwayKey = layout.runway
 
     if (strip?.euroscope && strip.flightPlan?.callsign) {
       if (key === 'c12' && effectiveValue === '') {
@@ -266,15 +248,14 @@ export function Strip({ stripId, panelName, index }: StripProps) {
           console.error('Failed resetting heading on c12 clear:', err)
         })
       }
-      if (key !== 'c16' || runwayKey !== 'c16') {
-        syncFieldToGateway(key, effectiveValue, strip.flightPlan.callsign).catch((err) => {
+      if (key !== runwayKey) {
+        syncFieldToGateway(key, effectiveValue, strip.flightPlan.callsign, towerDeparture).catch((err) => {
           console.error(`Failed syncing ${key} to gateway:`, err)
         })
       }
     }
 
-    if (key === runwayKey && strip?.euroscope && strip.flightPlan) {
-      const { controllerMode } = useConnectionStore.getState()
+    if (runwayKey && key === runwayKey && strip?.euroscope && strip.flightPlan) {
       const procedures = useAssetsStore.getState().procedures as Record<string, Record<string, Record<string, Record<string, unknown>>>>
       const fp = strip.flightPlan
       const isArrival = strip.type === 'arrival'
@@ -292,7 +273,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
           syncToStore(reverted)
         } else {
           const currentProcRaw = (localValues['c8'] ?? '').trim().toUpperCase()
-          const baseProcName = currentProcRaw.split('/')[0]
+          const baseProcName = currentProcRaw.split(/[\s/]/)[0]
           const runwayProcs = runwaysObj[newRunway] as Record<string, unknown>
           const matchedKey = Object.keys(runwayProcs).find((k) => {
             const ku = k.toUpperCase()
@@ -323,13 +304,10 @@ export function Strip({ stripId, panelName, index }: StripProps) {
               return
             }
 
-            const clearedPoints: Record<string, string> = {}
-            for (let i = 19; i <= 27; i++) clearedPoints[`c${i}`] = ''
-
+            const clearedPoints = pointCellsCleared(layout)
             const updated = { ...localValues, [runwayKey]: newRunway, c8: matchedKey, ...clearedPoints }
             setLocalValues(updated)
             syncToStore(updated)
-            phase4Cells.current.clear()
 
             usePanelStore.getState().updateStrip(panelName, stripId, {
               values: { ...strip.values, [runwayKey]: newRunway, c8: matchedKey, ...clearedPoints },
@@ -345,22 +323,22 @@ export function Strip({ stripId, panelName, index }: StripProps) {
       }
     }
 
-    const notifPointMap: Record<string, string> = { c19: 'c24', c20: 'c25', c21: 'c26', c22: 'c27' }
-    if (key in notifPointMap && strip?.flightPlan?.callsign) {
-      const pointName = (localValues[key] ?? '').trim().toUpperCase()
-      const etaKey = notifPointMap[key]
-      if (!pointName) {
-        const cleared = { ...localValues, [etaKey]: '' }
-        setLocalValues(cleared)
-        syncToStore(cleared)
-      } else {
-        fetchPointETAs(strip.flightPlan.callsign, [{ name: pointName }]).then(([pt]) => {
-          const withEta = { ...localValues, [etaKey]: pt.eta ?? '' }
-          setLocalValues(withEta)
-          syncToStore(withEta)
-        })
-      }
+  }
+
+  const refreshPointEto = (key: string, etaKey: string) => {
+    const pointName = (localValues[key] ?? '').trim().toUpperCase()
+    if (!pointName) {
+      const cleared = { ...localValues, [etaKey]: '' }
+      setLocalValues(cleared)
+      syncToStore(cleared)
+      return
     }
+    if (!strip?.flightPlan?.callsign) return
+    fetchPointETAs(strip.flightPlan.callsign, [{ name: pointName }]).then(([pt]) => {
+      const withEta = { ...localValues, [etaKey]: pt.eta ?? '' }
+      setLocalValues(withEta)
+      syncToStore(withEta)
+    })
   }
 
   const showMenu = useContextMenuStore((s) => s.show)
@@ -374,8 +352,10 @@ export function Strip({ stripId, panelName, index }: StripProps) {
     if (!cell || !key) return
 
     const { controllerMode } = useConnectionStore.getState()
-    if (strip?.euroscope && strip.flightPlan && isClearanceFlagCell(key, controllerMode, strip.type)) {
-      toggleClearance(strip.flightPlan)
+    const editable = !(strip && !strip.euroscope && strip.flightPlan)
+    const spec = layoutFor(controllerMode, strip?.type ?? '').cells[key]
+    if (editable && spec?.kind === 'time') {
+      handleChange(key, timeStamp(spec, new Date()))
       return
     }
 
@@ -403,7 +383,6 @@ export function Strip({ stripId, panelName, index }: StripProps) {
   const landed = useDragStore((s) => s.landedId === stripId)
   const isSelected = useUIStore((s) => s.selectedStripId === stripId)
   const typeHidden = useUIStore((s) => s.trafficFilters[strip?.type as 'departure'] === false)
-  const controllerMode = useConnectionStore((s) => s.controllerMode)
 
   if (!strip) return null
 
@@ -443,7 +422,7 @@ export function Strip({ stripId, panelName, index }: StripProps) {
               key={key}
               className={`box ${CELL_CLASSES[i]}`}
               value={localValues[key] ?? ''}
-              readOnly={locked || isClearanceFlagCell(key, controllerMode, strip.type)}
+              readOnly={locked}
               tabIndex={locked ? -1 : undefined}
               onChange={(e) => handleChange(key, e.target.value)}
               onBlur={(e) => handleBlur(key, e.currentTarget.value)}
