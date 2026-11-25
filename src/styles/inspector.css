@@ -227,10 +227,8 @@
 .proc .pn {
     min-width: 0;
     flex: 1 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font: 700 22px/1 var(--font-cond);
+    overflow-wrap: anywhere;
+    font: 700 22px/1.1 var(--font-cond);
     letter-spacing: 0.03em;
 }
 

@@ -117,7 +117,7 @@ export function Inspector() {
           </div>
           <div className="card proc">
             <span className="sidtag">{isArrival ? 'STAR' : 'SID'}</span>
-            <span className="pn" title={procedure}>{procedure}</span>
+            <span className="pn" title={procedure}>{procedure.replace(/x/g, 'x​')}</span>
             {rwy && <span className="rwy">RWY {rwy}</span>}
           </div>
         </div>
